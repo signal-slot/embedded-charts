@@ -1,0 +1,267 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # First, run all CI checks to ensure quality
+  ci-check:
+    name: CI Check
+    uses: ./.github/workflows/ci.yml
+
+  # Create GitHub release
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: ci-check
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      release_version: ${{ steps.get_version.outputs.version }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Get version from tag
+      id: get_version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Extract changelog for this version if CHANGELOG.md exists
+        if [ -f "CHANGELOG.md" ]; then
+          # Try to extract the section for this version
+          VERSION=${{ steps.get_version.outputs.version }}
+          awk "/^## \[?$VERSION\]?/,/^## \[?[0-9]/ { if (/^## \[?[0-9]/ && !/^## \[?$VERSION\]?/) exit; print }" CHANGELOG.md > release_notes.md
+          
+          # If no specific version section found, use a generic message
+          if [ ! -s release_notes.md ]; then
+            echo "Release $VERSION" > release_notes.md
+            echo "" >> release_notes.md
+            echo "See [CHANGELOG.md](CHANGELOG.md) for details." >> release_notes.md
+          fi
+        else
+          # No changelog file, create basic release notes
+          echo "Release ${{ steps.get_version.outputs.version }}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "## Changes" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "This release includes various improvements and bug fixes." >> release_notes.md
+          echo "" >> release_notes.md
+          echo "For detailed information, see the commit history." >> release_notes.md
+        fi
+    
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release v${{ steps.get_version.outputs.version }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: ${{ contains(steps.get_version.outputs.version, '-') }}
+
+  # Publish to crates.io
+  publish-crates:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    needs: [ci-check, create-release]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-release-
+          ${{ runner.os }}-cargo-
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev
+    
+    - name: Verify version matches tag
+      run: |
+        CARGO_VERSION=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[0].version')
+        TAG_VERSION=${{ needs.create-release.outputs.release_version }}
+        echo "Cargo.toml version: $CARGO_VERSION"
+        echo "Git tag version: $TAG_VERSION"
+        if [ "$CARGO_VERSION" != "$TAG_VERSION" ]; then
+          echo "Version mismatch between Cargo.toml ($CARGO_VERSION) and git tag ($TAG_VERSION)"
+          exit 1
+        fi
+    
+    - name: Publish to crates.io
+      run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      env:
+        CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  # Build and upload documentation
+  publish-docs:
+    name: Publish Documentation
+    runs-on: ubuntu-latest
+    needs: [ci-check, create-release]
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-docs-release-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-docs-release-
+          ${{ runner.os }}-cargo-
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev
+    
+    - name: Build documentation
+      run: |
+        cargo doc --all-features --no-deps
+        echo '<meta http-equiv="refresh" content="0; url=embedded_charts">' > target/doc/index.html
+    
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      if: github.ref == 'refs/heads/main'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./target/doc
+        destination_dir: docs
+
+  # Verify docs.rs build
+  verify-docs-rs:
+    name: Verify docs.rs Build
+    runs-on: ubuntu-latest
+    needs: ci-check
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev
+    
+    - name: Simulate docs.rs build
+      run: |
+        # Simulate the docs.rs environment
+        cargo doc --all-features --no-deps
+      env:
+        RUSTDOCFLAGS: "--cfg docsrs"
+        DOCS_RS: 1
+
+  # Create release artifacts
+  build-artifacts:
+    name: Build Release Artifacts
+    runs-on: ubuntu-latest
+    needs: [ci-check, create-release]
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-pc-windows-gnu
+          - x86_64-apple-darwin
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+    
+    - name: Install cross-compilation tools
+      if: matrix.target == 'x86_64-pc-windows-gnu'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gcc-mingw-w64-x86-64
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-${{ matrix.target }}-
+          ${{ runner.os }}-cargo-
+    
+    - name: Build examples for target
+      run: |
+        # Build a subset of examples that don't require SDL2 for cross-compilation
+        cargo build --target ${{ matrix.target }} --example line_chart --features "std,line" --no-default-features
+        cargo build --target ${{ matrix.target }} --example bar_chart --features "std,bar" --no-default-features
+        cargo build --target ${{ matrix.target }} --example pie_chart --features "std,pie" --no-default-features
+    
+    - name: Create artifact archive
+      run: |
+        mkdir -p artifacts
+        cp target/${{ matrix.target }}/debug/examples/* artifacts/ 2>/dev/null || true
+        tar -czf embedded-charts-${{ needs.create-release.outputs.release_version }}-${{ matrix.target }}.tar.gz -C artifacts .
+    
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./embedded-charts-${{ needs.create-release.outputs.release_version }}-${{ matrix.target }}.tar.gz
+        asset_name: embedded-charts-${{ needs.create-release.outputs.release_version }}-${{ matrix.target }}.tar.gz
+        asset_content_type: application/gzip
+
+  # Post-release verification
+  post-release-check:
+    name: Post-Release Verification
+    runs-on: ubuntu-latest
+    needs: [publish-crates]
+    steps:
+    - name: Wait for crates.io propagation
+      run: sleep 60
+    
+    - name: Verify crates.io publication
+      run: |
+        VERSION=${{ needs.create-release.outputs.release_version }}
+        # Try to fetch the crate info from crates.io API
+        curl -f "https://crates.io/api/v1/crates/embedded-charts/$VERSION" || {
+          echo "Failed to verify publication on crates.io"
+          exit 1
+        }
+    
+    - name: Test installation from crates.io
+      run: |
+        cargo init test-install
+        cd test-install
+        cargo add embedded-charts@${{ needs.create-release.outputs.release_version }}
+        cargo check

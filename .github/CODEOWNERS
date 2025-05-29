@@ -1,0 +1,53 @@
+# Code owners for embedded-charts
+# This file defines who should be automatically requested for review
+# when changes are made to specific parts of the codebase.
+
+# Global owners - these users will be requested for review on all PRs
+* @tasuku-suzuki
+
+# Core library code
+/src/ @tasuku-suzuki
+
+# Chart implementations
+/src/chart/ @tasuku-suzuki
+/src/axes/ @tasuku-suzuki
+/src/legend/ @tasuku-suzuki
+/src/grid/ @tasuku-suzuki
+
+# Animation and time-related code
+/src/animation.rs @tasuku-suzuki
+/src/time.rs @tasuku-suzuki
+
+# Memory and performance critical code
+/src/memory.rs @tasuku-suzuki
+/src/math/ @tasuku-suzuki
+
+# Style and theming
+/src/style/ @tasuku-suzuki
+
+# Examples - require review for changes to examples
+/examples/ @tasuku-suzuki
+
+# Tests - require review for test changes
+/tests/ @tasuku-suzuki
+
+# Documentation
+*.md @tasuku-suzuki
+/docs/ @tasuku-suzuki
+
+# Configuration files
+Cargo.toml @tasuku-suzuki
+Cargo.lock @tasuku-suzuki
+deny.toml @tasuku-suzuki
+
+# CI/CD and GitHub configuration
+/.github/ @tasuku-suzuki
+/.github/workflows/ @tasuku-suzuki
+
+# Security-related files
+/deny.toml @tasuku-suzuki
+/.github/workflows/security.yml @tasuku-suzuki
+
+# Release-related files
+/.github/workflows/release.yml @tasuku-suzuki
+CHANGELOG.md @tasuku-suzuki

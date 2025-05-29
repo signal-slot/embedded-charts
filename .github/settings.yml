@@ -1,0 +1,223 @@
+# Repository settings for embedded-charts
+# This file can be used with the Probot Settings app to automatically configure repository settings
+
+repository:
+  # Repository description
+  description: "A charting library for embedded systems using embedded-graphics with std/no_std support"
+  
+  # Repository homepage
+  homepage: "https://docs.rs/embedded-charts"
+  
+  # Repository topics
+  topics:
+    - embedded
+    - graphics
+    - charts
+    - rust
+    - no-std
+    - visualization
+    - microcontroller
+    - embedded-graphics
+    - real-time
+    - dashboard
+  
+  # Repository settings
+  private: false
+  has_issues: true
+  has_projects: true
+  has_wiki: false
+  has_downloads: true
+  default_branch: main
+  allow_squash_merge: true
+  allow_merge_commit: false
+  allow_rebase_merge: true
+  delete_branch_on_merge: true
+  enable_automated_security_fixes: true
+  enable_vulnerability_alerts: true
+
+# Labels for issue and PR management
+labels:
+  # Type labels
+  - name: "bug"
+    color: "d73a4a"
+    description: "Something isn't working"
+  
+  - name: "enhancement"
+    color: "a2eeef"
+    description: "New feature or request"
+  
+  - name: "documentation"
+    color: "0075ca"
+    description: "Improvements or additions to documentation"
+  
+  - name: "performance"
+    color: "ff6b6b"
+    description: "Performance related issues or improvements"
+  
+  - name: "security"
+    color: "ee0701"
+    description: "Security related issues"
+  
+  # Priority labels
+  - name: "priority: low"
+    color: "c2e0c6"
+    description: "Low priority"
+  
+  - name: "priority: medium"
+    color: "fbca04"
+    description: "Medium priority"
+  
+  - name: "priority: high"
+    color: "ff9500"
+    description: "High priority"
+  
+  - name: "priority: critical"
+    color: "b60205"
+    description: "Critical priority"
+  
+  # Chart type labels
+  - name: "charts"
+    color: "1d76db"
+    description: "Related to chart functionality"
+  
+  - name: "animation"
+    color: "5319e7"
+    description: "Related to animations"
+  
+  - name: "examples"
+    color: "0e8a16"
+    description: "Related to examples"
+  
+  - name: "tests"
+    color: "f9d0c4"
+    description: "Related to testing"
+  
+  # Environment labels
+  - name: "std"
+    color: "bfd4f2"
+    description: "Standard library environment"
+  
+  - name: "no_std"
+    color: "d4c5f9"
+    description: "No standard library environment"
+  
+  - name: "small-mcu"
+    color: "c5def5"
+    description: "Small MCU target (<64KB RAM)"
+  
+  - name: "medium-mcu"
+    color: "bfe5bf"
+    description: "Medium MCU target (128-512KB RAM)"
+  
+  - name: "large-mcu"
+    color: "fef2c0"
+    description: "Large MCU target (>512KB RAM)"
+  
+  # Status labels
+  - name: "good first issue"
+    color: "7057ff"
+    description: "Good for newcomers"
+  
+  - name: "help wanted"
+    color: "008672"
+    description: "Extra attention is needed"
+  
+  - name: "wontfix"
+    color: "ffffff"
+    description: "This will not be worked on"
+  
+  - name: "duplicate"
+    color: "cfd3d7"
+    description: "This issue or pull request already exists"
+  
+  - name: "invalid"
+    color: "e4e669"
+    description: "This doesn't seem right"
+  
+  - name: "question"
+    color: "d876e3"
+    description: "Further information is requested"
+  
+  - name: "stale"
+    color: "fef2c0"
+    description: "This issue or PR has been inactive for a while"
+  
+  # CI/CD labels
+  - name: "ci/cd"
+    color: "0052cc"
+    description: "Related to CI/CD pipeline"
+  
+  - name: "dependencies"
+    color: "0366d6"
+    description: "Pull requests that update a dependency file"
+  
+  - name: "github-actions"
+    color: "000000"
+    description: "Related to GitHub Actions"
+  
+  - name: "rust"
+    color: "dea584"
+    description: "Related to Rust language"
+  
+  # Contributor labels
+  - name: "first-time-contributor"
+    color: "blueviolet"
+    description: "First-time contributor"
+  
+  - name: "hacktoberfest"
+    color: "ff8c00"
+    description: "Hacktoberfest eligible"
+  
+  # Breaking change labels
+  - name: "breaking-change"
+    color: "b60205"
+    description: "This change breaks existing functionality"
+  
+  - name: "api-change"
+    color: "ff6b6b"
+    description: "This change affects the public API"
+
+# Branch protection rules
+branches:
+  - name: main
+    protection:
+      required_status_checks:
+        strict: true
+        contexts:
+          - "Test Suite (stable)"
+          - "Test Suite (beta)"
+          - "Test Suite (1.70.0)"
+          - "Clippy"
+          - "Rustfmt"
+          - "Examples"
+          - "Documentation"
+      enforce_admins: false
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: true
+        require_code_owner_reviews: true
+        dismissal_restrictions:
+          users: []
+          teams: []
+      restrictions:
+        users: []
+        teams: []
+      allow_force_pushes: false
+      allow_deletions: false
+
+  - name: develop
+    protection:
+      required_status_checks:
+        strict: false
+        contexts:
+          - "Test Suite (stable)"
+          - "Clippy"
+          - "Rustfmt"
+      enforce_admins: false
+      required_pull_request_reviews:
+        required_approving_review_count: 1
+        dismiss_stale_reviews: false
+        require_code_owner_reviews: false
+      restrictions: null
+      allow_force_pushes: false
+      allow_deletions: false

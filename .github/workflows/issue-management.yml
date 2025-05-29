@@ -1,0 +1,261 @@
+name: Issue Management
+
+on:
+  issues:
+    types: [opened, labeled, unlabeled]
+  pull_request:
+    types: [opened, labeled, unlabeled, closed]
+  schedule:
+    # Run daily at 1 AM UTC to check for stale issues
+    - cron: '0 1 * * *'
+
+jobs:
+  label-issues:
+    name: Auto-label Issues
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues' && github.event.action == 'opened'
+    steps:
+    - name: Label bug reports
+      if: contains(github.event.issue.body, 'bug') || contains(github.event.issue.title, 'bug')
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.addLabels({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: ['bug']
+          })
+    
+    - name: Label feature requests
+      if: contains(github.event.issue.body, 'feature') || contains(github.event.issue.title, 'feature')
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.addLabels({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: ['enhancement']
+          })
+    
+    - name: Label documentation issues
+      if: contains(github.event.issue.body, 'documentation') || contains(github.event.issue.title, 'docs')
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.addLabels({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: ['documentation']
+          })
+    
+    - name: Label performance issues
+      if: contains(github.event.issue.body, 'performance') || contains(github.event.issue.body, 'slow')
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.addLabels({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: ['performance']
+          })
+
+  welcome-contributor:
+    name: Welcome New Contributors
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    steps:
+    - name: Check if first-time contributor
+      uses: actions/github-script@v7
+      id: check-contributor
+      with:
+        script: |
+          const { data: pullRequests } = await github.rest.pulls.list({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'all',
+            creator: context.payload.pull_request.user.login
+          });
+          
+          const isFirstTime = pullRequests.length === 1;
+          return isFirstTime;
+    
+    - name: Welcome first-time contributor
+      if: steps.check-contributor.outputs.result == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const message = `
+          🎉 Welcome to embedded-charts! Thank you for your first contribution!
+          
+          Here are a few things to keep in mind:
+          - Make sure your code follows our formatting guidelines (run \`cargo fmt\`)
+          - Ensure all tests pass (run \`cargo test\`)
+          - Check that clippy is happy (run \`cargo clippy\`)
+          - If you're adding new features, consider adding examples or tests
+          - Update documentation if needed
+          
+          Our maintainers will review your PR soon. Thanks again for contributing! 🚀
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: message
+          });
+          
+          github.rest.issues.addLabels({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: ['first-time-contributor']
+          });
+
+  stale-issues:
+    name: Mark Stale Issues
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+    - uses: actions/stale@v9
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        stale-issue-message: |
+          This issue has been automatically marked as stale because it has not had
+          recent activity. It will be closed if no further activity occurs within 7 days.
+          If this issue is still relevant, please leave a comment to keep it open.
+        stale-pr-message: |
+          This pull request has been automatically marked as stale because it has not had
+          recent activity. It will be closed if no further activity occurs within 7 days.
+          If this PR is still relevant, please leave a comment to keep it open.
+        close-issue-message: |
+          This issue has been automatically closed due to inactivity.
+          If you believe this issue is still relevant, please reopen it or create a new issue.
+        close-pr-message: |
+          This pull request has been automatically closed due to inactivity.
+          If you believe this PR is still relevant, please reopen it.
+        days-before-stale: 60
+        days-before-close: 7
+        stale-issue-label: 'stale'
+        stale-pr-label: 'stale'
+        exempt-issue-labels: 'pinned,security,enhancement'
+        exempt-pr-labels: 'pinned,security'
+
+  assign-reviewers:
+    name: Auto-assign Reviewers
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    steps:
+    - name: Assign reviewers based on files changed
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: files } = await github.rest.pulls.listFiles({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number
+          });
+          
+          let reviewers = [];
+          let labels = [];
+          
+          const changedFiles = files.map(file => file.filename);
+          
+          // Check for different types of changes
+          if (changedFiles.some(file => file.startsWith('src/chart/'))) {
+            labels.push('charts');
+          }
+          
+          if (changedFiles.some(file => file.startsWith('src/animation'))) {
+            labels.push('animation');
+          }
+          
+          if (changedFiles.some(file => file.startsWith('examples/'))) {
+            labels.push('examples');
+          }
+          
+          if (changedFiles.some(file => file.includes('test'))) {
+            labels.push('tests');
+          }
+          
+          if (changedFiles.some(file => file.endsWith('.md'))) {
+            labels.push('documentation');
+          }
+          
+          if (changedFiles.some(file => file.includes('.github'))) {
+            labels.push('ci/cd');
+          }
+          
+          // Add labels
+          if (labels.length > 0) {
+            await github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: labels
+            });
+          }
+
+  check-pr-requirements:
+    name: Check PR Requirements
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check PR description
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const body = context.payload.pull_request.body || '';
+          const title = context.payload.pull_request.title;
+          
+          let issues = [];
+          
+          // Check if PR has a description
+          if (body.length < 10) {
+            issues.push('- Please provide a meaningful description of your changes');
+          }
+          
+          // Check if title follows conventional commits
+          const conventionalCommitPattern = /^(feat|fix|docs|style|refactor|perf|test|chore|ci)(\(.+\))?: .+/;
+          if (!conventionalCommitPattern.test(title)) {
+            issues.push('- Please use conventional commit format for the title (e.g., "feat: add new chart type")');
+          }
+          
+          // Check if breaking changes are mentioned
+          if (title.includes('!') || body.toLowerCase().includes('breaking')) {
+            issues.push('- This appears to contain breaking changes. Please ensure they are well documented');
+          }
+          
+          if (issues.length > 0) {
+            const message = `
+            ## PR Requirements Check
+            
+            Thank you for your contribution! Please address the following items:
+            
+            ${issues.join('\n')}
+            
+            ### Conventional Commit Format
+            Please use one of these prefixes for your PR title:
+            - \`feat:\` for new features
+            - \`fix:\` for bug fixes
+            - \`docs:\` for documentation changes
+            - \`style:\` for formatting changes
+            - \`refactor:\` for code refactoring
+            - \`perf:\` for performance improvements
+            - \`test:\` for adding tests
+            - \`chore:\` for maintenance tasks
+            - \`ci:\` for CI/CD changes
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
+          }

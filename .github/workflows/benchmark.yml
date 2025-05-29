@@ -1,0 +1,187 @@
+name: Benchmark
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run benchmarks weekly on Sunday at 3 AM UTC
+    - cron: '0 3 * * 0'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  benchmark:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-bench-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-bench-
+          ${{ runner.os }}-cargo-
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev
+    
+    - name: Install cargo-criterion
+      run: cargo install cargo-criterion
+    
+    - name: Run benchmarks
+      run: cargo criterion --message-format=json > benchmark-results.json
+      continue-on-error: true
+    
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: benchmark-results
+        path: benchmark-results.json
+    
+    - name: Store benchmark result
+      uses: benchmark-action/github-action-benchmark@v1
+      if: github.ref == 'refs/heads/main'
+      with:
+        tool: 'cargo'
+        output-file-path: benchmark-results.json
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        auto-push: true
+        comment-on-alert: true
+        alert-threshold: '200%'
+        fail-on-alert: false
+
+  memory-usage:
+    name: Memory Usage Analysis
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-memory-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-memory-
+          ${{ runner.os }}-cargo-
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev valgrind
+    
+    - name: Install cargo-bloat
+      run: cargo install cargo-bloat
+    
+    - name: Analyze binary size
+      run: |
+        echo "## Binary Size Analysis" > memory-report.md
+        echo "" >> memory-report.md
+        
+        # Build with different feature combinations
+        echo "### Default features" >> memory-report.md
+        cargo build --release
+        cargo bloat --release --crates >> memory-report.md
+        echo "" >> memory-report.md
+        
+        echo "### Small MCU features" >> memory-report.md
+        cargo build --release --no-default-features --features "small-mcu"
+        cargo bloat --release --crates --features "small-mcu" >> memory-report.md
+        echo "" >> memory-report.md
+        
+        echo "### Medium MCU features" >> memory-report.md
+        cargo build --release --no-default-features --features "medium-mcu"
+        cargo bloat --release --crates --features "medium-mcu" >> memory-report.md
+        echo "" >> memory-report.md
+        
+        echo "### Large MCU features" >> memory-report.md
+        cargo build --release --no-default-features --features "large-mcu"
+        cargo bloat --release --crates --features "large-mcu" >> memory-report.md
+    
+    - name: Upload memory analysis
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: memory-analysis
+        path: memory-report.md
+
+  compile-time:
+    name: Compile Time Analysis
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-compile-time-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-compile-time-
+          ${{ runner.os }}-cargo-
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev
+    
+    - name: Install cargo-timings
+      run: cargo install cargo-timings
+    
+    - name: Measure compile times
+      run: |
+        echo "## Compile Time Analysis" > compile-time-report.md
+        echo "" >> compile-time-report.md
+        
+        # Clean build
+        cargo clean
+        
+        # Measure compile time for different feature sets
+        echo "### Default features" >> compile-time-report.md
+        time cargo build --timings 2>&1 | tee -a compile-time-report.md
+        echo "" >> compile-time-report.md
+        
+        cargo clean
+        echo "### Small MCU features" >> compile-time-report.md
+        time cargo build --no-default-features --features "small-mcu" --timings 2>&1 | tee -a compile-time-report.md
+        echo "" >> compile-time-report.md
+        
+        cargo clean
+        echo "### All features" >> compile-time-report.md
+        time cargo build --all-features --timings 2>&1 | tee -a compile-time-report.md
+    
+    - name: Upload compile time analysis
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: compile-time-analysis
+        path: |
+          compile-time-report.md
+          cargo-timing-*.html

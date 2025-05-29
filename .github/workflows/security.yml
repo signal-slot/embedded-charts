@@ -1,0 +1,135 @@
+name: Security
+
+on:
+  schedule:
+    # Run security audit every day at 2 AM UTC
+    - cron: '0 2 * * *'
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-audit-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-audit-
+          ${{ runner.os }}-cargo-
+    
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
+    
+    - name: Run security audit
+      run: cargo audit
+    
+    - name: Run security audit with JSON output
+      run: cargo audit --json > audit-results.json
+      continue-on-error: true
+    
+    - name: Upload audit results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-audit-results
+        path: audit-results.json
+
+  cargo-deny:
+    name: Cargo Deny
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Install cargo-deny
+      run: cargo install cargo-deny
+    
+    - name: Run cargo-deny
+      run: cargo deny check
+
+  supply-chain:
+    name: Supply Chain Security
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-supply-chain-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-supply-chain-
+          ${{ runner.os }}-cargo-
+    
+    - name: Install cargo-supply-chain
+      run: cargo install cargo-supply-chain
+    
+    - name: Run supply chain analysis
+      run: cargo supply-chain crates > supply-chain-report.txt
+      continue-on-error: true
+    
+    - name: Upload supply chain report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: supply-chain-report
+        path: supply-chain-report.txt
+
+  license-check:
+    name: License Check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Install cargo-license
+      run: cargo install cargo-license
+    
+    - name: Check licenses
+      run: |
+        echo "Checking dependency licenses..."
+        cargo license --json > licenses.json
+        
+        # Check for problematic licenses
+        if cargo license | grep -E "(GPL|AGPL|SSPL|Commons Clause)" && ! cargo license | grep -E "(LGPL|GPL.*linking exception)"; then
+          echo "Found potentially problematic copyleft licenses"
+          cargo license
+          exit 1
+        fi
+        
+        echo "License check passed"
+    
+    - name: Upload license report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: license-report
+        path: licenses.json

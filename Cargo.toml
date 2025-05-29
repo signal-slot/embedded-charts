@@ -1,0 +1,177 @@
+[package]
+name = "embedded-charts"
+version = "0.1.0"
+edition = "2021"
+authors = ["Tasuku Suzuki <tasuku.suzuki@signal-slot.co.jp>"]
+description = "A rich graph framework for embedded systems using embedded-graphics with std/no_std support"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/signal-slot/embedded-charts"
+documentation = "https://docs.rs/embedded-charts"
+keywords = ["embedded", "graphics", "graph", "charts", "no_std"]
+categories = ["embedded", "graphics", "visualization"]
+readme = "README.md"
+
+[dependencies]
+embedded-graphics = { version = "0.8", default-features = false }
+heapless = { version = "0.8", default-features = false }
+nb = { version = "1.0", optional = true, default-features = false }
+
+# Math backend dependencies
+micromath = { version = "2.0", optional = true, default-features = false }
+libm = { version = "0.2", optional = true, default-features = false }
+fixed = { version = "1.0", optional = true, default-features = false }
+cordic = { version = "0.1", optional = true, default-features = false }
+
+# Development and testing dependencies
+embedded-graphics-simulator = { version = "0.7", optional = true }
+
+[dev-dependencies]
+embedded-graphics-simulator = { version = "0.7", features = ["with-sdl"] }
+image = "0.25"
+
+[features]
+default = ["std", "basic-charts", "integer-math"]
+
+# std/no_std support
+std = ["floating-point", "animations"]  # Enhanced features for std environments
+no_std = ["integer-math"]  # Default to integer math for no_std environments
+
+# Math backend features - mutually exclusive
+floating-point = ["micromath"]        # Full floating-point math with micromath
+libm-math = ["libm"]                  # Alternative floating-point with libm
+fixed-point = ["fixed"]               # Fixed-point arithmetic
+integer-math = []                     # Integer-only math (most constrained)
+cordic-math = ["cordic", "fixed"]     # CORDIC-based trigonometric functions
+
+# Chart type features
+basic-charts = ["line", "bar", "pie"]
+advanced-charts = ["scatter", "gauge", "custom", "stacked-charts"]
+line = []
+bar = []
+stacked-charts = ["stacked-bars", "stacked-lines"]
+stacked-bars = []
+stacked-lines = []
+pie = ["donut"]
+donut = []
+scatter = []
+gauge = []
+custom = []
+
+# Rendering features
+color-support = []
+anti-aliasing = ["floating-point"]    # Requires floating-point math
+animations = []
+smooth-curves = ["floating-point"]    # Bezier curves require floating-point
+capture = ["std"]                     # Screenshot and GIF capture functionality
+
+# Memory optimization features
+static-only = []                      # Only static allocation, no dynamic features
+minimal-memory = ["static-only"]      # Minimal memory footprint
+
+
+# Basic examples (visual charts with SimulatorDisplay)
+[[example]]
+name = "line_chart"
+path = "examples/basic/line_chart.rs"
+required-features = ["std", "line"]
+
+[[example]]
+name = "bar_chart"
+path = "examples/basic/bar_chart.rs"
+required-features = ["std", "bar"]
+
+[[example]]
+name = "pie_chart"
+path = "examples/basic/pie_chart.rs"
+required-features = ["std", "pie"]
+
+[[example]]
+name = "temperature_monitor"
+path = "examples/basic/temperature_monitor.rs"
+required-features = ["std", "line"]
+
+[[example]]
+name = "axis_demo"
+path = "examples/basic/axis_demo.rs"
+required-features = ["std", "line"]
+
+[[example]]
+name = "legend_demo"
+path = "examples/basic/legend_demo.rs"
+required-features = ["std", "line"]
+
+[[example]]
+name = "production_ready_demo"
+path = "examples/basic/production_ready_demo.rs"
+required-features = ["std", "line"]
+
+[[example]]
+name = "streaming_animation_demo"
+path = "examples/basic/streaming_animation_demo.rs"
+required-features = ["std", "line", "animations"]
+
+[[example]]
+name = "data_transition_demo"
+path = "examples/basic/data_transition_demo.rs"
+required-features = ["std", "line", "animations"]
+
+[[example]]
+name = "scatter_chart"
+path = "examples/basic/scatter_chart.rs"
+required-features = ["std", "scatter"]
+
+[[example]]
+name = "bubble_chart"
+path = "examples/basic/bubble_chart.rs"
+required-features = ["std", "scatter"]
+
+[[example]]
+name = "gauge_chart"
+path = "examples/basic/gauge_chart.rs"
+required-features = ["std", "gauge"]
+
+[[example]]
+name = "stacked_line_chart"
+path = "examples/basic/stacked_line_chart.rs"
+required-features = ["std", "stacked-charts"]
+
+[[example]]
+name = "stacked_bar_chart"
+path = "examples/basic/stacked_bar_chart.rs"
+required-features = ["std", "stacked-charts"]
+
+[[example]]
+name = "theme_showcase"
+path = "examples/basic/theme_showcase.rs"
+required-features = ["std", "line", "bar", "pie"]
+
+# Interactive examples (advanced features with animations)
+[[example]]
+name = "multi_series_chart"
+path = "examples/interactive/multi_series_chart.rs"
+required-features = ["std", "line"]
+
+[[example]]
+name = "multi_series_dashboard"
+path = "examples/interactive/multi_series_dashboard.rs"
+required-features = ["std", "line", "bar", "animations"]
+
+[[example]]
+name = "real_time_dashboard"
+path = "examples/interactive/real_time_dashboard.rs"
+required-features = ["std", "line", "gauge", "animations"]
+
+[[example]]
+name = "unified_streaming_demo"
+path = "examples/interactive/unified_streaming_demo.rs"
+required-features = ["std", "line", "animations"]
+
+[[example]]
+name = "interactive_scatter_demo"
+path = "examples/interactive/interactive_scatter_demo.rs"
+required-features = ["std", "scatter"]
+
+[[example]]
+name = "time_provider_demo"
+path = "examples/basic/time_provider_demo.rs"
+required-features = ["std", "line", "animations"]

@@ -1,0 +1,132 @@
+name: Feature Request
+description: Suggest an idea for embedded-charts
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to suggest a new feature! Please provide as much detail as possible.
+
+  - type: textarea
+    id: problem-description
+    attributes:
+      label: Is your feature request related to a problem?
+      description: A clear and concise description of what the problem is.
+      placeholder: I'm always frustrated when...
+    validations:
+      required: false
+
+  - type: textarea
+    id: solution-description
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you want to happen.
+      placeholder: I would like to see...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Describe alternatives you've considered
+      description: A clear and concise description of any alternative solutions or features you've considered.
+      placeholder: I've also considered...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: feature-category
+    attributes:
+      label: Feature category
+      description: What category does this feature belong to?
+      options:
+        - New chart type
+        - Chart enhancement
+        - Animation/interaction
+        - Performance improvement
+        - API improvement
+        - Documentation
+        - Developer experience
+        - Memory optimization
+        - Platform support
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target-environment
+    attributes:
+      label: Target environment
+      description: Which environments should this feature support?
+      multiple: true
+      options:
+        - std (desktop/server)
+        - no_std (embedded)
+        - small-mcu (<64KB RAM)
+        - medium-mcu (128-512KB RAM)
+        - large-mcu (>512KB RAM)
+        - All environments
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would be helpful
+        - High - Important for my use case
+        - Critical - Blocking my project
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: Describe your specific use case for this feature
+      placeholder: |
+        I'm working on a project where...
+        This feature would help me...
+    validations:
+      required: true
+
+  - type: textarea
+    id: api-design
+    attributes:
+      label: Proposed API design (optional)
+      description: If you have ideas about how the API should look, please share them
+      render: rust
+      placeholder: |
+        // Example API design
+        let chart = LineChart::new()
+            .with_new_feature(...)
+            .build();
+
+  - type: textarea
+    id: implementation-notes
+    attributes:
+      label: Implementation considerations
+      description: Any thoughts on implementation challenges, performance implications, or compatibility concerns?
+      placeholder: |
+        This might require...
+        Potential challenges could be...
+        Performance impact...
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add any other context, screenshots, or examples about the feature request here.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our Code of Conduct
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
