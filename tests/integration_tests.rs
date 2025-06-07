@@ -4,9 +4,7 @@
 
 use embedded_charts::{
     chart::{
-        bar::BarChart,
         line::LineChart,
-        pie::PieChart,
         traits::{Chart, ChartBuilder},
     },
     data::{
@@ -14,6 +12,12 @@ use embedded_charts::{
         series::{DataSeries, StaticDataSeries},
     },
 };
+
+#[cfg(feature = "bar")]
+use embedded_charts::chart::bar::BarChart;
+
+#[cfg(feature = "pie")]
+use embedded_charts::chart::pie::PieChart;
 use embedded_graphics::{
     mock_display::MockDisplay, pixelcolor::Rgb565, prelude::*, primitives::Rectangle,
 };
@@ -29,6 +33,7 @@ use embedded_charts::chart::scatter::{
     LinePattern, PointShape, ScatterChart, SizeMapping, SizeScaling,
 };
 
+#[cfg(any(feature = "scatter", feature = "gauge"))]
 use heapless::Vec;
 
 #[test]
@@ -68,6 +73,7 @@ fn test_line_chart_creation_and_basic_usage() {
 }
 
 #[test]
+#[cfg(feature = "bar")]
 fn test_bar_chart_creation_and_basic_usage() {
     // Create sample data
     let mut series: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
@@ -99,6 +105,7 @@ fn test_bar_chart_creation_and_basic_usage() {
 }
 
 #[test]
+#[cfg(feature = "pie")]
 fn test_pie_chart_creation_and_basic_usage() {
     // Create sample data
     let mut series: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
@@ -785,23 +792,26 @@ fn test_memory_usage_validation() {
         let result = line_chart.draw(&series, line_chart.config(), viewport, &mut display);
         assert!(result.is_ok(), "Failed with dataset size: {}", size);
 
-        // Test with scatter chart
-        let scatter_chart: ScatterChart<Rgb565> = ScatterChart::builder()
-            .point_shape(PointShape::Circle)
-            .point_size(3)
-            .point_color(Rgb565::BLUE)
-            .build()
-            .unwrap();
+        #[cfg(feature = "scatter")]
+        {
+            // Test with scatter chart
+            let scatter_chart: ScatterChart<Rgb565> = ScatterChart::builder()
+                .point_shape(PointShape::Circle)
+                .point_size(3)
+                .point_color(Rgb565::BLUE)
+                .build()
+                .unwrap();
 
-        let mut display2: MockDisplay<Rgb565> = MockDisplay::new();
-        display2.set_allow_overdraw(true);
+            let mut display2: MockDisplay<Rgb565> = MockDisplay::new();
+            display2.set_allow_overdraw(true);
 
-        let result2 = scatter_chart.draw(&series, scatter_chart.config(), viewport, &mut display2);
-        assert!(
-            result2.is_ok(),
-            "Scatter failed with dataset size: {}",
-            size
-        );
+            let result2 = scatter_chart.draw(&series, scatter_chart.config(), viewport, &mut display2);
+            assert!(
+                result2.is_ok(),
+                "Scatter failed with dataset size: {}",
+                size
+            );
+        }
 
         // Verify series properties
         assert_eq!(series.len(), size);
@@ -842,37 +852,40 @@ fn test_rendering_performance_benchmarks() {
     let result = line_chart.draw(&series, line_chart.config(), viewport, &mut display);
     assert!(result.is_ok());
 
-    // Test scatter chart with all features
-    let mut colors: Vec<Rgb565, 16> = Vec::new();
-    colors.push(Rgb565::RED).unwrap();
-    colors.push(Rgb565::GREEN).unwrap();
-    colors.push(Rgb565::BLUE).unwrap();
-    colors.push(Rgb565::YELLOW).unwrap();
+    #[cfg(feature = "scatter")]
+    {
+        // Test scatter chart with all features
+        let mut colors: Vec<Rgb565, 16> = Vec::new();
+        colors.push(Rgb565::RED).unwrap();
+        colors.push(Rgb565::GREEN).unwrap();
+        colors.push(Rgb565::BLUE).unwrap();
+        colors.push(Rgb565::YELLOW).unwrap();
 
-    let color_mapping = ColorMapping {
-        colors,
-        strategy: ColorMappingStrategy::ValueBased,
-    };
+        let color_mapping = ColorMapping {
+            colors,
+            strategy: ColorMappingStrategy::ValueBased,
+        };
 
-    let size_mapping = SizeMapping {
-        min_size: 2,
-        max_size: 6,
-        scaling: SizeScaling::Linear,
-    };
+        let size_mapping = SizeMapping {
+            min_size: 2,
+            max_size: 6,
+            scaling: SizeScaling::Linear,
+        };
 
-    let scatter_chart: ScatterChart<Rgb565> = ScatterChart::builder()
-        .point_shape(PointShape::Circle)
-        .with_size_mapping(size_mapping)
-        .with_color_mapping(color_mapping)
-        .with_title("Performance Benchmark - Scatter")
-        .build()
-        .unwrap();
+        let scatter_chart: ScatterChart<Rgb565> = ScatterChart::builder()
+            .point_shape(PointShape::Circle)
+            .with_size_mapping(size_mapping)
+            .with_color_mapping(color_mapping)
+            .with_title("Performance Benchmark - Scatter")
+            .build()
+            .unwrap();
 
-    let mut display2: MockDisplay<Rgb565> = MockDisplay::new();
-    display2.set_allow_overdraw(true);
+        let mut display2: MockDisplay<Rgb565> = MockDisplay::new();
+        display2.set_allow_overdraw(true);
 
-    let result2 = scatter_chart.draw(&series, scatter_chart.config(), viewport, &mut display2);
-    assert!(result2.is_ok());
+        let result2 = scatter_chart.draw(&series, scatter_chart.config(), viewport, &mut display2);
+        assert!(result2.is_ok());
+    }
 
     // Verify data integrity after rendering
     assert_eq!(series.len(), 250);
