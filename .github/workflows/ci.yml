@@ -100,13 +100,10 @@ jobs:
   feature-combinations:
     name: Feature Combinations
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     strategy:
       matrix:
         features:
-          # MCU size categories
-          - "small-mcu"
-          - "medium-mcu"
-          - "large-mcu"
           # Math backends
           - "no_std,integer-math"
           - "no_std,fixed-point"
@@ -248,11 +245,11 @@ jobs:
     - name: Build for no-std target
       run: cargo build --target ${{ matrix.target }} --no-default-features --features "no_std,basic-charts"
     
-    - name: Build with small-mcu features
-      run: cargo build --target ${{ matrix.target }} --no-default-features --features "small-mcu"
+    - name: Build with minimal memory features
+      run: cargo build --target ${{ matrix.target }} --no-default-features --features "no_std,minimal-memory"
     
-    - name: Build with medium-mcu features
-      run: cargo build --target ${{ matrix.target }} --no-default-features --features "medium-mcu"
+    - name: Build with static-only features
+      run: cargo build --target ${{ matrix.target }} --no-default-features --features "no_std,static-only"
 
   docs:
     name: Documentation
