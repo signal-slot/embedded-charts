@@ -24,28 +24,16 @@ feature-depth = 1
 db-path = "~/.cargo/advisory-db"
 # The url(s) of the advisory databases to use
 db-urls = ["https://github.com/rustsec/advisory-db"]
-# The lint level for security vulnerabilities
-vulnerability = "deny"
-# The lint level for unmaintained crates
-unmaintained = "warn"
-# The lint level for crates that have been yanked from their source registry
-yanked = "warn"
-# The lint level for crates with security notices. Note that as of
-# 2019-12-17 there are no security notice advisories in
-# https://github.com/rustsec/advisory-db
-notice = "warn"
 # A list of advisory IDs to ignore. Note that ignored advisories will still
 # output a note when they are encountered.
 ignore = [
-    #"RUSTSEC-0000-0000",
+    "RUSTSEC-2024-0436", # paste crate unmaintained but still functional
 ]
 
 # This section is considered when running `cargo deny check licenses`
 # More documentation for the licenses section can be found here:
 # https://embarkstudios.github.io/cargo-deny/checks/licenses/cfg.html
 [licenses]
-# The lint level for crates which do not have a detectable license
-unlicensed = "deny"
 # List of explicitly allowed licenses
 # See https://spdx.org/licenses/ for list of possible licenses
 # [possible values: any SPDX 3.11 short identifier (+ optional exception)].
@@ -62,19 +50,8 @@ allow = [
     "Zlib",
     "MPL-2.0",
     "Unicode-3.0",
+    "NCSA",
 ]
-# List of explicitly disallowed licenses
-# See https://spdx.org/licenses/ for list of possible licenses
-# [possible values: any SPDX 3.11 short identifier (+ optional exception)].
-deny = [
-    "GPL-2.0",
-    "GPL-3.0",
-    "AGPL-1.0",
-    "AGPL-3.0",
-    "SSPL-1.0",
-]
-# Lint level for when multiple versions of the same license are detected
-copyleft = "warn"
 # Confidence threshold for detecting a license from a license text.
 # [possible values: any between 0.0 and 1.0].
 confidence-threshold = 0.8
