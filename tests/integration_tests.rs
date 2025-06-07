@@ -200,6 +200,7 @@ fn test_error_handling() {
 // ============================================================================
 
 #[test]
+#[cfg(feature = "scatter")]
 fn test_scatter_chart_point_shapes() {
     let shapes = [
         PointShape::Circle,
@@ -243,6 +244,7 @@ fn test_scatter_chart_point_shapes() {
 }
 
 #[test]
+#[cfg(feature = "scatter")]
 fn test_scatter_chart_size_mapping() {
     let scaling_types = [
         SizeScaling::Linear,
@@ -296,6 +298,7 @@ fn test_scatter_chart_size_mapping() {
 }
 
 #[test]
+#[cfg(feature = "scatter")]
 fn test_scatter_chart_color_mapping() {
     let strategies = [
         ColorMappingStrategy::ValueBased,
@@ -353,6 +356,7 @@ fn test_scatter_chart_color_mapping() {
 }
 
 #[test]
+#[cfg(feature = "scatter")]
 fn test_scatter_chart_collision_detection() {
     let strategies = [
         CollisionStrategy::Hide,
@@ -405,6 +409,7 @@ fn test_scatter_chart_collision_detection() {
 }
 
 #[test]
+#[cfg(feature = "scatter")]
 fn test_scatter_chart_connection_lines() {
     let patterns = [LinePattern::Solid, LinePattern::Dashed, LinePattern::Dotted];
 
@@ -457,6 +462,7 @@ fn test_scatter_chart_connection_lines() {
 }
 
 #[test]
+#[cfg(feature = "scatter")]
 fn test_scatter_chart_comprehensive_features() {
     // Create comprehensive scatter chart with all features
     let mut series: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
@@ -532,6 +538,7 @@ fn test_scatter_chart_comprehensive_features() {
 // ============================================================================
 
 #[test]
+#[cfg(feature = "gauge")]
 fn test_gauge_chart_types() {
     let gauge_types = [
         GaugeType::Semicircle,
@@ -577,6 +584,7 @@ fn test_gauge_chart_types() {
 }
 
 #[test]
+#[cfg(feature = "gauge")]
 fn test_gauge_chart_needle_shapes() {
     let needle_shapes = [NeedleShape::Line, NeedleShape::Arrow, NeedleShape::Pointer];
 
@@ -616,6 +624,7 @@ fn test_gauge_chart_needle_shapes() {
 }
 
 #[test]
+#[cfg(feature = "gauge")]
 fn test_gauge_chart_threshold_zones() {
     // Create single value data
     let mut series: StaticDataSeries<Point2D, 1> = StaticDataSeries::new();
@@ -703,6 +712,7 @@ fn test_line_chart_large_dataset_performance() {
 }
 
 #[test]
+#[cfg(feature = "scatter")]
 fn test_scatter_chart_large_dataset_performance() {
     // Create large scatter dataset (250+ points - max capacity)
     let mut series: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
@@ -900,47 +910,53 @@ fn test_visual_output_consistency() {
     let result1 = line_chart.draw(&series, line_chart.config(), viewport, &mut display1);
     assert!(result1.is_ok());
 
-    // Test scatter chart visual consistency
-    let scatter_chart: ScatterChart<Rgb565> = ScatterChart::builder()
-        .point_shape(PointShape::Circle)
-        .point_size(6)
-        .point_color(Rgb565::RED)
-        .with_title("Visual Test - Scatter")
-        .background_color(Rgb565::WHITE)
-        .build()
-        .unwrap();
+    #[cfg(feature = "scatter")]
+    {
+        // Test scatter chart visual consistency
+        let scatter_chart: ScatterChart<Rgb565> = ScatterChart::builder()
+            .point_shape(PointShape::Circle)
+            .point_size(6)
+            .point_color(Rgb565::RED)
+            .with_title("Visual Test - Scatter")
+            .background_color(Rgb565::WHITE)
+            .build()
+            .unwrap();
 
-    let mut display2: MockDisplay<Rgb565> = MockDisplay::new();
-    display2.set_allow_overdraw(true);
+        let mut display2: MockDisplay<Rgb565> = MockDisplay::new();
+        display2.set_allow_overdraw(true);
 
-    let result2 = scatter_chart.draw(&series, scatter_chart.config(), viewport, &mut display2);
-    assert!(result2.is_ok());
+        let result2 = scatter_chart.draw(&series, scatter_chart.config(), viewport, &mut display2);
+        assert!(result2.is_ok());
+    }
 
-    // Test gauge chart visual consistency
-    let mut gauge_series: StaticDataSeries<Point2D, 1> = StaticDataSeries::new();
-    gauge_series.push(Point2D::new(0.0, 75.0)).unwrap();
+    #[cfg(feature = "gauge")]
+    {
+        // Test gauge chart visual consistency
+        let mut gauge_series: StaticDataSeries<Point2D, 1> = StaticDataSeries::new();
+        gauge_series.push(Point2D::new(0.0, 75.0)).unwrap();
 
-    let gauge_chart: GaugeChart<Rgb565> = GaugeChart::builder()
-        .gauge_type(GaugeType::Semicircle)
-        .value_range(0.0, 100.0)
-        .radius(15)
-        .add_threshold_zone(0.0, 50.0, Rgb565::GREEN)
-        .add_threshold_zone(50.0, 80.0, Rgb565::YELLOW)
-        .add_threshold_zone(80.0, 100.0, Rgb565::RED)
-        .needle_style(NeedleShape::Arrow, Rgb565::BLACK, 0.6, 1)
-        .build()
-        .unwrap();
+        let gauge_chart: GaugeChart<Rgb565> = GaugeChart::builder()
+            .gauge_type(GaugeType::Semicircle)
+            .value_range(0.0, 100.0)
+            .radius(15)
+            .add_threshold_zone(0.0, 50.0, Rgb565::GREEN)
+            .add_threshold_zone(50.0, 80.0, Rgb565::YELLOW)
+            .add_threshold_zone(80.0, 100.0, Rgb565::RED)
+            .needle_style(NeedleShape::Arrow, Rgb565::BLACK, 0.6, 1)
+            .build()
+            .unwrap();
 
-    let mut display3: MockDisplay<Rgb565> = MockDisplay::new();
-    display3.set_allow_overdraw(true);
+        let mut display3: MockDisplay<Rgb565> = MockDisplay::new();
+        display3.set_allow_overdraw(true);
 
-    let result3 = gauge_chart.draw(&gauge_series, gauge_chart.config(), viewport, &mut display3);
-    assert!(result3.is_ok());
+        let result3 = gauge_chart.draw(&gauge_series, gauge_chart.config(), viewport, &mut display3);
+        assert!(result3.is_ok());
+    }
 
-    // Verify that all charts rendered without errors
+    // Verify that line chart rendered without errors
     // In a real visual regression test, we would compare pixel data
     // For now, we just ensure no rendering errors occurred
-    assert!(result1.is_ok() && result2.is_ok() && result3.is_ok());
+    assert!(result1.is_ok());
 }
 
 #[test]
