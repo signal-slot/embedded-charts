@@ -234,12 +234,8 @@ impl InteractiveScatterChart {
         );
 
         // Render the base chart in adjusted area
-        self.chart.draw(
-            &self.data_series,
-            self.chart.config(),
-            chart_area,
-            display,
-        )?;
+        self.chart
+            .draw(&self.data_series, self.chart.config(), chart_area, display)?;
 
         // Render the legend using pre-created renderer
         renderer.render(legend, legend_rect, display)?;

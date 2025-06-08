@@ -294,10 +294,7 @@ fn test_scatter_chart_size_mapping() {
         let viewport = Rectangle::new(Point::new(0, 0), Size::new(60, 60));
 
         let result = chart.draw(&series, chart.config(), viewport, &mut display);
-        assert!(
-            result.is_ok(),
-            "Failed to render size mapping: {scaling:?}"
-        );
+        assert!(result.is_ok(), "Failed to render size mapping: {scaling:?}");
     }
 }
 
@@ -455,10 +452,7 @@ fn test_scatter_chart_connection_lines() {
         let viewport = Rectangle::new(Point::new(0, 0), Size::new(60, 60));
 
         let result = chart.draw(&series, chart.config(), viewport, &mut display);
-        assert!(
-            result.is_ok(),
-            "Failed to render connections: {pattern:?}"
-        );
+        assert!(result.is_ok(), "Failed to render connections: {pattern:?}");
     }
 }
 
@@ -799,10 +793,7 @@ fn test_memory_usage_validation() {
 
             let result2 =
                 scatter_chart.draw(&series, scatter_chart.config(), viewport, &mut display2);
-            assert!(
-                result2.is_ok(),
-                "Scatter failed with dataset size: {size}"
-            );
+            assert!(result2.is_ok(), "Scatter failed with dataset size: {size}");
         }
 
         // Verify series properties

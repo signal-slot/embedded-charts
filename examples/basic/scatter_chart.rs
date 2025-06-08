@@ -274,7 +274,10 @@ fn run_basic_demo() -> ChartResult<()> {
 
     window::run(
         WindowConfig::new("Basic Scatter Chart Example")
-            .theme(common::WindowTheme::Custom { pixel_spacing: 0, scale: 2 })
+            .theme(common::WindowTheme::Custom {
+                pixel_spacing: 0,
+                scale: 2,
+            })
             .background(Rgb565::WHITE),
         |display, viewport, _elapsed| render_basic_mode(display, viewport, &basic_series),
     )

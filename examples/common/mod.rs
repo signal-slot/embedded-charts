@@ -328,11 +328,7 @@ pub mod utils {
 
     /// Print feature requirement message
     pub fn print_feature_requirement(feature: &str, example_type: &str) {
-        println!(
-            "⚠️  This {example_type} example requires the '{feature}' feature to run"
-        );
-        println!(
-            "   Run with: cargo run --example <example_name> --features {feature}"
-        );
+        println!("⚠️  This {example_type} example requires the '{feature}' feature to run");
+        println!("   Run with: cargo run --example <example_name> --features {feature}");
     }
 }

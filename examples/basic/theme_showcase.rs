@@ -115,8 +115,10 @@ fn draw_theme_grid(
     .map_err(|_| ChartError::RenderingError)?;
 
     // Calculate grid layout using pre-calculated constants
-    let available_width = viewport.size.width - (2 * params.margin) - ((params.cols - 1) * params.spacing);
-    let available_height = viewport.size.height - 40 - (2 * params.margin) - ((params.rows - 1) * params.spacing);
+    let available_width =
+        viewport.size.width - (2 * params.margin) - ((params.cols - 1) * params.spacing);
+    let available_height =
+        viewport.size.height - 40 - (2 * params.margin) - ((params.rows - 1) * params.spacing);
 
     let cell_width = available_width / params.cols;
     let cell_height = available_height / params.rows;

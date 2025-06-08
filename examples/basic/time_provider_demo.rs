@@ -59,9 +59,7 @@ fn demo_std_time_provider() -> ChartResult<()> {
         let current_progress2 = progress2.progress_from_time(&time_provider);
 
         if step % 10 == 0 {
-            println!(
-                "Step {step}: Anim1: {current_progress1}%, Anim2: {current_progress2}%"
-            );
+            println!("Step {step}: Anim1: {current_progress1}%, Anim2: {current_progress2}%");
         }
 
         // Check if complete

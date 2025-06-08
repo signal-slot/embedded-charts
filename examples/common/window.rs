@@ -383,7 +383,10 @@ where
                     "assets/{}.png",
                     window_manager.config.title.replace(" ", "_").to_lowercase()
                 );
-                if window_manager.capture_screenshot(&display, &filename).is_ok() {
+                if window_manager
+                    .capture_screenshot(&display, &filename)
+                    .is_ok()
+                {
                     println!("✅ Screenshot saved to {filename}");
                     captured_screenshot = true;
                 }

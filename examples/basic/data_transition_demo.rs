@@ -313,8 +313,7 @@ fn main() -> ChartResult<()> {
             // Progress indicator
             if phase_elapsed < transition_duration {
                 let mut progress_text = heapless::String::<32>::new();
-                let _ =
-                    core::fmt::write(&mut progress_text, format_args!("Progress: {progress}%"));
+                let _ = core::fmt::write(&mut progress_text, format_args!("Progress: {progress}%"));
 
                 Text::with_baseline(
                     &progress_text,

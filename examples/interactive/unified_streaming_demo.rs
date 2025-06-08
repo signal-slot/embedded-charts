@@ -668,9 +668,7 @@ fn print_performance_stats(
     println!("├─────────────────────────────────────────────────────────────┤");
     println!("│ Error Handling                                              │");
     println!("├─────────────────────────────────────────────────────────────┤");
-    println!(
-        "│ Total Errors: {total_errors} (Recovered)                            │"
-    );
+    println!("│ Total Errors: {total_errors} (Recovered)                            │");
     println!("└─────────────────────────────────────────────────────────────┘");
 }
 
