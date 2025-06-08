@@ -43,7 +43,6 @@ fn main() -> ChartResult<()> {
         .build()?;
 
     // Simulation state
-    let mut time = 0.0f32;
     let mut last_temp_update = 0.0f32;
     let mut last_cpu_update = 0.0f32;
     let mut last_network_update = 0.0f32;
@@ -113,7 +112,7 @@ fn main() -> ChartResult<()> {
             .fps(60)
             .background(Rgb565::WHITE),
         move |display, viewport, elapsed| {
-            time = elapsed;
+            let time = elapsed;
 
             // Generate and add new data points at different rates
 

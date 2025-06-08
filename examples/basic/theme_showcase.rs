@@ -26,7 +26,7 @@ fn main() -> ChartResult<()> {
     let cpu_data = data::system_metrics(50, data::SystemMetric::CpuUsage)?;
 
     let window_config = WindowConfig::new("Theme Showcase - All Themes")
-        .theme(WindowTheme::Default)
+        .theme(WindowTheme::Dark)
         .fps(30)
         .background(embedded_graphics::pixelcolor::Rgb565::new(
             248 >> 3,

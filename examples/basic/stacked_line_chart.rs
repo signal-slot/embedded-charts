@@ -19,9 +19,7 @@ use embedded_graphics::{
 #[path = "../common/mod.rs"]
 mod common;
 
-#[allow(unused_imports)]
-use common::{layout, WindowTheme};
-use common::{window, WindowConfig, CHART_MARGINS};
+use common::{window, WindowConfig, WindowTheme, CHART_MARGINS};
 
 #[cfg(feature = "std")]
 fn main() -> ChartResult<()> {

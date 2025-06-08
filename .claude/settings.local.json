@@ -10,7 +10,8 @@
       "Bash(/usr/bin/rg -A 3 -B 3 \"draw_area\\.size\\.(width|height) as f32\" src/chart/stacked.rs)",
       "Bash(cargo clean:*)",
       "Bash(cargo:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

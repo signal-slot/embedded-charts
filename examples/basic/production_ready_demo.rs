@@ -44,7 +44,7 @@ fn main() -> ChartResult<()> {
     // Use the common animated example runner
     window::run(
         WindowConfig::new("Production Ready Demo - Auto Redraw")
-            .theme(common::WindowTheme::OledBlue)
+            .theme(common::WindowTheme::OledWhite)
             .auto_close() // Auto-close for capture mode
             .background(Rgb565::BLACK),
         move |display, viewport, _elapsed| {

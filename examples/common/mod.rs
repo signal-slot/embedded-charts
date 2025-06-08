@@ -2,7 +2,6 @@
 //
 // This module provides essential utilities for examples to eliminate boilerplate code duplication.
 
-pub mod display;
 pub mod window;
 
 #[cfg(all(feature = "std", feature = "capture"))]
@@ -12,12 +11,13 @@ use embedded_charts::prelude::*;
 use embedded_graphics::pixelcolor::Rgb565;
 
 /// Re-export commonly used types
-pub use display::UnifiedDisplay;
+#[allow(unused_imports)] // May not be used by all examples
 pub use window::WindowConfig;
-#[allow(unused_imports)]
+#[allow(unused_imports)] // May not be used by all examples
 pub use window::WindowTheme;
 
 /// Chart margins optimized for examples with axes and legends
+#[allow(dead_code)] // Standard margins for examples
 pub const CHART_MARGINS: Margins = Margins {
     top: 20,
     right: 20,
@@ -26,6 +26,7 @@ pub const CHART_MARGINS: Margins = Margins {
 };
 
 /// Data generation utilities
+#[allow(dead_code)] // Utility functions for examples data generation
 pub mod data {
     use super::*;
     use core::f32::consts::PI;
@@ -185,6 +186,7 @@ pub mod data {
 }
 
 /// Standard chart configurations
+#[allow(dead_code)] // Chart configuration utilities for examples
 pub mod configs {
     use super::*;
 
@@ -221,16 +223,19 @@ pub mod configs {
 }
 
 /// Auto-legend layout functionality
+#[allow(dead_code)] // Layout utilities for charts
 pub mod layout {
     use super::*;
     use embedded_graphics::draw_target::DrawTarget;
 
     /// Chart with automatic legend layout
+    #[allow(dead_code)] // Utility struct for charts with legends
     pub struct ChartWithLegend<'a, C: PixelColor> {
         pub legend: Option<&'a StandardLegend<C>>,
         pub renderer: Option<&'a StandardLegendRenderer<C>>,
     }
 
+    #[allow(dead_code)] // Utility methods for chart with legend
     impl<'a, C: PixelColor> ChartWithLegend<'a, C> {
         pub fn new(legend: &'a StandardLegend<C>, renderer: &'a StandardLegendRenderer<C>) -> Self {
             Self {
@@ -293,6 +298,7 @@ pub mod layout {
 }
 
 /// Utility functions for common example patterns
+#[allow(dead_code)] // Utility functions for examples
 pub mod utils {
     use super::*;
 

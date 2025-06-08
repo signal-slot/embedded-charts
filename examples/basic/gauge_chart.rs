@@ -51,7 +51,7 @@ fn main() -> ChartResult<()> {
     // Use the common animated example runner
     window::run(
         WindowConfig::new("Basic Gauge Chart")
-            .theme(WindowTheme::Default)
+            .theme(WindowTheme::OledWhite)
             .background(Rgb565::WHITE),
         move |display, viewport, _elapsed| {
             // Calculate layout for chart and legend

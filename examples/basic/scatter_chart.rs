@@ -272,8 +272,7 @@ fn run_basic_demo() -> ChartResult<()> {
     let (basic_series, _) = prepare_demo_data()?;
 
     window::run(
-        WindowConfig::new("Basic Scatter Chart Example")
-            .theme(common::WindowTheme::Default)
+        window::scaled("Basic Scatter Chart Example", 2)
             .background(Rgb565::WHITE),
         |display, viewport, _elapsed| render_basic_mode(display, viewport, &basic_series),
     )

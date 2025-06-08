@@ -5,6 +5,7 @@ use embedded_graphics_simulator::{OutputSettingsBuilder, SimulatorDisplay};
 use std::path::Path;
 
 /// Capture a screenshot from a display and save it as PNG
+#[allow(dead_code)] // Utility function for capturing screenshots
 pub fn capture_screenshot<P: AsRef<Path>>(
     display: &SimulatorDisplay<Rgb565>,
     path: P,
@@ -28,11 +29,13 @@ pub fn capture_screenshot<P: AsRef<Path>>(
 }
 
 /// Capture multiple frames for GIF animation
+#[allow(dead_code)] // GIF capture utility
 pub struct GifCapture {
     frames: Vec<image::RgbImage>,
     delay: u16,
 }
 
+#[allow(dead_code)] // GIF capture methods
 impl GifCapture {
     pub fn new(delay_ms: u16) -> Self {
         Self {
@@ -81,6 +84,9 @@ impl GifCapture {
 }
 
 /// Standard dimensions for README assets
+#[allow(dead_code)] // Standard capture dimensions
 pub const HERO_SIZE: (u32, u32) = (800, 600);
+#[allow(dead_code)]
 pub const FEATURE_SIZE: (u32, u32) = (400, 300);
+#[allow(dead_code)]
 pub const THUMBNAIL_SIZE: (u32, u32) = (200, 150);

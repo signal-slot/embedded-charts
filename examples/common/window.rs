@@ -30,6 +30,7 @@ pub enum WindowTheme {
     Custom { pixel_spacing: u32, scale: u32 },
 }
 
+#[allow(dead_code)] // Utility methods for theme system
 impl WindowTheme {
     #[cfg(feature = "std")]
     fn to_binary_color_theme(self) -> BinaryColorTheme {
@@ -42,14 +43,14 @@ impl WindowTheme {
         }
     }
 
-    fn pixel_spacing(self) -> u32 {
+    pub fn pixel_spacing(self) -> u32 {
         match self {
             WindowTheme::Custom { pixel_spacing, .. } => pixel_spacing,
             _ => 0, // No spacing between pixels for solid appearance
         }
     }
 
-    fn scale(self) -> u32 {
+    pub fn scale(self) -> u32 {
         match self {
             WindowTheme::Custom { scale, .. } => scale,
             WindowTheme::Default | WindowTheme::Dark => 1,
@@ -60,6 +61,7 @@ impl WindowTheme {
 
 /// Window configuration - merged with DisplayConfig functionality
 #[derive(Debug, Clone)]
+#[allow(dead_code)] // Utility struct for examples - not all fields used in every example
 pub struct WindowConfig {
     pub title: &'static str,
     pub theme: WindowTheme,
@@ -103,6 +105,7 @@ impl Default for WindowConfig {
     }
 }
 
+#[allow(dead_code)] // Utility methods for examples
 impl WindowConfig {
     /// Create a new window configuration
     pub fn new(title: &'static str) -> Self {
@@ -158,6 +161,7 @@ impl WindowConfig {
 
 /// Window manager for handling visual examples
 #[cfg(feature = "std")]
+#[allow(dead_code)] // Utility struct for window management
 pub struct WindowManager {
     window: Window,
     pub config: WindowConfig,
@@ -167,6 +171,7 @@ pub struct WindowManager {
 }
 
 #[cfg(all(feature = "std", feature = "capture"))]
+#[allow(dead_code)]
 impl WindowManager {
     /// Create a new window manager
     pub fn new(window_config: &WindowConfig) -> Self {
@@ -190,6 +195,7 @@ impl WindowManager {
 }
 
 #[cfg(all(feature = "std", not(feature = "capture")))]
+#[allow(dead_code)]
 impl WindowManager {
     /// Create a new window manager
     pub fn new(window_config: &WindowConfig) -> Self {
@@ -212,6 +218,7 @@ impl WindowManager {
 }
 
 #[cfg(feature = "std")]
+#[allow(dead_code)]
 impl WindowManager {
     /// Update the window with the current display content
     pub fn update(&mut self, display: &SimulatorDisplay<Rgb565>) {
@@ -236,6 +243,7 @@ impl WindowManager {
 
 /// Capture functionality for WindowManager
 #[cfg(all(feature = "std", feature = "capture"))]
+#[allow(dead_code)]
 impl WindowManager {
     /// Capture a screenshot of the current display
     pub fn capture_screenshot<P: AsRef<std::path::Path>>(
@@ -448,6 +456,7 @@ where
 pub struct WindowManager;
 
 #[cfg(not(feature = "std"))]
+#[allow(dead_code)]
 impl WindowManager {
     pub fn new(_window_config: &WindowConfig) -> Self {
         Self
@@ -468,6 +477,7 @@ where
 }
 
 /// Preset window configurations
+#[allow(dead_code)] // Preset utility functions for examples
 pub mod presets {
     use super::*;
 
