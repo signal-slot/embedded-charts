@@ -113,7 +113,7 @@ fn main() -> ChartResult<()> {
             .fps(60)
             .background(Rgb565::WHITE),
         move |display, viewport, elapsed| {
-            let _time = elapsed;
+            time = elapsed;
 
             // Generate and add new data points at different rates
 

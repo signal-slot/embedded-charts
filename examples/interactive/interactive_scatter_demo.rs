@@ -24,11 +24,14 @@ use embedded_graphics::{
     text::{Alignment, Text},
 };
 
+// Unused simulator imports - keeping for potential future interactivity
+#[allow(unused_imports)]
 #[cfg(feature = "std")]
 use embedded_graphics_simulator::{
     BinaryColorTheme, OutputSettingsBuilder, SimulatorEvent, Window,
 };
 
+#[allow(unused_imports)]
 #[cfg(feature = "std")]
 use std::time::Instant;
 
@@ -500,15 +503,9 @@ fn main() -> ChartResult<()> {
     common::window::run(window_config, move |display, _viewport, _elapsed| {
         // Handle events through the window manager (simplified for this demo)
         // For now, we'll just render the chart without full interactivity
-        
+
         // Render the interactive chart with pre-created objects
-        interactive_chart.render(
-            display,
-            chart_viewport,
-            &legend,
-            &renderer,
-            &calculator,
-        )?;
+        interactive_chart.render(display, chart_viewport, &legend, &renderer, &calculator)?;
 
         Ok(())
     })?;

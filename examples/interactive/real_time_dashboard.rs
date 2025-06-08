@@ -8,13 +8,17 @@
 //! Run with: cargo run --example real_time_dashboard --features std
 
 use embedded_charts::prelude::*;
-use std::time::{Duration, Instant};
+#[allow(unused_imports)]
+use std::time::Duration;
+use std::time::Instant;
 
 // Import the common abstraction
 #[path = "../common/mod.rs"]
 mod common;
 
-use common::{configs, data, utils, window, WindowConfig};
+use common::{configs, window, WindowConfig};
+#[allow(unused_imports)]
+use common::{data, utils};
 
 /// Simulated sensor data structure
 #[derive(Debug, Clone)]
@@ -276,7 +280,7 @@ fn main() -> ChartResult<()> {
             .theme(common::WindowTheme::OledBlue)
             .fps(10) // 10 FPS for real-time feel
             .background(Rgb565::BLACK),
-        move |display, _viewport, elapsed| {
+        move |display, _viewport, _elapsed| {
             // Update viewports if display size changed
             let current_size = display.bounding_box().size;
             if current_size != display_size {

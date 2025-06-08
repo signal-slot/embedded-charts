@@ -384,6 +384,7 @@ impl MathBackend<fixed::types::I16F16> for FixedPointBackend {
 #[cfg(feature = "fixed-point")]
 impl FixedPointBackend {
     /// Approximate atan using polynomial approximation
+    #[allow(clippy::only_used_in_recursion)]
     fn atan_approx(&self, x: fixed::types::I16F16) -> fixed::types::I16F16 {
         let abs_x = x.abs();
         let pi_4 = fixed::types::I16F16::from_num(core::f32::consts::FRAC_PI_4); // π/4

@@ -23,9 +23,7 @@ use embedded_graphics::{
 };
 
 #[cfg(feature = "gauge")]
-use embedded_charts::chart::gauge::{
-    GaugeChart, GaugeType, NeedleShape,
-};
+use embedded_charts::chart::gauge::{GaugeChart, GaugeType, NeedleShape};
 
 #[cfg(feature = "scatter")]
 use embedded_charts::chart::scatter::{
@@ -805,7 +803,8 @@ fn test_memory_usage_validation() {
             let mut display2: MockDisplay<Rgb565> = MockDisplay::new();
             display2.set_allow_overdraw(true);
 
-            let result2 = scatter_chart.draw(&series, scatter_chart.config(), viewport, &mut display2);
+            let result2 =
+                scatter_chart.draw(&series, scatter_chart.config(), viewport, &mut display2);
             assert!(
                 result2.is_ok(),
                 "Scatter failed with dataset size: {}",
@@ -962,7 +961,8 @@ fn test_visual_output_consistency() {
         let mut display3: MockDisplay<Rgb565> = MockDisplay::new();
         display3.set_allow_overdraw(true);
 
-        let result3 = gauge_chart.draw(&gauge_series, gauge_chart.config(), viewport, &mut display3);
+        let result3 =
+            gauge_chart.draw(&gauge_series, gauge_chart.config(), viewport, &mut display3);
         assert!(result3.is_ok());
     }
 

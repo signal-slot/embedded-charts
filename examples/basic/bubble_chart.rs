@@ -92,7 +92,30 @@ fn main() -> ChartResult<()> {
         WindowConfig::new("Bubble Chart Example")
             .theme(WindowTheme::Default)
             .background(Rgb565::WHITE),
-        move |display, viewport, _elapsed| chart.draw(&series, chart.config(), viewport, display),
+        move |display, viewport, _elapsed| {
+            // Calculate layout for chart and legend
+            let legend_size = legend.calculate_size();
+            let chart_width = viewport.size.width.saturating_sub(legend_size.width + 20);
+            let chart_area = Rectangle::new(
+                viewport.top_left,
+                Size::new(chart_width, viewport.size.height),
+            );
+            let legend_area = Rectangle::new(
+                Point::new(
+                    viewport.top_left.x + chart_width as i32 + 10,
+                    viewport.top_left.y + 50,
+                ),
+                legend_size,
+            );
+
+            // Draw the bubble chart
+            chart.draw(&series, chart.config(), chart_area, display)?;
+
+            // Draw the legend
+            renderer.render(&legend, legend_area, display)?;
+
+            Ok(())
+        },
     )
 }
 

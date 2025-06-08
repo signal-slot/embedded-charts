@@ -13,7 +13,9 @@ use embedded_graphics::pixelcolor::Rgb565;
 
 /// Re-export commonly used types
 pub use display::UnifiedDisplay;
-pub use window::{WindowConfig, WindowTheme};
+pub use window::WindowConfig;
+#[allow(unused_imports)]
+pub use window::WindowTheme;
 
 /// Chart margins optimized for examples with axes and legends
 pub const CHART_MARGINS: Margins = Margins {

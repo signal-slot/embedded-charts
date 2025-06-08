@@ -12,7 +12,6 @@ use embedded_charts::prelude::*;
 #[path = "../common/mod.rs"]
 mod common;
 
-
 #[cfg(feature = "std")]
 fn main() -> ChartResult<()> {
     println!("🚀 Starting Time Provider Demo");

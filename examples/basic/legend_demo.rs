@@ -20,7 +20,9 @@ use embedded_charts::prelude::*;
 #[path = "../common/mod.rs"]
 mod common;
 
-use common::{configs, data, utils, window, WindowConfig};
+#[allow(unused_imports)]
+use common::utils;
+use common::{configs, data, window, WindowConfig};
 
 #[cfg(feature = "std")]
 fn main() -> ChartResult<()> {
