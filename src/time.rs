@@ -154,7 +154,7 @@ where
     /// // Example with a 1MHz timer (1,000,000 ticks per second)
     /// // let get_ticks = || hardware_timer_get_ticks();
     /// // let timer = MonotonicTimeProvider::from_ticks(get_ticks, 1_000_000);
-    /// 
+    ///
     /// // Use the timer to get current time
     /// // let current_time = timer.now();
     /// ```
