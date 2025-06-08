@@ -9,10 +9,6 @@
 
 use crate::data::DataBounds;
 
-#[cfg(all(feature = "floating-point", not(feature = "std")))]
-use micromath::F32Ext;
-
-
 /// Configuration for axis range calculation
 #[derive(Debug, Clone, Copy)]
 pub struct RangeCalculationConfig {
@@ -91,8 +87,22 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
             0.0
         } else {
             // Data far from zero - round down to nice value
+            #[cfg(feature = "std")]
             let magnitude = 10.0_f32.powf((min * config.far_from_zero_margin).log10().floor());
-            (min * config.far_from_zero_margin / magnitude).floor() * magnitude
+            #[cfg(not(feature = "std"))]
+            let magnitude = {
+                use micromath::F32Ext;
+                10.0_f32.powf((min * config.far_from_zero_margin).log10().floor())
+            };
+
+            #[cfg(feature = "std")]
+            let result = (min * config.far_from_zero_margin / magnitude).floor() * magnitude;
+            #[cfg(not(feature = "std"))]
+            let result = {
+                use micromath::F32Ext;
+                (min * config.far_from_zero_margin / magnitude).floor() * magnitude
+            };
+            result
         }
     } else {
         // Negative data - add margin
@@ -104,7 +114,14 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
     let rough_step = data_range / config.target_tick_count as f32;
 
     // Round step to nice values
+    #[cfg(feature = "std")]
     let magnitude = 10.0_f32.powf(rough_step.log10().floor());
+    #[cfg(not(feature = "std"))]
+    let magnitude = {
+        use micromath::F32Ext;
+        10.0_f32.powf(rough_step.log10().floor())
+    };
+
     let normalized_step = rough_step / magnitude;
     let nice_step = if normalized_step <= 1.0 {
         magnitude
@@ -117,7 +134,13 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
     };
 
     // Find the first tick at or beyond max
+    #[cfg(feature = "std")]
     let ticks_from_min = ((max - nice_min) / nice_step).ceil();
+    #[cfg(not(feature = "std"))]
+    let ticks_from_min = {
+        use micromath::F32Ext;
+        ((max - nice_min) / nice_step).ceil()
+    };
     let nice_max = nice_min + (ticks_from_min * nice_step);
 
     (nice_min, nice_max)
