@@ -39,7 +39,7 @@
 //!
 //! // Render to display (display would be provided by your embedded target)
 //! // chart.draw(&data, &config, viewport, &mut display)?;
-//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! # Ok::<(), embedded_charts::error::ChartError>(())
 //! ```
 //!
 //! # Advanced Styling

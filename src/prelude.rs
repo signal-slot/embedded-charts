@@ -17,7 +17,7 @@
 //! let chart = LineChart::builder()
 //!     .line_color(Rgb565::BLUE)
 //!     .build()?;
-//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! # Ok::<(), embedded_charts::error::ChartError>(())
 //! ```
 //!
 //! # What's Included

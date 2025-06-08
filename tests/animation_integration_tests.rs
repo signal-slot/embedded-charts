@@ -3,6 +3,8 @@
 //! These tests verify the new progress-based animation system including
 //! ChartAnimator, MultiStateAnimator, StreamingAnimator, and TimeBasedProgress.
 
+#![cfg(feature = "animations")]
+
 use embedded_charts::prelude::*;
 
 /// Test basic ChartAnimator functionality

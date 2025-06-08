@@ -41,6 +41,8 @@
 //! ### Bar Charts
 //! Vertical and horizontal bar charts with stacking support:
 //! ```rust,no_run
+//! # #[cfg(feature = "bar")]
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
@@ -49,12 +51,15 @@
 //!     .bar_width(BarWidth::Fixed(20))
 //!     .colors(&[Rgb565::GREEN])
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! Ok(())
+//! # }
 //! ```
 //!
 //! ### Pie Charts
 //! Full circle and donut charts with custom styling:
 //! ```rust,no_run
+//! # #[cfg(feature = "pie")]
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
@@ -62,7 +67,8 @@
 //!     .donut(30) // Donut chart with inner radius of 30
 //!     .colors(&[Rgb565::BLUE, Rgb565::RED, Rgb565::GREEN])
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! Ok(())
+//! # }
 //! ```
 //!
 //! ### Gauge Charts
@@ -174,7 +180,7 @@
 //! let viewport = Rectangle::new(Point::zero(), Size::new(320, 240));
 //! // chart.draw(&streaming_data, &config, viewport, &mut display)?;
 //! # }
-//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! # Ok::<(), embedded_charts::error::ChartError>(())
 //! ```
 //!
 //! ## System Optimization
@@ -265,7 +271,7 @@
 //! // Render to display
 //! let viewport = Rectangle::new(Point::zero(), Size::new(320, 240));
 //! // chart.draw(&multi_series, &config, viewport, &mut display)?;
-//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! # Ok::<(), embedded_charts::error::ChartError>(())
 //! ```
 //!
 //! ## Module Organization

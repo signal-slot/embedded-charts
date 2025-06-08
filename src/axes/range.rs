@@ -7,6 +7,8 @@
 //! - Use "nice" step sizes that are easy to read (1, 2, 5, 10, etc.)
 //! - Accommodate proper tick placement
 
+#![allow(unused_imports)] // Allow unused micromath imports in test/doctest environments
+
 use crate::data::DataBounds;
 
 /// Configuration for axis range calculation
@@ -94,8 +96,25 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
                 any(feature = "floating-point", feature = "libm-math")
             ))]
             let magnitude = {
-                use micromath::F32Ext;
-                10.0_f32.powf((min * config.far_from_zero_margin).log10().floor())
+                #[cfg(feature = "floating-point")]
+                {
+                    #[cfg(all(not(feature = "std"), not(test), not(doctest)))]
+                    {
+                        use micromath::F32Ext;
+                        10.0_f32.powf((min * config.far_from_zero_margin).log10().floor())
+                    }
+                    #[cfg(any(feature = "std", test, doctest))]
+                    {
+                        10.0_f32.powf((min * config.far_from_zero_margin).log10().floor())
+                    }
+                }
+                #[cfg(all(feature = "libm-math", not(feature = "floating-point")))]
+                {
+                    libm::powf(
+                        10.0_f32,
+                        libm::floorf(libm::log10f(min * config.far_from_zero_margin)),
+                    )
+                }
             };
             #[cfg(not(any(feature = "std", feature = "floating-point", feature = "libm-math")))]
             let magnitude = 1.0; // Simplified for fixed-point and integer math
@@ -107,8 +126,22 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
                 any(feature = "floating-point", feature = "libm-math")
             ))]
             let result = {
-                use micromath::F32Ext;
-                (min * config.far_from_zero_margin / magnitude).floor() * magnitude
+                #[cfg(feature = "floating-point")]
+                {
+                    #[cfg(all(not(feature = "std"), not(test), not(doctest)))]
+                    {
+                        use micromath::F32Ext;
+                        (min * config.far_from_zero_margin / magnitude).floor() * magnitude
+                    }
+                    #[cfg(any(feature = "std", test, doctest))]
+                    {
+                        (min * config.far_from_zero_margin / magnitude).floor() * magnitude
+                    }
+                }
+                #[cfg(all(feature = "libm-math", not(feature = "floating-point")))]
+                {
+                    libm::floorf(min * config.far_from_zero_margin / magnitude) * magnitude
+                }
             };
             #[cfg(not(any(feature = "std", feature = "floating-point", feature = "libm-math")))]
             let result = min * config.far_from_zero_margin; // Simplified for fixed-point and integer math
@@ -131,8 +164,22 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
         any(feature = "floating-point", feature = "libm-math")
     ))]
     let magnitude = {
-        use micromath::F32Ext;
-        10.0_f32.powf(rough_step.log10().floor())
+        #[cfg(feature = "floating-point")]
+        {
+            #[cfg(all(not(feature = "std"), not(test), not(doctest)))]
+            {
+                use micromath::F32Ext;
+                10.0_f32.powf(rough_step.log10().floor())
+            }
+            #[cfg(any(feature = "std", test, doctest))]
+            {
+                10.0_f32.powf(rough_step.log10().floor())
+            }
+        }
+        #[cfg(all(feature = "libm-math", not(feature = "floating-point")))]
+        {
+            libm::powf(10.0_f32, libm::floorf(libm::log10f(rough_step)))
+        }
     };
     #[cfg(not(any(feature = "std", feature = "floating-point", feature = "libm-math")))]
     let magnitude = 1.0; // Simplified for fixed-point and integer math
@@ -156,8 +203,22 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
         any(feature = "floating-point", feature = "libm-math")
     ))]
     let ticks_from_min = {
-        use micromath::F32Ext;
-        ((max - nice_min) / nice_step).ceil()
+        #[cfg(feature = "floating-point")]
+        {
+            #[cfg(all(not(feature = "std"), not(test), not(doctest)))]
+            {
+                use micromath::F32Ext;
+                ((max - nice_min) / nice_step).ceil()
+            }
+            #[cfg(any(feature = "std", test, doctest))]
+            {
+                ((max - nice_min) / nice_step).ceil()
+            }
+        }
+        #[cfg(all(feature = "libm-math", not(feature = "floating-point")))]
+        {
+            libm::ceilf((max - nice_min) / nice_step)
+        }
     };
     #[cfg(not(any(feature = "std", feature = "floating-point", feature = "libm-math")))]
     let ticks_from_min = ((max - nice_min) / nice_step + 0.5) as i32 as f32; // Simple ceiling for fixed-point and integer math
@@ -186,7 +247,7 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
 /// use embedded_charts::prelude::*;
 /// use embedded_charts::axes::range::{calculate_nice_ranges_from_bounds, RangeCalculationConfig};
 ///
-/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # fn main() -> Result<(), embedded_charts::error::DataError> {
 /// let mut series: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
 /// series.push(Point2D::new(0.0, 8.0))?;
 /// series.push(Point2D::new(9.0, 35.0))?;

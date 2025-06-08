@@ -95,7 +95,7 @@
 //!
 //! println!("Streaming data has {} points", streaming_data.len());
 //! # }
-//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! # Ok::<(), embedded_charts::error::DataError>(())
 //! ```
 //!
 //! ## Memory Efficiency

@@ -27,7 +27,9 @@
 //!
 //! ### Bar Charts (feature: "bar")
 //! Vertical and horizontal bar charts with customizable spacing:
-//! ```rust
+//! ```rust,no_run
+//! # #[cfg(feature = "bar")]
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
@@ -37,12 +39,15 @@
 //!     .colors(&[Rgb565::GREEN])
 //!     .spacing(5)
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! Ok(())
+//! # }
 //! ```
 //!
 //! ### Pie Charts (feature: "pie")
 //! Full circle and donut charts with custom slice styling:
-//! ```rust
+//! ```rust,no_run
+//! # #[cfg(feature = "pie")]
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
@@ -51,7 +56,8 @@
 //!     .start_angle(0.0)
 //!     .colors(&[Rgb565::BLUE, Rgb565::RED, Rgb565::GREEN])
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! Ok(())
+//! # }
 //! ```
 //!
 //! ### Scatter Charts (feature: "scatter")
