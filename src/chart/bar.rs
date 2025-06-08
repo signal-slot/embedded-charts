@@ -83,7 +83,6 @@
 //! # Ok::<(), embedded_charts::error::ChartError>(())
 //! ```
 
-#[cfg(feature = "animations")]
 use crate::chart::traits::{Chart, ChartBuilder, ChartConfig};
 use crate::data::{DataBounds, DataPoint, DataSeries};
 use crate::error::{ChartError, ChartResult};

@@ -6,7 +6,6 @@
 
 use crate::axes::traits::Axis;
 use crate::chart::traits::AxisChart;
-#[cfg(feature = "animations")]
 use crate::chart::traits::{Chart, ChartBuilder, ChartConfig, Margins};
 use crate::data::{DataBounds, DataPoint, DataSeries};
 use crate::error::{ChartError, ChartResult};

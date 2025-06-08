@@ -81,7 +81,6 @@
 //! ```
 
 use crate::axes::traits::Axis;
-#[cfg(feature = "animations")]
 use crate::chart::traits::AxisChart;
 use crate::chart::traits::{Chart, ChartBuilder, ChartConfig, Margins};
 use crate::data::{DataBounds, DataPoint, DataSeries};

@@ -35,7 +35,7 @@ default = ["std", "basic-charts", "integer-math"]
 
 # std/no_std support
 std = ["floating-point", "animations"]  # Enhanced features for std environments
-no_std = ["integer-math"]  # Default to integer math for no_std environments
+no_std = ["floating-point"]  # Use micromath for no_std floating-point operations
 
 # Math backend features - mutually exclusive
 floating-point = ["micromath"]        # Full floating-point math with micromath

@@ -9,6 +9,9 @@
 
 use crate::data::DataBounds;
 
+#[cfg(all(feature = "floating-point", not(feature = "std")))]
+use micromath::F32Ext;
+
 /// Configuration for axis range calculation
 #[derive(Debug, Clone, Copy)]
 pub struct RangeCalculationConfig {
