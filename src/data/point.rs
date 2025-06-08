@@ -212,7 +212,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::animation::Interpolatable;
+    
 
     #[test]
     fn test_point2d_creation() {
@@ -245,6 +245,8 @@ mod tests {
     #[cfg(feature = "animations")]
     #[test]
     fn test_interpolation() {
+        use crate::animation::Interpolatable;
+        
         let p1 = Point2D::new(0.0, 0.0);
         let p2 = Point2D::new(10.0, 20.0);
 

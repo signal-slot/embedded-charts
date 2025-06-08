@@ -179,10 +179,10 @@ impl MathBackend<f32> for LibmBackend {
 }
 
 /// Fixed-point backend using the fixed crate
-#[cfg(feature = "fixed-point")]
+#[cfg(any(feature = "fixed-point", feature = "cordic-math"))]
 pub struct FixedPointBackend;
 
-#[cfg(feature = "fixed-point")]
+#[cfg(any(feature = "fixed-point", feature = "cordic-math"))]
 impl MathBackend<fixed::types::I16F16> for FixedPointBackend {
     #[inline]
     fn sqrt(&self, x: fixed::types::I16F16) -> fixed::types::I16F16 {
@@ -381,7 +381,7 @@ impl MathBackend<fixed::types::I16F16> for FixedPointBackend {
     }
 }
 
-#[cfg(feature = "fixed-point")]
+#[cfg(any(feature = "fixed-point", feature = "cordic-math"))]
 impl FixedPointBackend {
     /// Approximate atan using polynomial approximation
     #[allow(clippy::only_used_in_recursion)]
