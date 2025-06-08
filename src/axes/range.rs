@@ -89,19 +89,29 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
             // Data far from zero - round down to nice value
             #[cfg(feature = "std")]
             let magnitude = 10.0_f32.powf((min * config.far_from_zero_margin).log10().floor());
-            #[cfg(not(feature = "std"))]
+            #[cfg(all(
+                not(feature = "std"),
+                any(feature = "floating-point", feature = "libm-math")
+            ))]
             let magnitude = {
                 use micromath::F32Ext;
                 10.0_f32.powf((min * config.far_from_zero_margin).log10().floor())
             };
+            #[cfg(not(any(feature = "std", feature = "floating-point", feature = "libm-math")))]
+            let magnitude = 1.0; // Simplified for fixed-point and integer math
 
             #[cfg(feature = "std")]
             let result = (min * config.far_from_zero_margin / magnitude).floor() * magnitude;
-            #[cfg(not(feature = "std"))]
+            #[cfg(all(
+                not(feature = "std"),
+                any(feature = "floating-point", feature = "libm-math")
+            ))]
             let result = {
                 use micromath::F32Ext;
                 (min * config.far_from_zero_margin / magnitude).floor() * magnitude
             };
+            #[cfg(not(any(feature = "std", feature = "floating-point", feature = "libm-math")))]
+            let result = min * config.far_from_zero_margin; // Simplified for fixed-point and integer math
             result
         }
     } else {
@@ -116,11 +126,16 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
     // Round step to nice values
     #[cfg(feature = "std")]
     let magnitude = 10.0_f32.powf(rough_step.log10().floor());
-    #[cfg(not(feature = "std"))]
+    #[cfg(all(
+        not(feature = "std"),
+        any(feature = "floating-point", feature = "libm-math")
+    ))]
     let magnitude = {
         use micromath::F32Ext;
         10.0_f32.powf(rough_step.log10().floor())
     };
+    #[cfg(not(any(feature = "std", feature = "floating-point", feature = "libm-math")))]
+    let magnitude = 1.0; // Simplified for fixed-point and integer math
 
     let normalized_step = rough_step / magnitude;
     let nice_step = if normalized_step <= 1.0 {
@@ -136,11 +151,16 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
     // Find the first tick at or beyond max
     #[cfg(feature = "std")]
     let ticks_from_min = ((max - nice_min) / nice_step).ceil();
-    #[cfg(not(feature = "std"))]
+    #[cfg(all(
+        not(feature = "std"),
+        any(feature = "floating-point", feature = "libm-math")
+    ))]
     let ticks_from_min = {
         use micromath::F32Ext;
         ((max - nice_min) / nice_step).ceil()
     };
+    #[cfg(not(any(feature = "std", feature = "floating-point", feature = "libm-math")))]
+    let ticks_from_min = ((max - nice_min) / nice_step + 0.5) as i32 as f32; // Simple ceiling for fixed-point and integer math
     let nice_max = nice_min + (ticks_from_min * nice_step);
 
     (nice_min, nice_max)

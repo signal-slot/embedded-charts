@@ -104,28 +104,26 @@ jobs:
     strategy:
       matrix:
         features:
-          # Math backends
-          - "no_std,integer-math"
-          - "no_std,fixed-point"
-          - "no_std,floating-point"
-          - "no_std,libm-math"
-          - "no_std,cordic-math"
-          # Chart combinations
-          - "std,basic-charts"
-          - "std,advanced-charts"
-          - "std,line,bar,pie"
-          - "std,scatter,gauge"
-          - "std,stacked-charts"
-          # Animation features
-          - "std,animations"
-          - "std,line,animations"
-          # Memory optimization
-          - "no_std,static-only"
-          - "no_std,minimal-memory"
-          # Color and rendering
-          - "std,color-support"
-          - "std,anti-aliasing"
-          - "std,smooth-curves"
+          # Math backends for embedded targets
+          - "no_std,floating-point"          # Most common no_std setup
+          - "no_std,fixed-point"             # Deterministic math for real-time
+          - "no_std,integer-math"            # Most constrained environments
+          - "no_std,libm-math"               # Alternative floating-point
+          - "no_std,cordic-math"             # Hardware-optimized trigonometry
+          # Complete chart suites
+          - "std,basic-charts"               # Standard desktop/web usage
+          - "std,advanced-charts"            # Full-featured applications
+          - "no_std,basic-charts"            # Embedded displays with basic charts
+          # Real-world scenarios
+          - "no_std,line,minimal-memory"     # IoT sensor dashboards
+          - "std,line,animations"            # Interactive data visualization
+          - "no_std,gauge,fixed-point"       # Real-time instrument clusters
+          # Rendering quality combinations
+          - "std,color-support,anti-aliasing" # High-quality rendering
+          - "std,smooth-curves,animations"   # Premium visualization
+          # Memory-constrained scenarios
+          - "no_std,static-only"             # Ultra-constrained embedded
+          - "no_std,minimal-memory,gauge"    # Embedded instrumentation
     steps:
     - uses: actions/checkout@v4
     
