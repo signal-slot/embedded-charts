@@ -59,7 +59,7 @@ gauge = []
 custom = []
 
 # Rendering features
-color-support = []
+color-support = ["basic-charts"]     # Color support requires basic chart functionality for doctests
 anti-aliasing = ["floating-point"]    # Requires floating-point math
 animations = []
 smooth-curves = ["floating-point"]    # Bezier curves require floating-point
