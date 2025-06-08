@@ -29,7 +29,7 @@
 //! series.push(Point2D::new(2.0, 15.0))?;
 //!
 //! // Create from tuples
-//! let series = StaticDataSeries::from_tuples(&[
+//! let series: StaticDataSeries<Point2D, 256> = StaticDataSeries::from_tuples(&[
 //!     (0.0, 10.0),
 //!     (1.0, 20.0),
 //!     (2.0, 15.0),
@@ -50,8 +50,8 @@
 //! let temp_data = data_points![(0.0, 22.5), (1.0, 23.1), (2.0, 24.2)];
 //! let humidity_data = data_points![(0.0, 65.0), (1.0, 68.0), (2.0, 72.0)];
 //!
-//! multi_series.add_series("Temperature", temp_data)?;
-//! multi_series.add_series("Humidity", humidity_data)?;
+//! multi_series.add_series(temp_data)?;
+//! multi_series.add_series(humidity_data)?;
 //!
 //! println!("Multi-series has {} series", multi_series.series_count());
 //! # Ok::<(), embedded_charts::error::DataError>(())
@@ -66,12 +66,11 @@
 //! let data = data_points![(0.0, 10.0), (5.0, 30.0), (10.0, 15.0)];
 //!
 //! // Calculate bounds for single series
-//! let bounds = calculate_bounds(&data)?;
+//! let bounds = data.bounds()?;
 //! println!("X: {} to {}, Y: {} to {}",
-//!          bounds.x_min, bounds.x_max, bounds.y_min, bounds.y_max);
+//!          bounds.min_x, bounds.max_x, bounds.min_y, bounds.max_y);
 //!
-//! // For multi-series data
-//! let multi_bounds = calculate_multi_series_bounds(&multi_series)?;
+//! // For multi-series, bounds are calculated per chart implementation
 //! # Ok::<(), embedded_charts::error::DataError>(())
 //! ```
 //!
@@ -91,7 +90,7 @@
 //! for i in 0..150 {
 //!     let timestamp = i as f32 * 0.1;
 //!     let value = (timestamp * 2.0).sin() * 10.0 + 50.0;
-//!     streaming_data.push(Point2D::new(timestamp, value))?;
+//!     let _ = streaming_data.push(Point2D::new(timestamp, value));
 //! }
 //!
 //! println!("Streaming data has {} points", streaming_data.len());
@@ -123,7 +122,7 @@
 //! let int_point = IntPoint::new(10, 25);
 //!
 //! // Timestamped points for time-series data
-//! let timestamped = TimestampedPoint::new(1234567890, 25.5);
+//! let timestamped = TimestampedPoint::new(1234567890.0, 25.5);
 //! ```
 //!
 //! ## Data Series Trait
@@ -134,8 +133,8 @@
 //!
 //! fn process_data<T: DataSeries>(data: &T) {
 //!     println!("Processing {} data points", data.len());
-//!     if let Some(bounds) = data.bounds() {
-//!         println!("Data bounds: {:?}", bounds);
+//!     if data.is_empty() {
+//!         println!("No data available");
 //!     }
 //! }
 //! ```

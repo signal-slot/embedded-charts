@@ -11,7 +11,8 @@
       "Bash(cargo clean:*)",
       "Bash(cargo:*)",
       "Bash(git add:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "WebFetch(domain:productionresultssa5.blob.core.windows.net)"
     ],
     "deny": []
   }

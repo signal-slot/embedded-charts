@@ -11,17 +11,20 @@
 //! ```rust
 //! use embedded_charts::prelude::*;
 //!
-//! // Professional color palette (8 colors)
+//! // Professional color palette (when color-support feature is enabled)
+//! #[cfg(feature = "color-support")]
 //! let colors = quick::professional_colors();
 //!
 //! // Nature-inspired palette
+//! #[cfg(feature = "color-support")]
 //! let nature_colors = quick::nature_colors();
 //!
 //! // Ocean-themed palette
+//! #[cfg(feature = "color-support")]
 //! let ocean_colors = quick::ocean_colors();
 //!
 //! // Custom palette
-//! let mut custom_palette = ColorPalette::new();
+//! let mut custom_palette: ColorPalette<Rgb565, 8> = ColorPalette::new();
 //! custom_palette.add_color(Rgb565::BLUE)?;
 //! custom_palette.add_color(Rgb565::RED)?;
 //! custom_palette.add_color(Rgb565::GREEN)?;
@@ -34,14 +37,15 @@
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
-//! // Color interpolation for gradients
+//! // Color interpolation for gradients (if color-support feature enabled)
 //! let start_color = Rgb565::BLUE;
 //! let end_color = Rgb565::RED;
-//! let interpolated = ColorUtils::interpolate(start_color, end_color, 0.5);
+//! #[cfg(feature = "color-support")]
+//! let interpolated = Rgb565::interpolate(start_color, end_color, 0.5);
 //!
-//! // Color brightness adjustment
-//! let darker = ColorUtils::darken(Rgb565::BLUE, 0.3);
-//! let lighter = ColorUtils::lighten(Rgb565::BLUE, 0.3);
+//! // Color contrasting
+//! #[cfg(feature = "color-support")]
+//! let contrasting = ColorUtils::contrasting_color(Rgb565::BLUE);
 //! ```
 //!
 //! ## Theme System
@@ -62,8 +66,9 @@
 //! // Cyberpunk theme for modern aesthetics
 //! let cyberpunk_theme = quick::cyberpunk_theme();
 //!
-//! // Apply theme to chart
-//! chart.apply_theme(&dark_theme);
+//! // Theme provides colors for chart styling
+//! let bg_color = dark_theme.background;
+//! let text_color = dark_theme.text;
 //! ```
 //!
 //! ### Custom Themes
@@ -72,13 +77,12 @@
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
-//! let custom_theme = Theme::builder()
-//!     .background_color(Rgb565::BLACK)
-//!     .text_color(Rgb565::WHITE)
-//!     .grid_color(Rgb565::new(8, 8, 8))
-//!     .primary_color(Rgb565::CYAN)
-//!     .secondary_color(Rgb565::MAGENTA)
-//!     .build();
+//! // Use predefined themes or access theme colors
+//! let custom_bg = Rgb565::BLACK;
+//! let custom_text = Rgb565::WHITE;
+//! let custom_grid = Rgb565::new(8, 8, 8);
+//! let custom_primary = Rgb565::CYAN;
+//! let custom_secondary = Rgb565::MAGENTA;
 //! ```
 //!
 //! ## Line Styling
@@ -90,6 +94,7 @@
 //!
 //! // Solid line style
 //! let solid_line = LineStyle {
+//!     color: Rgb565::BLUE,
 //!     pattern: LinePattern::Solid,
 //!     cap: LineCap::Round,
 //!     join: LineJoin::Round,
@@ -98,7 +103,8 @@
 //!
 //! // Dashed line style
 //! let dashed_line = LineStyle {
-//!     pattern: LinePattern::Dashed(5, 3), // 5px dash, 3px gap
+//!     color: Rgb565::RED,
+//!     pattern: LinePattern::Dashed,
 //!     cap: LineCap::Square,
 //!     join: LineJoin::Miter,
 //!     width: 1,
@@ -106,7 +112,8 @@
 //!
 //! // Dotted line style
 //! let dotted_line = LineStyle {
-//!     pattern: LinePattern::Dotted(2), // 2px spacing
+//!     color: Rgb565::GREEN,
+//!     pattern: LinePattern::Dotted,
 //!     cap: LineCap::Round,
 //!     join: LineJoin::Round,
 //!     width: 1,
@@ -137,25 +144,18 @@
 //!
 //! // Solid fill
 //! let solid_fill = FillStyle {
-//!     pattern: FillPattern::Solid(Rgb565::BLUE),
-//!     opacity: 255, // Fully opaque
+//!     color: Rgb565::BLUE,
+//!     pattern: FillPattern::Solid,
 //! };
 //!
-//! // Semi-transparent fill
-//! let transparent_fill = FillStyle {
-//!     pattern: FillPattern::Solid(Rgb565::BLUE),
-//!     opacity: 128, // 50% transparent
+//! // Different color fill
+//! let red_fill = FillStyle {
+//!     color: Rgb565::RED,
+//!     pattern: FillPattern::Solid,
 //! };
 //!
-//! // Gradient fill (if supported)
-//! let gradient_fill = FillStyle {
-//!     pattern: FillPattern::Gradient {
-//!         start_color: Rgb565::BLUE,
-//!         end_color: Rgb565::WHITE,
-//!         direction: GradientDirection::Vertical,
-//!     },
-//!     opacity: 255,
-//! };
+//! // Using convenience method
+//! let green_fill = FillStyle::solid(Rgb565::GREEN);
 //! ```
 //!
 //! ## Border Styles
@@ -165,12 +165,8 @@
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
-//! let border_style = BorderStyle {
-//!     color: Rgb565::BLACK,
-//!     width: 2,
-//!     pattern: LinePattern::Solid,
-//!     radius: 5, // Rounded corners
-//! };
+//! let line_style = LineStyle::solid(Rgb565::BLACK).width(2);
+//! let border_style = BorderStyle::rounded(line_style, 5);
 //! ```
 //!
 //! ## Typography (feature: "fonts")
@@ -214,14 +210,18 @@
 //! ```rust
 //! use embedded_charts::prelude::*;
 //!
-//! // Get a color from palette
-//! let palette = quick::professional_colors();
-//! let primary_color = palette.get_color(0)?; // First color
-//! let secondary_color = palette.get_color(1)?; // Second color
+//! // Example with a simple palette
+//! let mut palette: ColorPalette<Rgb565, 8> = ColorPalette::new();
+//! palette.add_color(Rgb565::BLUE)?;
+//! palette.add_color(Rgb565::RED)?;
+//! palette.add_color(Rgb565::GREEN)?;
 //!
-//! // Cycle through colors for multi-series
-//! for (i, series) in multi_series.iter().enumerate() {
-//!     let color = palette.get_color(i % palette.len())?;
+//! let primary_color = palette.get_color(0).unwrap_or(Rgb565::WHITE);
+//! let secondary_color = palette.get_color(1).unwrap_or(Rgb565::WHITE);
+//!
+//! // Cycle through colors
+//! for i in 0..3 {
+//!     let color = palette.get_color(i % palette.len()).unwrap_or(Rgb565::WHITE);
 //!     // Apply color to series...
 //! }
 //! # Ok::<(), embedded_charts::error::ChartError>(())

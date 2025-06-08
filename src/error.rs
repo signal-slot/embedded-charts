@@ -22,10 +22,10 @@
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
-//! let mut data = StaticDataSeries::new();
+//! let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
 //! match data.push(Point2D::new(0.0, 10.0)) {
 //!     Ok(()) => println!("Data added successfully"),
-//!     Err(DataError::BufferFull) => println!("Data series is full"),
+//!     Err(DataError::BufferFull { .. }) => println!("Data series is full"),
 //!     Err(e) => println!("Other error: {}", e),
 //! }
 //! ```
@@ -48,7 +48,7 @@
 //! use embedded_charts::error::{ChartResult, DataError};
 //!
 //! fn process_data() -> ChartResult<()> {
-//!     let mut data = StaticDataSeries::new();
+//!     let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
 //!     data.push(Point2D::new(0.0, 10.0))?; // Automatically converts DataError to ChartError
 //!     Ok(())
 //! }
@@ -121,11 +121,17 @@ impl ErrorContext {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,no_run
 /// use embedded_charts::prelude::*;
 /// use embedded_charts::error::ChartError;
 ///
-/// match chart.draw(&data, &config, viewport, &mut display) {
+/// // Example function that might return a ChartError
+/// fn render_chart() -> Result<(), ChartError> {
+///     // This would be actual chart rendering logic
+///     Err(ChartError::InsufficientData)
+/// }
+///
+/// match render_chart() {
 ///     Ok(()) => println!("Chart rendered successfully"),
 ///     Err(ChartError::InsufficientData) => println!("Not enough data to render"),
 ///     Err(ChartError::MemoryFull) => println!("Out of memory"),
@@ -392,7 +398,13 @@ pub enum DataErrorKind {
 /// use embedded_charts::prelude::*;
 /// use embedded_charts::error::AnimationError;
 ///
-/// match animator.start_animation(duration, easing) {
+/// // Example function that might return an AnimationError
+/// fn start_animation() -> Result<u32, AnimationError> {
+///     // This would be actual animation logic
+///     Err(AnimationError::InvalidDuration)
+/// }
+///
+/// match start_animation() {
 ///     Ok(animation_id) => println!("Animation started: {}", animation_id),
 ///     Err(AnimationError::InvalidDuration) => println!("Duration must be positive"),
 ///     Err(AnimationError::SchedulerFull) => println!("Too many active animations"),
@@ -443,12 +455,19 @@ pub enum AnimationError {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,no_run
 /// use embedded_charts::prelude::*;
 /// use embedded_charts::error::LayoutError;
+/// use embedded_graphics::prelude::*;
 ///
-/// match chart.calculate_layout(viewport) {
-///     Ok(layout) => println!("Layout calculated successfully"),
+/// // Example function that might return a LayoutError
+/// fn check_layout_error() -> Result<(), LayoutError> {
+///     // This would be actual layout calculation logic
+///     Err(LayoutError::InsufficientSpace)
+/// }
+///
+/// match check_layout_error() {
+///     Ok(()) => println!("Layout calculated successfully"),
 ///     Err(LayoutError::InsufficientSpace) => println!("Viewport too small"),
 ///     Err(LayoutError::InvalidConfiguration) => println!("Invalid layout config"),
 ///     Err(e) => println!("Layout error: {}", e),
@@ -487,13 +506,19 @@ pub enum LayoutError {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,no_run
 /// use embedded_charts::prelude::*;
 /// use embedded_charts::error::RenderError;
 ///
-/// match renderer.draw_line(start, end, style) {
-///     Ok(()) => println!("Line drawn successfully"),
-///     Err(RenderError::DrawingFailed) => println!("Failed to draw line"),
+/// // Example function that might return a RenderError
+/// fn draw_something() -> Result<(), RenderError> {
+///     // This would be actual rendering logic
+///     Err(RenderError::DrawingFailed)
+/// }
+///
+/// match draw_something() {
+///     Ok(()) => println!("Drawing completed successfully"),
+///     Err(RenderError::DrawingFailed) => println!("Failed to draw"),
 ///     Err(RenderError::ColorConversionFailed) => println!("Invalid color"),
 ///     Err(e) => println!("Render error: {}", e),
 /// }

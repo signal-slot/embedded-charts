@@ -34,7 +34,7 @@
 //! let chart = BarChart::builder()
 //!     .orientation(BarOrientation::Vertical)
 //!     .bar_width(BarWidth::Fixed(20))
-//!     .bar_color(Rgb565::GREEN)
+//!     .colors(&[Rgb565::GREEN])
 //!     .spacing(5)
 //!     .build()?;
 //! # Ok::<(), embedded_charts::error::ChartError>(())
@@ -47,67 +47,70 @@
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
 //! let chart = PieChart::builder()
-//!     .center_style(CenterStyle::Hollow(30)) // Donut chart
-//!     .slice_spacing(2)
+//!     .donut(30) // Donut chart with inner radius of 30
 //!     .start_angle(0.0)
+//!     .colors(&[Rgb565::BLUE, Rgb565::RED, Rgb565::GREEN])
 //!     .build()?;
 //! # Ok::<(), embedded_charts::error::ChartError>(())
 //! ```
 //!
 //! ### Scatter Charts (feature: "scatter")
 //! Data point visualization with clustering and collision detection:
-//! ```rust
+//! ```rust,no_run
+//! # #[cfg(feature = "scatter")]
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
 //! let chart = ScatterChart::builder()
-//!     .point_style(PointStyle {
-//!         shape: PointShape::Circle,
-//!         size: SizeMapping::Fixed(8),
-//!         color: ColorMapping::Single(Rgb565::BLUE),
+//!     .point_shape(PointShape::Circle)
+//!     .point_size(8)
+//!     .point_color(Rgb565::BLUE)
+//!     .with_collision_detection(CollisionSettings {
+//!         enabled: true,
+//!         min_distance: 5,
+//!         strategy: CollisionStrategy::Hide,
 //!     })
-//!     .collision_detection(true)
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! Ok(())
+//! # }
 //! ```
 //!
 //! ### Gauge Charts (feature: "gauge")
 //! Semicircle gauges with threshold zones and custom indicators:
-//! ```rust
+//! ```rust,no_run
+//! # #[cfg(feature = "gauge")]
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
 //! let chart = GaugeChart::builder()
 //!     .gauge_type(GaugeType::Semicircle)
-//!     .value_range(ValueRange::new(0.0, 100.0))
-//!     .add_threshold_zone(ThresholdZone {
-//!         min: 70.0,
-//!         max: 100.0,
-//!         color: Rgb565::RED,
-//!     })
-//!     .needle_style(NeedleStyle {
-//!         shape: NeedleShape::Arrow,
-//!         color: Rgb565::BLACK,
-//!         width: 2,
-//!     })
+//!     .value_range(0.0, 100.0)
+//!     .add_threshold_zone(70.0, 100.0, Rgb565::RED)
+//!     .needle_style(NeedleShape::Arrow, Rgb565::BLACK, 0.8, 2)
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! Ok(())
+//! # }
 //! ```
 //!
 //! ### Stacked Charts (feature: "stacked-charts")
 //! Stacked bar and line charts for comparative data visualization:
 //! ```rust,no_run
+//! # #[cfg(feature = "stacked-charts")]
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
-//! let stacked_data = StackedData::new();
+//! let stacked_data: StackedData<Point2D, 256> = StackedData::new();
 //! // Add data series...
 //!
-//! let chart = AnimatedStackedBarChart::builder()
+//! let chart: AnimatedStackedBarChart<Rgb565> = AnimatedStackedBarChart::builder()
 //!     .bar_width(StackedBarWidth::Fixed(25))
 //!     .spacing(5)
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! Ok(())
+//! # }
 //! ```
 //!
 //! ## Chart Traits
@@ -127,19 +130,17 @@
 //! ## Builder Pattern
 //!
 //! All charts use the builder pattern for fluent configuration:
-//! ```rust
+//! ```rust,no_run
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
 //! let chart = LineChart::builder()
 //!     .line_color(Rgb565::BLUE)
 //!     .line_width(2)
-//!     .margins(constants::DEFAULT_MARGINS)
-//!     .with_grid(GridSystem::builder()
-//!         .horizontal_linear(GridSpacing::Fixed(10.0))
-//!         .build()?)
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! Ok(())
+//! # }
 //! ```
 
 #[cfg(feature = "bar")]

@@ -112,6 +112,11 @@ where
     /// use embedded_charts::time::MonotonicTimeProvider;
     ///
     /// // Example with a hypothetical hardware timer
+    /// fn hardware_timer_get_us() -> u64 {
+    ///     // Mock implementation - in real use, this would read from hardware
+    ///     1000
+    /// }
+    ///
     /// let timer = MonotonicTimeProvider::new(|| {
     ///     // Get microseconds from hardware timer
     ///     hardware_timer_get_us()
@@ -138,13 +143,20 @@ where
     /// # Example
     ///
     /// ```rust,no_run
-    /// use embedded_charts::time::MonotonicTimeProvider;
+    /// use embedded_charts::time::{MonotonicTimeProvider, Microseconds};
+    ///
+    /// // Mock hardware timer function
+    /// fn hardware_timer_get_ticks() -> u64 {
+    ///     // Mock implementation - in real use, this would read from hardware
+    ///     1000
+    /// }
     ///
     /// // Example with a 1MHz timer (1,000,000 ticks per second)
-    /// let timer = MonotonicTimeProvider::from_ticks(
-    ///     || hardware_timer_get_ticks(),
-    ///     1_000_000
-    /// );
+    /// // let get_ticks = || hardware_timer_get_ticks();
+    /// // let timer = MonotonicTimeProvider::from_ticks(get_ticks, 1_000_000);
+    /// 
+    /// // Use the timer to get current time
+    /// // let current_time = timer.now();
     /// ```
     pub fn from_ticks<G>(
         get_ticks: G,

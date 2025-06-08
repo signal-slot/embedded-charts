@@ -11,7 +11,7 @@
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
 //! // Now you have access to all common types and functions
-//! let mut data = StaticDataSeries::new();
+//! let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
 //! data.push(Point2D::new(0.0, 10.0))?;
 //!
 //! let chart = LineChart::builder()
@@ -85,12 +85,12 @@
 //! ```rust
 //! use embedded_charts::prelude::*;
 //!
-//! let mut multi_series = StandardMultiSeries::new();
+//! let mut multi_series: MultiSeries<Point2D, 8, 256> = MultiSeries::new();
 //! let temp_data = data_points![(0.0, 22.5), (1.0, 23.1), (2.0, 24.2)];
 //! let humidity_data = data_points![(0.0, 65.0), (1.0, 68.0), (2.0, 72.0)];
 //!
-//! multi_series.add_series("Temperature", temp_data)?;
-//! multi_series.add_series("Humidity", humidity_data)?;
+//! multi_series.add_series(temp_data)?;
+//! multi_series.add_series(humidity_data)?;
 //! # Ok::<(), embedded_charts::error::DataError>(())
 //! ```
 //!

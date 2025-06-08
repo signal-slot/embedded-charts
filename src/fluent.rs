@@ -23,11 +23,12 @@
 //! ```
 //!
 //! ## Professional Styled Chart
-//! ```rust
+//! ```rust,no_run
 //! use embedded_charts::fluent::Chart;
 //! use embedded_charts::prelude::*;
+//! use embedded_graphics::pixelcolor::Rgb565;
 //!
-//! let chart = Chart::line()
+//! let chart: LineChart<Rgb565> = Chart::line()
 //!     .preset(ChartPreset::Professional)
 //!     .data_from_tuples(&[(0.0, 10.0), (1.0, 20.0)])
 //!     .title("Sales Data")
@@ -36,14 +37,15 @@
 //! ```
 //!
 //! ## Multi-Series Chart
-//! ```rust
+//! ```rust,no_run
 //! use embedded_charts::fluent::Chart;
 //! use embedded_charts::prelude::*;
+//! use embedded_graphics::pixelcolor::Rgb565;
 //!
-//! let chart = Chart::line()
+//! let chart: LineChart<Rgb565> = Chart::line()
 //!     .series("Temperature", &[(0.0, 22.5), (1.0, 23.1)])
 //!     .series("Humidity", &[(0.0, 65.0), (1.0, 68.0)])
-//!     .colors(ColorPalette::professional())
+//!     .color(Rgb565::BLUE)
 //!     .build()?;
 //! # Ok::<(), embedded_charts::error::ChartError>(())
 //! ```

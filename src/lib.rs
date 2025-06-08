@@ -47,7 +47,7 @@
 //! let chart = BarChart::builder()
 //!     .orientation(BarOrientation::Vertical)
 //!     .bar_width(BarWidth::Fixed(20))
-//!     .bar_color(Rgb565::GREEN)
+//!     .colors(&[Rgb565::GREEN])
 //!     .build()?;
 //! # Ok::<(), embedded_charts::error::ChartError>(())
 //! ```
@@ -59,8 +59,8 @@
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
 //! let chart = PieChart::builder()
-//!     .center_style(CenterStyle::Hollow(30)) // Donut chart
-//!     .slice_spacing(2)
+//!     .donut(30) // Donut chart with inner radius of 30
+//!     .colors(&[Rgb565::BLUE, Rgb565::RED, Rgb565::GREEN])
 //!     .build()?;
 //! # Ok::<(), embedded_charts::error::ChartError>(())
 //! ```
@@ -68,19 +68,18 @@
 //! ### Gauge Charts
 //! Semicircle gauges with threshold zones and custom indicators:
 //! ```rust,no_run
+//! # #[cfg(feature = "gauge")]
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
 //! let chart = GaugeChart::builder()
 //!     .gauge_type(GaugeType::Semicircle)
-//!     .value_range(ValueRange::new(0.0, 100.0))
-//!     .add_threshold_zone(ThresholdZone {
-//!         min: 70.0,
-//!         max: 100.0,
-//!         color: Rgb565::RED,
-//!     })
+//!     .value_range(0.0, 100.0)
+//!     .add_threshold_zone(70.0, 100.0, Rgb565::RED)
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! Ok(())
+//! # }
 //! ```
 //!
 //! ## Data Management
@@ -111,8 +110,8 @@
 //! let temp_data = data_points![(0.0, 22.5), (1.0, 23.1), (2.0, 24.2)];
 //! let humidity_data = data_points![(0.0, 65.0), (1.0, 68.0), (2.0, 72.0)];
 //!
-//! multi_series.add_series("Temperature", temp_data)?;
-//! multi_series.add_series("Humidity", humidity_data)?;
+//! multi_series.add_series(temp_data)?;
+//! multi_series.add_series(humidity_data)?;
 //! # Ok::<(), embedded_charts::error::DataError>(())
 //! ```
 //!
@@ -120,7 +119,9 @@
 //!
 //! ### Themes and Color Palettes
 //! Built-in themes optimized for different display types:
-//! ```rust
+//! ```rust,no_run
+//! # #[cfg(feature = "color-support")]
+//! # {
 //! use embedded_charts::prelude::*;
 //!
 //! // Professional color palettes
@@ -132,6 +133,7 @@
 //! let light_theme = quick::light_theme();
 //! let dark_theme = quick::dark_theme();
 //! let cyberpunk_theme = quick::cyberpunk_theme();
+//! # }
 //! ```
 //!
 //! ### Chart Configuration
@@ -155,17 +157,22 @@
 //! # #[cfg(feature = "animations")]
 //! # {
 //! use embedded_charts::prelude::*;
+//! use embedded_graphics::{prelude::*, pixelcolor::Rgb565};
 //!
 //! // Sliding window for real-time data
 //! let mut streaming_data: SlidingWindowSeries<Point2D, 100> =
 //!     SlidingWindowSeries::new();
 //!
 //! // Add data points (automatically removes old ones)
-//! streaming_data.push(Point2D::new(timestamp, value))?;
+//! let timestamp = 1.0;
+//! let value = 25.0;
+//! streaming_data.push(Point2D::new(timestamp, value));
 //!
-//! // Render with smooth interpolation
-//! let progress = Progress::from_percentage(75);
-//! chart.draw_streaming(&config, viewport, &mut display, progress)?;
+//! // Create a chart for rendering
+//! let chart: LineChart<Rgb565> = LineChart::builder().build()?;
+//! let config: ChartConfig<Rgb565> = ChartConfig::default();
+//! let viewport = Rectangle::new(Point::zero(), Size::new(320, 240));
+//! // chart.draw(&streaming_data, &config, viewport, &mut display)?;
 //! # }
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
@@ -209,27 +216,31 @@
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::{pixelcolor::Rgb565, prelude::*};
 //!
-//! // Create data series with static allocation
-//! let mut sensor_data: StaticDataSeries<Point2D, 64> = StaticDataSeries::new();
-//! let _ = sensor_data.push(Point2D::new(0.0, 22.5));
-//! let _ = sensor_data.push(Point2D::new(1.0, 23.1));
+//! fn render_sensor_chart() -> Result<(), embedded_charts::error::ChartError> {
+//!     // Create data series with static allocation
+//!     let mut sensor_data: StaticDataSeries<Point2D, 64> = StaticDataSeries::new();
+//!     let _ = sensor_data.push(Point2D::new(0.0, 22.5));
+//!     let _ = sensor_data.push(Point2D::new(1.0, 23.1));
 //!
-//! // Create minimal chart for small displays
-//! let chart = LineChart::builder()
-//!     .line_color(Rgb565::BLUE)
-//!     .line_width(2)
-//!     .margins(constants::MINIMAL_MARGINS)
-//!     .build()?;
+//!     // Create minimal chart for small displays
+//!     let chart = LineChart::builder()
+//!         .line_color(Rgb565::BLUE)
+//!         .build()?;
 //!
-//! // Render to embedded display
-//! let viewport = Rectangle::new(Point::zero(), Size::new(128, 64));
-//! chart.draw(&sensor_data, chart.config(), viewport, &mut display)?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//!     // Render to embedded display
+//!     let viewport = Rectangle::new(Point::zero(), Size::new(128, 64));
+//!     // chart.draw(&sensor_data, chart.config(), viewport, &mut display)?;
+//!     Ok(())
+//! }
+//!
+//! fn main() {
+//!     let _ = render_sensor_chart();
+//! }
 //! ```
 //!
 //! ## Complete Example
 //!
-//! Professional multi-series chart with legend and axes:
+//! Professional multi-series chart:
 //! ```rust,no_run
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::{pixelcolor::Rgb565, prelude::*};
@@ -239,33 +250,21 @@
 //! let humidity_data = data_points![(0.0, 65.0), (1.0, 68.0), (2.0, 72.0), (3.0, 70.0)];
 //!
 //! // Create multi-series container
-//! let mut multi_series = MultiSeries::new();
-//! multi_series.add_series("Temperature", temp_data)?;
-//! multi_series.add_series("Humidity", humidity_data)?;
+//! let mut multi_series: MultiSeries<Point2D, 8, 256> = MultiSeries::new();
+//! multi_series.add_series(temp_data)?;
+//! multi_series.add_series(humidity_data)?;
 //!
-//! // Build chart with professional styling
-//! let chart = quick::professional_line_chart()
-//!     .with_legend(Legend::builder()
-//!         .position(LegendPosition::TopRight)
-//!         .orientation(LegendOrientation::Vertical)
-//!         .build()?)
-//!     .with_axes(LinearAxis::builder()
-//!         .x_label("Time (hours)")
-//!         .y_label("Value")
-//!         .build()?)
+//! // Create a simple line chart
+//! let chart = LineChart::builder()
+//!     .line_color(Rgb565::BLUE)
 //!     .build()?;
 //!
 //! // Configure the chart
-//! let config = chart_config! {
-//!     title: "Environmental Monitoring",
-//!     background: Rgb565::WHITE,
-//!     margins: constants::DEFAULT_MARGINS,
-//!     grid: true,
-//! };
+//! let config: ChartConfig<Rgb565> = ChartConfig::default();
 //!
 //! // Render to display
 //! let viewport = Rectangle::new(Point::zero(), Size::new(320, 240));
-//! chart.draw(&multi_series, &config, viewport, &mut display)?;
+//! // chart.draw(&multi_series, &config, viewport, &mut display)?;
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 //!

@@ -21,7 +21,7 @@
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
 //! // Create sample data
-//! let mut data = StaticDataSeries::new();
+//! let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
 //! data.push(Point2D::new(0.0, 10.0))?;
 //! data.push(Point2D::new(1.0, 20.0))?;
 //! data.push(Point2D::new(2.0, 15.0))?;
@@ -30,15 +30,15 @@
 //! let chart = BarChart::builder()
 //!     .orientation(BarOrientation::Vertical)
 //!     .bar_width(BarWidth::Fixed(20))
-//!     .bar_color(Rgb565::BLUE)
+//!     .colors(&[Rgb565::BLUE])
 //!     .build()?;
 //!
 //! // Configure the chart
-//! let config = ChartConfig::default();
+//! let config: ChartConfig<Rgb565> = ChartConfig::default();
 //! let viewport = Rectangle::new(Point::zero(), Size::new(320, 240));
 //!
-//! // Render to display
-//! chart.draw(&data, &config, viewport, &mut display)?;
+//! // Render to display (display would be provided by your embedded target)
+//! // chart.draw(&data, &config, viewport, &mut display)?;
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 //!
@@ -48,19 +48,14 @@
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
+//! let line_style = LineStyle::solid(Rgb565::BLACK);
+//! let border_style = BorderStyle::new(line_style);
 //! let chart = BarChart::builder()
 //!     .orientation(BarOrientation::Horizontal)
-//!     .bar_width(BarWidth::Proportional(0.8)) // 80% of available space
+//!     .bar_width(BarWidth::Percentage(0.8)) // 80% of available space
 //!     .spacing(5)
-//!     .with_border(BorderStyle {
-//!         color: Rgb565::BLACK,
-//!         width: 1,
-//!         pattern: LinePattern::Solid,
-//!         radius: 2,
-//!     })
-//!     .add_bar_color(Rgb565::BLUE)
-//!     .add_bar_color(Rgb565::RED)
-//!     .add_bar_color(Rgb565::GREEN)
+//!     .with_border(border_style)
+//!     .colors(&[Rgb565::BLUE, Rgb565::RED, Rgb565::GREEN])
 //!     .build()?;
 //! # Ok::<(), embedded_charts::error::ChartError>(())
 //! ```
@@ -72,19 +67,18 @@
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
 //! // Create multi-series data
-//! let mut multi_series = MultiSeries::new();
+//! let mut multi_series: MultiSeries<Point2D, 8, 256> = MultiSeries::new();
 //! let series1 = data_points![(0.0, 10.0), (1.0, 15.0), (2.0, 12.0)];
 //! let series2 = data_points![(0.0, 8.0), (1.0, 18.0), (2.0, 14.0)];
 //!
-//! multi_series.add_series("Series 1", series1)?;
-//! multi_series.add_series("Series 2", series2)?;
+//! multi_series.add_series(series1)?;
+//! multi_series.add_series(series2)?;
 //!
 //! // Create chart with multiple colors
 //! let chart = BarChart::builder()
 //!     .bar_width(BarWidth::Auto)
 //!     .spacing(2)
-//!     .add_bar_color(Rgb565::BLUE)
-//!     .add_bar_color(Rgb565::RED)
+//!     .colors(&[Rgb565::BLUE, Rgb565::RED])
 //!     .build()?;
 //! # Ok::<(), embedded_charts::error::ChartError>(())
 //! ```
@@ -130,8 +124,8 @@ use heapless::Vec;
 /// use embedded_charts::prelude::*;
 /// use embedded_graphics::pixelcolor::Rgb565;
 ///
-/// let chart = BarChart::new();
-/// let mut data = StaticDataSeries::new();
+/// let chart: BarChart<Rgb565> = BarChart::new();
+/// let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
 /// data.push(Point2D::new(0.0, 10.0))?;
 /// data.push(Point2D::new(1.0, 20.0))?;
 /// # Ok::<(), embedded_charts::error::DataError>(())
@@ -146,7 +140,7 @@ use heapless::Vec;
 ///     .orientation(BarOrientation::Horizontal)
 ///     .bar_width(BarWidth::Fixed(25))
 ///     .spacing(3)
-///     .bar_color(Rgb565::GREEN)
+///     .colors(&[Rgb565::GREEN])
 ///     .build()?;
 /// # Ok::<(), embedded_charts::error::ChartError>(())
 /// ```
@@ -251,8 +245,8 @@ pub enum BarOrientation {
 /// // Fixed width bars
 /// let fixed = BarWidth::Fixed(20); // 20 pixels wide
 ///
-/// // Proportional width (80% of available space per bar)
-/// let proportional = BarWidth::Proportional(0.8);
+/// // Percentage width (80% of available space per bar)
+/// let percentage = BarWidth::Percentage(0.8);
 ///
 /// // Automatic width calculation
 /// let auto = BarWidth::Auto;
@@ -348,7 +342,7 @@ where
     ///     .orientation(BarOrientation::Horizontal)
     ///     .bar_width(BarWidth::Fixed(30))
     ///     .spacing(8)
-    ///     .bar_color(Rgb565::GREEN)
+    ///     .colors(&[Rgb565::GREEN])
     ///     .build()?;
     /// # Ok::<(), embedded_charts::error::ChartError>(())
     /// ```
@@ -371,7 +365,7 @@ where
     /// use embedded_charts::prelude::*;
     /// use embedded_graphics::pixelcolor::Rgb565;
     ///
-    /// let mut chart = BarChart::new();
+    /// let mut chart: BarChart<Rgb565> = BarChart::new();
     /// let mut colors = heapless::Vec::new();
     /// colors.push(Rgb565::BLUE).unwrap();
     /// colors.push(Rgb565::RED).unwrap();

@@ -140,7 +140,7 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
 /// use embedded_charts::axes::range::{calculate_nice_ranges_from_bounds, RangeCalculationConfig};
 ///
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let mut series = StaticDataSeries::new();
+/// let mut series: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
 /// series.push(Point2D::new(0.0, 8.0))?;
 /// series.push(Point2D::new(9.0, 35.0))?;
 ///
