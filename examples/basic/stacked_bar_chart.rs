@@ -45,10 +45,11 @@ fn main() -> ChartResult<()> {
 }
 
 #[cfg(feature = "std")]
+#[allow(dead_code)]
 fn run_static_demo() -> ChartResult<()> {
     // Create compelling quarterly revenue data for a growing tech company
     // Data shows dramatic growth and changing product mix over time
-    let quarters = ["Q1 2023", "Q2 2023", "Q3 2023", "Q4 2023"];
+    let _quarters = ["Q1 2023", "Q2 2023", "Q3 2023", "Q4 2023"];
 
     // Revenue data by product line (in millions) - showing realistic growth patterns
     let cloud_services = [45.0, 65.0, 85.0, 120.0]; // Fastest growing segment
@@ -225,7 +226,7 @@ fn run_static_demo() -> ChartResult<()> {
                     .draw(display);
 
                 // Draw total value on top of each bar
-                let total_text = format!("${:.0}M", total_value);
+                let total_text = format!("${total_value:.0}M");
                 let total_pos = Point::new(
                     bar_x + (bar_width as i32 / 2) - (total_text.len() as i32 * 3),
                     base_y
@@ -504,8 +505,8 @@ pub fn create_stacked_bar_data<const N: usize>(
             let mut cumulative_y = 0.0;
 
             // Sum up all values from bottom to current layer
-            for j in 0..=layer {
-                cumulative_y += series[j].get(i).unwrap().y();
+            for series_item in series.iter().take(layer + 1) {
+                cumulative_y += series_item.get(i).unwrap().y();
             }
 
             stacked.push(Point2D::new(x, cumulative_y))?;

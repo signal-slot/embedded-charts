@@ -60,8 +60,7 @@ fn demo_std_time_provider() -> ChartResult<()> {
 
         if step % 10 == 0 {
             println!(
-                "Step {}: Anim1: {}%, Anim2: {}%",
-                step, current_progress1, current_progress2
+                "Step {step}: Anim1: {current_progress1}%, Anim2: {current_progress2}%"
             );
         }
 
@@ -124,7 +123,7 @@ fn demo_manual_time_provider() -> ChartResult<()> {
                 "Time: {}ms, Progress: {}%, Values: [{:.1}, {:.1}, {:.1}, {:.1}]",
                 current_time,
                 progress,
-                values.get(0).unwrap_or(&0.0),
+                values.first().unwrap_or(&0.0),
                 values.get(1).unwrap_or(&0.0),
                 values.get(2).unwrap_or(&0.0),
                 values.get(3).unwrap_or(&0.0)
@@ -180,8 +179,7 @@ fn demo_monotonic_time_provider() -> ChartResult<()> {
 
         if step % 15 == 0 {
             println!(
-                "Step {}: Linear: {}%, EaseIn: {}%, EaseOut: {}%, EaseInOut: {}%",
-                step, linear_prog, ease_in_prog, ease_out_prog, ease_in_out_prog
+                "Step {step}: Linear: {linear_prog}%, EaseIn: {ease_in_prog}%, EaseOut: {ease_out_prog}%, EaseInOut: {ease_in_out_prog}%"
             );
         }
 

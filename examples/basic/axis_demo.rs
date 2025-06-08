@@ -47,9 +47,7 @@ fn main() -> ChartResult<()> {
     let y_range = y_max - y_min;
 
     // Determine tick count - aim for 5-8 ticks total for readability
-    let x_tick_count = if x_range <= 5.0 {
-        6
-    } else if x_range <= 10.0 {
+    let x_tick_count = if x_range <= 10.0 {
         6
     } else {
         8

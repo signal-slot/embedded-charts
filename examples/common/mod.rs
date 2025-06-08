@@ -145,25 +145,25 @@ pub mod data {
                     let base = 25.0;
                     let variation = 15.0 * (time * 0.1).sin();
                     let spikes = if (time as usize) % 20 == 0 { 30.0 } else { 0.0 };
-                    (base + variation + spikes).max(0.0).min(100.0)
+                    (base + variation + spikes).clamp(0.0, 100.0)
                 }
                 SystemMetric::MemoryUsage => {
                     let base = 40.0;
                     let trend = time * 0.5;
                     let variation = 5.0 * (time * 0.15).cos();
-                    (base + trend + variation).max(0.0).min(100.0)
+                    (base + trend + variation).clamp(0.0, 100.0)
                 }
                 SystemMetric::NetworkIO => {
                     let base = 10.0;
                     let bursts = if (time as usize) % 15 == 0 { 40.0 } else { 0.0 };
                     let variation = 8.0 * (time * 0.2).sin();
-                    (base + bursts + variation).max(0.0).min(100.0)
+                    (base + bursts + variation).clamp(0.0, 100.0)
                 }
                 SystemMetric::DiskUsage => {
                     let base = 5.0;
                     let activity = 20.0 * (time * 0.05).sin().abs();
                     let variation = 3.0 * (time * 0.3).cos();
-                    (base + activity + variation).max(0.0).min(100.0)
+                    (base + activity + variation).clamp(0.0, 100.0)
                 }
             };
 
@@ -329,12 +329,10 @@ pub mod utils {
     /// Print feature requirement message
     pub fn print_feature_requirement(feature: &str, example_type: &str) {
         println!(
-            "⚠️  This {} example requires the '{}' feature to run",
-            example_type, feature
+            "⚠️  This {example_type} example requires the '{feature}' feature to run"
         );
         println!(
-            "   Run with: cargo run --example <example_name> --features {}",
-            feature
+            "   Run with: cargo run --example <example_name> --features {feature}"
         );
     }
 }

@@ -296,7 +296,7 @@ fn main() -> ChartResult<()> {
             };
 
             let mut phase_text = heapless::String::<32>::new();
-            let _ = core::fmt::write(&mut phase_text, format_args!("Phase: {}", phase_name));
+            let _ = core::fmt::write(&mut phase_text, format_args!("Phase: {phase_name}"));
 
             Text::with_baseline(
                 &phase_text,
@@ -314,7 +314,7 @@ fn main() -> ChartResult<()> {
             if phase_elapsed < transition_duration {
                 let mut progress_text = heapless::String::<32>::new();
                 let _ =
-                    core::fmt::write(&mut progress_text, format_args!("Progress: {}%", progress));
+                    core::fmt::write(&mut progress_text, format_args!("Progress: {progress}%"));
 
                 Text::with_baseline(
                     &progress_text,

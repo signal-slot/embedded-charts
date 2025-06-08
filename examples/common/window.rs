@@ -17,6 +17,7 @@ use embedded_charts::prelude::*;
 
 /// Window theme configuration
 #[derive(Debug, Clone, Copy)]
+#[allow(dead_code)] // All variants should be available as API
 pub enum WindowTheme {
     /// Default theme with white background
     Default,
@@ -280,6 +281,7 @@ impl WindowManager {
 
 /// Convenience function to run an animated visual example
 #[cfg(feature = "std")]
+#[allow(dead_code)] // Main window runner for examples
 pub fn run<F>(window_config: WindowConfig, mut animation_fn: F) -> ChartResult<()>
 where
     F: FnMut(&mut SimulatorDisplay<Rgb565>, Rectangle, f32) -> ChartResult<()>, // time in seconds, returns continue
@@ -312,8 +314,8 @@ where
                     "assets/{}.gif",
                     window_manager.config.title.replace(" ", "_").to_lowercase()
                 );
-                if let Ok(_) = window_manager.save_gif(&gif_filename) {
-                    println!("✅ Animation saved to {}", gif_filename);
+                if window_manager.save_gif(&gif_filename).is_ok() {
+                    println!("✅ Animation saved to {gif_filename}");
                 }
             }
             break;
@@ -381,8 +383,8 @@ where
                     "assets/{}.png",
                     window_manager.config.title.replace(" ", "_").to_lowercase()
                 );
-                if let Ok(_) = window_manager.capture_screenshot(&display, &filename) {
-                    println!("✅ Screenshot saved to {}", filename);
+                if window_manager.capture_screenshot(&display, &filename).is_ok() {
+                    println!("✅ Screenshot saved to {filename}");
                     captured_screenshot = true;
                 }
             }
@@ -399,6 +401,7 @@ where
 
 /// Convenience function to run a static visual example (single frame)
 #[cfg(feature = "std")]
+#[allow(dead_code)] // Alternative static runner for examples
 pub fn run_static<F>(window_config: WindowConfig, mut render_fn: F) -> ChartResult<()>
 where
     F: FnMut(&mut SimulatorDisplay<Rgb565>, Rectangle) -> ChartResult<()>,
@@ -424,8 +427,8 @@ where
             "assets/{}.png",
             window_config.title.replace(" ", "_").to_lowercase()
         );
-        if let Ok(_) = capture::capture_screenshot(&display, &filename) {
-            println!("✅ Screenshot saved to {}", filename);
+        if capture::capture_screenshot(&display, &filename).is_ok() {
+            println!("✅ Screenshot saved to {filename}");
         }
     }
 

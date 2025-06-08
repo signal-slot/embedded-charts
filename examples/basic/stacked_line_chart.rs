@@ -47,6 +47,7 @@ fn main() -> ChartResult<()> {
 }
 
 #[cfg(feature = "std")]
+#[allow(dead_code)]
 fn run_static_demo() -> ChartResult<()> {
     // Create realistic server metrics data over 24 hours (hourly samples)
     // Data represents server load in different categories
@@ -216,7 +217,7 @@ fn run_static_demo() -> ChartResult<()> {
                     + ((i as f32 / (hours.len() - 1) as f32) * draw_area.size.width as f32) as i32;
                 let y = draw_area.top_left.y + draw_area.size.height as i32 + 15;
 
-                let hour_text = format!("{}h", hour);
+                let hour_text = format!("{hour}h");
                 let label_pos = Point::new(x - 6, y);
                 let _ = Text::with_baseline(&hour_text, label_pos, title_style, Baseline::Top)
                     .draw(display);
@@ -429,6 +430,7 @@ fn run_animated_demo() -> ChartResult<()> {
 }
 
 /// Draw a filled quadrilateral by splitting it into two triangles
+#[allow(dead_code)]
 fn draw_filled_quad<D>(
     display: &mut D,
     p1: Point,
@@ -450,6 +452,7 @@ where
 }
 
 /// Draw a filled triangle using scan line algorithm
+#[allow(dead_code)]
 fn draw_filled_triangle<D>(
     display: &mut D,
     p1: Point,
@@ -503,6 +506,7 @@ where
 }
 
 /// Find x-coordinate where a line segment intersects a horizontal line at y
+#[allow(dead_code)]
 fn line_intersection_x(start: Point, end: Point, y: i32) -> Option<i32> {
     if start.y == end.y {
         // Horizontal line - no single intersection point

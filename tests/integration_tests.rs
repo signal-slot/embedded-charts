@@ -229,7 +229,7 @@ fn test_scatter_chart_point_shapes() {
             .point_shape(*shape)
             .point_size(8)
             .point_color(Rgb565::RED)
-            .with_title(&format!("Scatter Chart - {:?}", shape))
+            .with_title(&format!("Scatter Chart - {shape:?}"))
             .build()
             .unwrap();
 
@@ -244,7 +244,7 @@ fn test_scatter_chart_point_shapes() {
         let viewport = Rectangle::new(Point::new(5, 5), Size::new(50, 50));
 
         let result = chart.draw(&series, chart.config(), viewport, &mut display);
-        assert!(result.is_ok(), "Failed to render shape: {:?}", shape);
+        assert!(result.is_ok(), "Failed to render shape: {shape:?}");
     }
 }
 
@@ -277,7 +277,7 @@ fn test_scatter_chart_size_mapping() {
             .point_shape(PointShape::Circle)
             .point_color(Rgb565::BLUE)
             .with_size_mapping(size_mapping)
-            .with_title(&format!("Bubble Chart - {:?}", scaling))
+            .with_title(&format!("Bubble Chart - {scaling:?}"))
             .build()
             .unwrap();
 
@@ -296,8 +296,7 @@ fn test_scatter_chart_size_mapping() {
         let result = chart.draw(&series, chart.config(), viewport, &mut display);
         assert!(
             result.is_ok(),
-            "Failed to render size mapping: {:?}",
-            scaling
+            "Failed to render size mapping: {scaling:?}"
         );
     }
 }
@@ -336,7 +335,7 @@ fn test_scatter_chart_color_mapping() {
             .point_shape(PointShape::Circle)
             .point_size(10)
             .with_color_mapping(color_mapping)
-            .with_title(&format!("Color Mapping - {:?}", strategy))
+            .with_title(&format!("Color Mapping - {strategy:?}"))
             .build()
             .unwrap();
 
@@ -354,8 +353,7 @@ fn test_scatter_chart_color_mapping() {
         let result = chart.draw(&series, chart.config(), viewport, &mut display);
         assert!(
             result.is_ok(),
-            "Failed to render color mapping: {:?}",
-            strategy
+            "Failed to render color mapping: {strategy:?}"
         );
     }
 }
@@ -391,7 +389,7 @@ fn test_scatter_chart_collision_detection() {
             .point_size(12)
             .point_color(Rgb565::MAGENTA)
             .with_collision_detection(collision_settings)
-            .with_title(&format!("Collision Detection - {:?}", strategy))
+            .with_title(&format!("Collision Detection - {strategy:?}"))
             .build()
             .unwrap();
 
@@ -407,8 +405,7 @@ fn test_scatter_chart_collision_detection() {
         let result = chart.draw(&series, chart.config(), viewport, &mut display);
         assert!(
             result.is_ok(),
-            "Failed to render collision detection: {:?}",
-            strategy
+            "Failed to render collision detection: {strategy:?}"
         );
     }
 }
@@ -439,7 +436,7 @@ fn test_scatter_chart_connection_lines() {
             .point_size(6)
             .point_color(Rgb565::RED)
             .with_connections(connection_style)
-            .with_title(&format!("Connected Scatter - {:?}", pattern))
+            .with_title(&format!("Connected Scatter - {pattern:?}"))
             .build()
             .unwrap();
 
@@ -460,8 +457,7 @@ fn test_scatter_chart_connection_lines() {
         let result = chart.draw(&series, chart.config(), viewport, &mut display);
         assert!(
             result.is_ok(),
-            "Failed to render connections: {:?}",
-            pattern
+            "Failed to render connections: {pattern:?}"
         );
     }
 }
@@ -565,7 +561,7 @@ fn test_gauge_chart_types() {
             .gauge_type(*gauge_type)
             .value_range(0.0, 100.0)
             .radius(20)
-            .with_title(&format!("Gauge - {:?}", gauge_type))
+            .with_title(&format!("Gauge - {gauge_type:?}"))
             .build()
             .unwrap();
 
@@ -582,8 +578,7 @@ fn test_gauge_chart_types() {
         let result = chart.draw(&series, chart.config(), viewport, &mut display);
         assert!(
             result.is_ok(),
-            "Failed to render gauge type: {:?}",
-            gauge_type
+            "Failed to render gauge type: {gauge_type:?}"
         );
     }
 }
@@ -604,7 +599,7 @@ fn test_gauge_chart_needle_shapes() {
             .value_range(0.0, 100.0)
             .radius(15)
             .needle_style(*needle_shape, Rgb565::RED, 0.6, 2)
-            .with_title(&format!("Needle - {:?}", needle_shape))
+            .with_title(&format!("Needle - {needle_shape:?}"))
             .build()
             .unwrap();
 
@@ -622,8 +617,7 @@ fn test_gauge_chart_needle_shapes() {
         let result = chart.draw(&series, chart.config(), viewport, &mut display);
         assert!(
             result.is_ok(),
-            "Failed to render needle shape: {:?}",
-            needle_shape
+            "Failed to render needle shape: {needle_shape:?}"
         );
     }
 }
@@ -788,7 +782,7 @@ fn test_memory_usage_validation() {
         let viewport = Rectangle::new(Point::new(0, 0), Size::new(60, 60));
 
         let result = line_chart.draw(&series, line_chart.config(), viewport, &mut display);
-        assert!(result.is_ok(), "Failed with dataset size: {}", size);
+        assert!(result.is_ok(), "Failed with dataset size: {size}");
 
         #[cfg(feature = "scatter")]
         {
@@ -807,8 +801,7 @@ fn test_memory_usage_validation() {
                 scatter_chart.draw(&series, scatter_chart.config(), viewport, &mut display2);
             assert!(
                 result2.is_ok(),
-                "Scatter failed with dataset size: {}",
-                size
+                "Scatter failed with dataset size: {size}"
             );
         }
 

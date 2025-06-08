@@ -191,7 +191,7 @@ fn render_basic_mode(
     let renderer = StandardLegendRenderer::new();
     let config = ChartConfig::default();
     layout::draw_chart_with_auto_legend(
-        |chart_area, display| chart.draw(&mut series.clone(), &config, chart_area, display),
+        |chart_area, display| chart.draw(&series.clone(), &config, chart_area, display),
         viewport,
         display,
         layout::ChartWithLegend::new(&legend, &renderer),
@@ -257,7 +257,7 @@ fn render_clustered_mode(
     let renderer = StandardLegendRenderer::new();
     let config = ChartConfig::default();
     layout::draw_chart_with_auto_legend(
-        |chart_area, display| chart.draw(&mut series.clone(), &config, chart_area, display),
+        |chart_area, display| chart.draw(&series.clone(), &config, chart_area, display),
         viewport,
         display,
         layout::ChartWithLegend::new(&legend, &renderer),
@@ -268,17 +268,20 @@ fn render_clustered_mode(
 
 // Legacy functions kept for compatibility with tests
 #[cfg(feature = "std")]
+#[allow(dead_code)] // Legacy function for compatibility
 fn run_basic_demo() -> ChartResult<()> {
     let (basic_series, _) = prepare_demo_data()?;
 
     window::run(
-        window::scaled("Basic Scatter Chart Example", 2)
+        WindowConfig::new("Basic Scatter Chart Example")
+            .theme(common::WindowTheme::Custom { pixel_spacing: 0, scale: 2 })
             .background(Rgb565::WHITE),
         |display, viewport, _elapsed| render_basic_mode(display, viewport, &basic_series),
     )
 }
 
 #[cfg(feature = "std")]
+#[allow(dead_code)] // Legacy function for compatibility
 fn run_clustered_demo() -> ChartResult<()> {
     let (_, clustered_series) = prepare_demo_data()?;
 

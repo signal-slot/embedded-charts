@@ -61,6 +61,7 @@ impl InteractivePoint {
     }
 
     /// Check if a screen coordinate hits this point
+    #[allow(dead_code)]
     fn hit_test(
         &self,
         screen_pos: Point,
@@ -157,6 +158,7 @@ impl InteractiveScatterChart {
     }
 
     /// Handle mouse click events
+    #[allow(dead_code)]
     fn handle_click(&mut self, click_pos: Point, viewport: Rectangle) {
         // Check if any point was clicked
         for (i, point) in self.points.iter_mut().enumerate() {
@@ -183,6 +185,7 @@ impl InteractiveScatterChart {
     }
 
     /// Handle mouse movement for hover effects
+    #[allow(dead_code)]
     fn handle_mouse_move(&mut self, mouse_pos: Point, viewport: Rectangle) {
         self.mouse_position = mouse_pos;
 
@@ -232,14 +235,14 @@ impl InteractiveScatterChart {
 
         // Render the base chart in adjusted area
         self.chart.draw(
-            &mut self.data_series,
+            &self.data_series,
             self.chart.config(),
             chart_area,
             display,
         )?;
 
         // Render the legend using pre-created renderer
-        renderer.render(&legend, legend_rect, display)?;
+        renderer.render(legend, legend_rect, display)?;
 
         // Render interactive overlays using chart area
         self.render_interactive_points(display, chart_area)?;

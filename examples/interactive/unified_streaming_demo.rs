@@ -96,7 +96,7 @@ impl SensorSimulator {
             0.0
         };
         let base_load = self.cpu_load_base + 15.0 * (self.time * 0.4).sin();
-        (base_load + spike).min(95.0).max(5.0)
+        (base_load + spike).clamp(5.0, 95.0)
     }
 
     fn get_memory_usage(&mut self) -> f32 {
@@ -106,7 +106,7 @@ impl SensorSimulator {
         } else {
             self.memory_usage += 0.1; // Gradual increase
         }
-        self.memory_usage.min(85.0).max(35.0)
+        self.memory_usage.clamp(35.0, 85.0)
     }
 
     fn get_network_io(&mut self) -> f32 {
@@ -669,8 +669,7 @@ fn print_performance_stats(
     println!("│ Error Handling                                              │");
     println!("├─────────────────────────────────────────────────────────────┤");
     println!(
-        "│ Total Errors: {} (Recovered)                            │",
-        total_errors
+        "│ Total Errors: {total_errors} (Recovered)                            │"
     );
     println!("└─────────────────────────────────────────────────────────────┘");
 }

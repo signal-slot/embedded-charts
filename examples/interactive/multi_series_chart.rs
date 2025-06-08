@@ -399,9 +399,9 @@ where
 
         // Draw label
         let label = if value < 10.0 {
-            heapless::String::<8>::try_from(format!("{:.1}", value).as_str()).unwrap_or_default()
+            heapless::String::<8>::try_from(format!("{value:.1}").as_str()).unwrap_or_default()
         } else {
-            heapless::String::<8>::try_from(format!("{:.0}", value).as_str()).unwrap_or_default()
+            heapless::String::<8>::try_from(format!("{value:.0}").as_str()).unwrap_or_default()
         };
 
         Text::with_baseline(

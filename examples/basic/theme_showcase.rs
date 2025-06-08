@@ -62,15 +62,26 @@ fn main() -> ChartResult<()> {
             &temperature_data,
             &cpu_data,
             &themes,
-            cols,
-            rows,
-            margin,
-            spacing,
+            &ThemeGridParams {
+                cols,
+                rows,
+                margin,
+                spacing,
+            },
         )
     })
 }
 
 #[cfg(feature = "std")]
+struct ThemeGridParams {
+    cols: u32,
+    rows: u32,
+    margin: u32,
+    spacing: u32,
+}
+
+#[cfg(feature = "std")]
+#[allow(clippy::too_many_arguments)]
 fn draw_theme_grid(
     display: &mut embedded_graphics_simulator::SimulatorDisplay<
         embedded_graphics::pixelcolor::Rgb565,
@@ -79,10 +90,7 @@ fn draw_theme_grid(
     temperature_data: &StaticDataSeries<Point2D, 256>,
     cpu_data: &StaticDataSeries<Point2D, 256>,
     themes: &[(&str, Theme<Rgb565>); 10],
-    cols: u32,
-    rows: u32,
-    margin: u32,
-    spacing: u32,
+    params: &ThemeGridParams,
 ) -> ChartResult<()> {
     use embedded_graphics::{
         mono_font::{ascii::FONT_6X10, MonoTextStyle},
@@ -107,19 +115,19 @@ fn draw_theme_grid(
     .map_err(|_| ChartError::RenderingError)?;
 
     // Calculate grid layout using pre-calculated constants
-    let available_width = viewport.size.width - (2 * margin) - ((cols - 1) * spacing);
-    let available_height = viewport.size.height - 40 - (2 * margin) - ((rows - 1) * spacing);
+    let available_width = viewport.size.width - (2 * params.margin) - ((params.cols - 1) * params.spacing);
+    let available_height = viewport.size.height - 40 - (2 * params.margin) - ((params.rows - 1) * params.spacing);
 
-    let cell_width = available_width / cols;
-    let cell_height = available_height / rows;
+    let cell_width = available_width / params.cols;
+    let cell_height = available_height / params.rows;
 
     // Draw each theme in the grid
     for (i, (theme_name, theme)) in themes.iter().enumerate() {
-        let col = i % (cols as usize);
-        let row = i / (cols as usize);
+        let col = i % (params.cols as usize);
+        let row = i / (params.cols as usize);
 
-        let x = margin as i32 + (col as u32 * (cell_width + spacing)) as i32;
-        let y = 30i32 + margin as i32 + (row as u32 * (cell_height + spacing)) as i32;
+        let x = params.margin as i32 + (col as u32 * (cell_width + params.spacing)) as i32;
+        let y = 30i32 + params.margin as i32 + (row as u32 * (cell_height + params.spacing)) as i32;
 
         let cell_area = Rectangle::new(Point::new(x, y), Size::new(cell_width, cell_height));
 

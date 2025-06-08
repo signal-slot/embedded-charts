@@ -86,6 +86,7 @@ struct IoTDashboard {
     pressure_data: StaticDataSeries<Point2D, 256>,
     air_quality_data: StaticDataSeries<Point2D, 256>,
 
+    #[allow(dead_code)]
     start_time: Instant,
 }
 
@@ -153,7 +154,8 @@ impl IoTDashboard {
             .push(Point2D::new(reading.timestamp, reading.air_quality))?;
 
         // Keep only last 50 points for real-time display
-        while self.temperature_data.len() > 50 {
+        // Keep only last 50 points for real-time display
+        if self.temperature_data.len() > 50 {
             // For this demo, we'll just clear when we get too many points
             // In a real implementation, you'd use a sliding window
             if self.temperature_data.len() > 100 {
@@ -162,7 +164,6 @@ impl IoTDashboard {
                 self.pressure_data.clear();
                 self.air_quality_data.clear();
             }
-            break;
         }
 
         Ok(())
@@ -223,9 +224,7 @@ fn simulate_sensor_reading(time: f32) -> SensorReading {
     let humidity_base = 60.0;
     let humidity_variation = -temp_variation * 0.8; // Inverse correlation
     let humidity_noise = (time * 1.7).cos() * 2.0;
-    let humidity = (humidity_base + humidity_variation + humidity_noise)
-        .max(20.0)
-        .min(90.0);
+    let humidity = (humidity_base + humidity_variation + humidity_noise).clamp(20.0, 90.0);
 
     // Simulate atmospheric pressure
     let pressure_base = 1013.25;
@@ -237,7 +236,7 @@ fn simulate_sensor_reading(time: f32) -> SensorReading {
     let aqi_base = 50.0;
     let aqi_variation = 30.0 * (time * 0.08).cos(); // Pollution cycles
     let aqi_noise = (time * 1.9).sin() * 5.0;
-    let air_quality = (aqi_base + aqi_variation + aqi_noise).max(0.0).min(200.0);
+    let air_quality = (aqi_base + aqi_variation + aqi_noise).clamp(0.0, 200.0);
 
     SensorReading {
         timestamp: time,
@@ -298,7 +297,7 @@ fn main() -> ChartResult<()> {
 
             // Print current readings every 5 seconds
             if (time % 5.0) < time_step {
-                println!("\n📈 Current Readings (t={:.1}s):", time);
+                println!("\n📈 Current Readings (t={time:.1}s):");
                 println!("  🌡️  Temperature: {:.1}°C", reading.temperature);
                 println!("  💧 Humidity: {:.1}%", reading.humidity);
                 println!("  🌪️  Pressure: {:.1} hPa", reading.pressure);
