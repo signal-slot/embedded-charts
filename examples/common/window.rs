@@ -309,9 +309,9 @@ where
         if window_manager.should_close() {
             #[cfg(feature = "capture")]
             if gif_capture_started {
-                std::fs::create_dir_all("assets").ok();
+                std::fs::create_dir_all("docs/assets").ok();
                 let gif_filename = format!(
-                    "assets/{}.gif",
+                    "docs/assets/{}.gif",
                     window_manager.config.title.replace(" ", "_").to_lowercase()
                 );
                 if window_manager.save_gif(&gif_filename).is_ok() {
@@ -378,9 +378,9 @@ where
             // For animated examples, capture GIF instead of PNG
             if !captured_screenshot && elapsed > 1.0 && !is_animated {
                 // Only capture PNG for non-animated examples
-                std::fs::create_dir_all("assets").ok();
+                std::fs::create_dir_all("docs/assets").ok();
                 let filename = format!(
-                    "assets/{}.png",
+                    "docs/assets/{}.png",
                     window_manager.config.title.replace(" ", "_").to_lowercase()
                 );
                 if window_manager
@@ -425,9 +425,9 @@ where
     // Auto-capture functionality
     #[cfg(feature = "capture")]
     {
-        std::fs::create_dir_all("assets").ok();
+        std::fs::create_dir_all("docs/assets").ok();
         let filename = format!(
-            "assets/{}.png",
+            "docs/assets/{}.png",
             window_config.title.replace(" ", "_").to_lowercase()
         );
         if capture::capture_screenshot(&display, &filename).is_ok() {

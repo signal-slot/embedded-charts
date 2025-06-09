@@ -7,8 +7,8 @@ set -e
 
 echo "🎨 Generating visual assets for embedded-graphics-graph documentation..."
 
-# Create assets directory
-mkdir -p assets
+# Create docs assets directory
+mkdir -p docs/assets
 
 # Generate theme showcase
 echo "📸 Generating theme showcase..."
@@ -39,7 +39,7 @@ echo "⚡ Generating real-time examples..."
 cargo run --example real_time_dashboard --features std,capture,line,gauge,animations
 
 echo "✅ All visual assets generated successfully!"
-echo "📁 Assets saved to: assets/"
+echo "📁 Assets saved to: docs/assets/"
 echo ""
 echo "Generated files:"
-ls -la assets/
+ls -la docs/assets/
