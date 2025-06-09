@@ -124,6 +124,9 @@ jobs:
           # Memory-constrained scenarios
           - "no_std,static-only"             # Ultra-constrained embedded
           - "no_std,minimal-memory,gauge"    # Embedded instrumentation
+          # Chart type specific testing
+          - "std,pie,donut"                  # Pie and donut chart functionality
+          - "no_std,pie,fixed-point"         # Embedded pie/donut charts
     steps:
     - uses: actions/checkout@v4
     

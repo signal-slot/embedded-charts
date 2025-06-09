@@ -130,18 +130,30 @@ fn main() -> ChartResult<()> {
             .theme(common::WindowTheme::Default)
             .background(Rgb565::WHITE)
             .size(Size::new(800, 480)), // Larger window to show multiple charts
-        move |display, viewport| {
-            // Draw all charts in the same viewport
-            thin_donut.draw(&series, thin_donut.config(), viewport, display)?;
-            balanced_donut.draw(&series, balanced_donut.config(), viewport, display)?;
-            thick_donut.draw(&series, thick_donut.config(), viewport, display)?;
-            pie_chart.draw(&series, pie_chart.config(), viewport, display)?;
-            embedded_donut.draw(&series, embedded_donut.config(), viewport, display)?;
+        move |display, _viewport| {
+            // Create separate viewports for each chart
+            let chart_size = Size::new(150, 150);
+            
+            // Top row - donut chart variations
+            let thin_viewport = Rectangle::new(Point::new(20, 20), chart_size);
+            let balanced_viewport = Rectangle::new(Point::new(200, 20), chart_size);
+            let thick_viewport = Rectangle::new(Point::new(380, 20), chart_size);
+            
+            // Bottom row - comparison charts
+            let pie_viewport = Rectangle::new(Point::new(110, 200), chart_size);
+            let embedded_viewport = Rectangle::new(Point::new(290, 200), chart_size);
+            
+            // Draw each chart in its own viewport
+            thin_donut.draw(&series, thin_donut.config(), thin_viewport, display)?;
+            balanced_donut.draw(&series, balanced_donut.config(), balanced_viewport, display)?;
+            thick_donut.draw(&series, thick_donut.config(), thick_viewport, display)?;
+            pie_chart.draw(&series, pie_chart.config(), pie_viewport, display)?;
+            embedded_donut.draw(&series, embedded_donut.config(), embedded_viewport, display)?;
 
-            // Draw legend at the bottom
+            // Draw legend at the bottom center
             let legend_area = Rectangle::new(
-                Point::new(50, 400),
-                Size::new(700, 60)
+                Point::new(150, 380),
+                Size::new(500, 60)
             );
             renderer.render(&legend, legend_area, display)?;
 
