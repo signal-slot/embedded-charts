@@ -191,6 +191,7 @@ pub mod configs {
     use super::*;
 
     /// Create a professional line chart configuration
+    #[cfg(feature = "line")]
     pub fn professional_line_chart(color: Rgb565) -> ChartResult<LineChart<Rgb565>> {
         LineChart::builder().line_color(color).line_width(2).build()
     }

@@ -125,7 +125,7 @@ jobs:
           - "no_std,static-only"             # Ultra-constrained embedded
           - "no_std,minimal-memory,gauge"    # Embedded instrumentation
           # Chart type specific testing
-          - "std,pie,donut"                  # Pie and donut chart functionality
+          - "std,pie"                        # Pie and donut chart functionality
           - "no_std,pie,fixed-point"         # Embedded pie/donut charts
     steps:
     - uses: actions/checkout@v4
@@ -191,6 +191,7 @@ jobs:
         cargo check --example line_chart --features "std,line"
         cargo check --example bar_chart --features "std,bar"
         cargo check --example pie_chart --features "std,pie"
+        cargo check --example donut_chart --features "std,pie"
         cargo check --example scatter_chart --features "std,scatter"
         cargo check --example gauge_chart --features "std,gauge"
         cargo check --example stacked_line_chart --features "std,stacked-charts"
