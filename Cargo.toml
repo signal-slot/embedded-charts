@@ -87,6 +87,11 @@ path = "examples/basic/pie_chart.rs"
 required-features = ["std", "pie"]
 
 [[example]]
+name = "donut_chart"
+path = "examples/basic/donut_chart.rs"
+required-features = ["std", "pie"]
+
+[[example]]
 name = "temperature_monitor"
 path = "examples/basic/temperature_monitor.rs"
 required-features = ["std", "line"]

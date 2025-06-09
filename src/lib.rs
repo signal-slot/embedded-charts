@@ -61,7 +61,7 @@
 //! ```
 //!
 //! ### Pie Charts
-//! Full circle and donut charts with custom styling:
+//! Full circle pie charts with professional styling:
 //! ```rust,no_run
 //! # #[cfg(feature = "pie")]
 //! # fn test() -> Result<(), embedded_charts::error::ChartError> {
@@ -69,12 +69,49 @@
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
 //! let chart = PieChart::builder()
-//!     .donut(30) // Donut chart with inner radius of 30
+//!     .radius(80)
 //!     .colors(&[Rgb565::BLUE, Rgb565::RED, Rgb565::GREEN])
+//!     .with_title("Market Share")
 //!     .build()?;
 //! Ok(())
 //! # }
 //! ```
+//!
+//! ### Donut Charts
+//! Pie charts with hollow centers for improved information density:
+//! ```rust,no_run
+//! # #[cfg(feature = "pie")]
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
+//! use embedded_charts::prelude::*;
+//! use embedded_graphics::pixelcolor::Rgb565;
+//!
+//! // Balanced donut chart (50% inner radius)
+//! let chart = PieChart::builder()
+//!     .radius(80)
+//!     .donut(40) // Inner radius of 40 pixels
+//!     .colors(&[Rgb565::BLUE, Rgb565::RED, Rgb565::GREEN])
+//!     .with_title("Storage Usage")
+//!     .build()?;
+//! Ok(())
+//! # }
+//! ```
+//!
+//! #### Donut Chart Best Practices for Embedded Systems
+//!
+//! **Optimal Inner Radius Ratios:**
+//! - **Thin donut (20-30% inner)**: Emphasizes data segments, good for detailed analysis
+//! - **Balanced donut (40-60% inner)**: Best overall readability and visual balance
+//! - **Thick donut (70-80% inner)**: Maximizes center space for additional content
+//!
+//! **Memory Considerations:**
+//! - Donut charts use the same memory footprint as regular pie charts
+//! - Center area can display totals, units, or status without additional memory cost
+//! - Smaller outer radius improves performance on resource-constrained systems
+//!
+//! **Display Size Guidelines:**
+//! - Small displays (≤128px): Use 50% inner radius with 60px outer radius
+//! - Medium displays (240px): Use 40-60% inner radius with 80px outer radius  
+//! - Large displays (≥480px): Use any ratio with 100px+ outer radius for clarity
 //!
 //! ### Gauge Charts
 //! Semicircle gauges with threshold zones and custom indicators:

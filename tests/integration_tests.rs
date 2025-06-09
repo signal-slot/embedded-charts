@@ -136,6 +136,97 @@ fn test_pie_chart_creation_and_basic_usage() {
 }
 
 #[test]
+#[cfg(feature = "pie")]
+fn test_donut_chart_comprehensive_functionality() {
+    // Create sample data for donut chart
+    let mut series: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+    series.push(Point2D::new(1.0, 45.0)).unwrap(); // Documents: 45%
+    series.push(Point2D::new(2.0, 25.0)).unwrap(); // Photos: 25%
+    series.push(Point2D::new(3.0, 20.0)).unwrap(); // Videos: 20%
+    series.push(Point2D::new(4.0, 10.0)).unwrap(); // Other: 10%
+
+    // Test different donut configurations
+    let colors = [Rgb565::BLUE, Rgb565::RED, Rgb565::GREEN, Rgb565::YELLOW];
+
+    // 1. Test manual donut creation
+    let manual_donut: PieChart<Rgb565> = PieChart::builder()
+        .center(Point::new(25, 25))
+        .radius(20)
+        .donut(10) // 50% inner radius
+        .colors(&colors)
+        .build()
+        .unwrap();
+
+    assert_eq!(manual_donut.style().donut_inner_radius, Some(10));
+
+    // 2. Test percentage-based donut
+    let percentage_donut: PieChart<Rgb565> = PieChart::builder()
+        .center(Point::new(25, 25))
+        .radius(20)
+        .donut_percentage(40) // 40% inner radius = 8 pixels
+        .colors(&colors)
+        .build()
+        .unwrap();
+
+    assert_eq!(percentage_donut.style().donut_inner_radius, Some(8));
+
+    // 3. Test convenience methods
+    let balanced_donut: PieChart<Rgb565> = PieChart::builder()
+        .center(Point::new(25, 25))
+        .radius(20)
+        .balanced_donut() // 50% inner radius = 10 pixels
+        .colors(&colors)
+        .build()
+        .unwrap();
+
+    assert_eq!(balanced_donut.style().donut_inner_radius, Some(10));
+
+    let thin_donut: PieChart<Rgb565> = PieChart::builder()
+        .center(Point::new(25, 25))
+        .radius(20)
+        .thin_donut() // 25% inner radius = 5 pixels
+        .colors(&colors)
+        .build()
+        .unwrap();
+
+    assert_eq!(thin_donut.style().donut_inner_radius, Some(5));
+
+    let thick_donut: PieChart<Rgb565> = PieChart::builder()
+        .center(Point::new(25, 25))
+        .radius(20)
+        .thick_donut() // 75% inner radius = 15 pixels
+        .colors(&colors)
+        .build()
+        .unwrap();
+
+    assert_eq!(thick_donut.style().donut_inner_radius, Some(15));
+
+    // Test rendering all donut variations
+    let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+    display.set_allow_overdraw(true);
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(50, 50));
+
+    // Test that all donut charts render successfully
+    assert!(manual_donut.draw(&series, manual_donut.config(), viewport, &mut display).is_ok());
+    assert!(percentage_donut.draw(&series, percentage_donut.config(), viewport, &mut display).is_ok());
+    assert!(balanced_donut.draw(&series, balanced_donut.config(), viewport, &mut display).is_ok());
+    assert!(thin_donut.draw(&series, thin_donut.config(), viewport, &mut display).is_ok());
+    assert!(thick_donut.draw(&series, thick_donut.config(), viewport, &mut display).is_ok());
+
+    // Test comparison with regular pie chart
+    let regular_pie: PieChart<Rgb565> = PieChart::builder()
+        .center(Point::new(25, 25))
+        .radius(20)
+        // No donut configuration = regular pie
+        .colors(&colors)
+        .build()
+        .unwrap();
+
+    assert_eq!(regular_pie.style().donut_inner_radius, None);
+    assert!(regular_pie.draw(&series, regular_pie.config(), viewport, &mut display).is_ok());
+}
+
+#[test]
 fn test_data_series_functionality() {
     let mut series: StaticDataSeries<Point2D, 10> = StaticDataSeries::new();
 

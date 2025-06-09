@@ -502,6 +502,70 @@ where
         self
     }
 
+    /// Make this a donut chart with inner radius as percentage of outer radius
+    /// 
+    /// # Arguments
+    /// * `percentage` - Inner radius as percentage (0-100) of the outer radius
+    /// 
+    /// # Examples
+    /// ```rust
+    /// # use embedded_charts::prelude::*;
+    /// # use embedded_graphics::pixelcolor::Rgb565;
+    /// # fn test() -> Result<(), embedded_charts::error::ChartError> {
+    /// // Create a balanced donut chart (40% inner radius)
+    /// let chart = PieChart::builder()
+    ///     .radius(100)
+    ///     .donut_percentage(40) // Inner radius will be 40 pixels
+    ///     .colors(&[Rgb565::BLUE, Rgb565::RED])
+    ///     .build()?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn donut_percentage(mut self, percentage: u32) -> Self {
+        let percentage = percentage.min(100); // Cap at 100%
+        let inner_radius = (self.radius as f32 * percentage as f32 / 100.0) as u32;
+        self.style.donut_inner_radius = Some(inner_radius);
+        self
+    }
+
+    /// Make this a balanced donut chart with 50% inner radius
+    /// 
+    /// This is a convenience method for creating visually balanced donut charts
+    /// that work well across different display sizes.
+    /// 
+    /// # Examples
+    /// ```rust
+    /// # use embedded_charts::prelude::*;
+    /// # use embedded_graphics::pixelcolor::Rgb565;
+    /// # fn test() -> Result<(), embedded_charts::error::ChartError> {
+    /// let chart = PieChart::builder()
+    ///     .radius(80)
+    ///     .balanced_donut() // Inner radius will be 40 pixels (50%)
+    ///     .colors(&[Rgb565::BLUE, Rgb565::RED])
+    ///     .build()?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn balanced_donut(self) -> Self {
+        self.donut_percentage(50)
+    }
+
+    /// Make this a thin donut chart with 25% inner radius
+    /// 
+    /// Thin donuts emphasize the data segments while still providing
+    /// some center space. Good for detailed data analysis.
+    pub fn thin_donut(self) -> Self {
+        self.donut_percentage(25)
+    }
+
+    /// Make this a thick donut chart with 75% inner radius
+    /// 
+    /// Thick donuts maximize center space for displaying additional
+    /// information like totals or status indicators.
+    pub fn thick_donut(self) -> Self {
+        self.donut_percentage(75)
+    }
+
     /// Add a border to slices
     pub fn with_border(mut self, border: BorderStyle<C>) -> Self {
         self.style.border = Some(border);
@@ -618,5 +682,85 @@ mod tests {
         assert_eq!(slice.value, 25.0);
         assert_eq!(slice.percentage, 25.0);
         assert_eq!(slice.start_angle, 0.0);
+    }
+
+    #[test]
+    fn test_donut_percentage() {
+        // Test 50% donut
+        let chart: PieChart<Rgb565> = PieChart::builder()
+            .radius(100)
+            .donut_percentage(50)
+            .build()
+            .unwrap();
+        
+        assert_eq!(chart.style().donut_inner_radius, Some(50));
+
+        // Test 25% donut
+        let chart: PieChart<Rgb565> = PieChart::builder()
+            .radius(80)
+            .donut_percentage(25)
+            .build()
+            .unwrap();
+        
+        assert_eq!(chart.style().donut_inner_radius, Some(20));
+
+        // Test percentage cap at 100%
+        let chart: PieChart<Rgb565> = PieChart::builder()
+            .radius(60)
+            .donut_percentage(150) // Should be capped at 100%
+            .build()
+            .unwrap();
+        
+        assert_eq!(chart.style().donut_inner_radius, Some(60));
+    }
+
+    #[test]
+    fn test_donut_convenience_methods() {
+        // Test balanced donut (50%)
+        let chart: PieChart<Rgb565> = PieChart::builder()
+            .radius(100)
+            .balanced_donut()
+            .build()
+            .unwrap();
+        
+        assert_eq!(chart.style().donut_inner_radius, Some(50));
+
+        // Test thin donut (25%)
+        let chart: PieChart<Rgb565> = PieChart::builder()
+            .radius(80)
+            .thin_donut()
+            .build()
+            .unwrap();
+        
+        assert_eq!(chart.style().donut_inner_radius, Some(20));
+
+        // Test thick donut (75%)
+        let chart: PieChart<Rgb565> = PieChart::builder()
+            .radius(60)
+            .thick_donut()
+            .build()
+            .unwrap();
+        
+        assert_eq!(chart.style().donut_inner_radius, Some(45));
+    }
+
+    #[test]
+    fn test_donut_vs_regular_pie() {
+        // Regular pie chart (no donut)
+        let pie: PieChart<Rgb565> = PieChart::builder()
+            .radius(50)
+            .build()
+            .unwrap();
+        
+        assert_eq!(pie.style().donut_inner_radius, None);
+
+        // Donut chart
+        let donut: PieChart<Rgb565> = PieChart::builder()
+            .radius(50)
+            .donut(20)
+            .build()
+            .unwrap();
+        
+        assert_eq!(donut.style().donut_inner_radius, Some(20));
     }
 }
