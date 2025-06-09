@@ -58,12 +58,14 @@
 //! ```rust
 //! # #[cfg(feature = "line")]
 //! # {
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
 //! let data = data_points![(0.0, 10.0), (1.0, 20.0), (2.0, 15.0)];
 //! let chart = quick::line_chart().build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! # Ok(())
+//! # }
 //! # }
 //! ```
 //!
@@ -71,6 +73,7 @@
 //! ```rust
 //! # #[cfg(feature = "line")]
 //! # {
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
@@ -84,7 +87,8 @@
 //!     margins: constants::DEFAULT_MARGINS,
 //!     grid: true,
 //! };
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! # Ok(())
+//! # }
 //! # }
 //! ```
 //!

@@ -11,6 +11,7 @@
 //! ```rust
 //! # #[cfg(feature = "line")]
 //! # {
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::fluent::Chart;
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
@@ -21,7 +22,8 @@
 //!     .color(Rgb565::BLUE)
 //!     .title("Temperature")
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! # Ok(())
+//! # }
 //! # }
 //! ```
 //!
@@ -29,6 +31,7 @@
 //! ```rust,no_run
 //! # #[cfg(feature = "line")]
 //! # {
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::fluent::Chart;
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
@@ -38,7 +41,8 @@
 //!     .data_from_tuples(&[(0.0, 10.0), (1.0, 20.0)])
 //!     .title("Sales Data")
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! # Ok(())
+//! # }
 //! # }
 //! ```
 //!
@@ -46,6 +50,7 @@
 //! ```rust,no_run
 //! # #[cfg(feature = "line")]
 //! # {
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::fluent::Chart;
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
@@ -55,7 +60,8 @@
 //!     .series("Humidity", &[(0.0, 65.0), (1.0, 68.0)])
 //!     .color(Rgb565::BLUE)
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! # Ok(())
+//! # }
 //! # }
 //! ```
 

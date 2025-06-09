@@ -24,6 +24,7 @@
 //! ```rust,no_run
 //! # #[cfg(feature = "line")]
 //! # {
+//! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
@@ -37,7 +38,8 @@
 //!         visible: true,
 //!     })
 //!     .build()?;
-//! # Ok::<(), embedded_charts::error::ChartError>(())
+//! # Ok(())
+//! # }
 //! # }
 //! ```
 //!
