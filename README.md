@@ -11,7 +11,8 @@ A production-ready, high-performance chart library for embedded systems and reso
 ## ✨ Key Features
 
 - 🎯 **Production Ready**: Memory-efficient, optimized for resource-constrained systems
-- 📊 **Complete Chart Suite**: Line, bar, pie, donut, gauge, and scatter charts
+- 📊 **Complete Chart Suite**: Line, bar, pie, donut, gauge, scatter, and smooth curve charts
+- 🌊 **Advanced Interpolation**: Cubic spline, Catmull-Rom, and Bezier curve smoothing
 - 🚀 **Real-time Streaming**: Live data updates with smooth animations
 - 🎨 **Professional Styling**: Built-in themes, color palettes, and customizable appearance
 - 💾 **Memory Efficient**: Static allocation, configurable capacity, zero heap usage
@@ -33,15 +34,19 @@ A production-ready, high-performance chart library for embedded systems and reso
         <br><b>Line Charts</b><br><sub>Multi-series, markers, area filling</sub>
       </td>
       <td align="center">
+        <img src="docs/assets/temperature_over_time_-_smooth_curve.png" width="280" alt="Smooth Curve Chart"/>
+        <br><b>Smooth Curve Charts</b><br><sub>Cubic spline, Catmull-Rom, Bezier interpolation</sub>
+      </td>
+      <td align="center">
         <img src="docs/assets/bar_chart_example.png" width="280" alt="Bar Chart"/>
         <br><b>Bar Charts</b><br><sub>Vertical/horizontal, stacked support</sub>
       </td>
+    </tr>
+    <tr>
       <td align="center">
         <img src="docs/assets/pie_chart_example.png" width="280" alt="Pie Chart"/>
         <br><b>Pie Charts</b><br><sub>Full circles, custom colors, professional styling</sub>
       </td>
-    </tr>
-    <tr>
       <td align="center">
         <img src="docs/assets/donut_chart_examples_-_storage_usage.png" width="280" alt="Donut Chart"/>
         <br><b>Donut Charts</b><br><sub>Hollow centers, percentage-based sizing, embedded-optimized</sub>
@@ -116,6 +121,45 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Render to any embedded-graphics display
     let viewport = Rectangle::new(Point::zero(), Size::new(320, 240));
+    chart.draw(&data, chart.config(), viewport, &mut display)?;
+    
+    Ok(())
+}
+```
+
+### Smooth Curve Chart (Advanced Interpolation)
+
+```rust
+use embedded_charts::prelude::*;
+use embedded_charts::chart::CurveChart;
+use embedded_charts::math::interpolation::InterpolationType;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Temperature data over 24 hours
+    let data = data_points![
+        (0.0, 20.0), (3.0, 15.0), (6.0, 25.0), (9.0, 35.0), 
+        (12.0, 40.0), (15.0, 30.0), (18.0, 22.0), (21.0, 18.0), (24.0, 20.0)
+    ];
+
+    // Build smooth curve chart with Catmull-Rom interpolation
+    let chart = CurveChart::builder()
+        .line_color(Rgb565::BLUE)
+        .line_width(3)
+        .interpolation_type(InterpolationType::CatmullRom)
+        .subdivisions(4)
+        .tension(0.5)
+        .fill_area(Rgb565::CSS_LIGHT_BLUE)
+        .with_markers(MarkerStyle {
+            shape: MarkerShape::Circle,
+            size: 12,
+            color: Rgb565::RED,
+            visible: true,
+        })
+        .with_title("Temperature Over Time - Smooth Curve")
+        .build()?;
+
+    // Render smooth interpolated curve
+    let viewport = Rectangle::new(Point::zero(), Size::new(800, 600));
     chart.draw(&data, chart.config(), viewport, &mut display)?;
     
     Ok(())
@@ -200,7 +244,8 @@ fn main() -> ! {
 
 | Chart Type | Status | Key Features |
 |------------|--------|--------------|
-| **Line Charts** | ✅ | Multi-series, markers, area filling, smooth curves |
+| **Line Charts** | ✅ | Multi-series, markers, area filling, basic smoothing |
+| **Smooth Curve Charts** | ✅ | Cubic spline, Catmull-Rom, Bezier interpolation, configurable tension |
 | **Bar Charts** | ✅ | Vertical/horizontal, stacked, custom spacing |
 | **Pie Charts** | ✅ | Full circles, custom colors, professional styling |
 | **Donut Charts** | ✅ | Percentage-based sizing, helper methods, center content |
@@ -246,7 +291,7 @@ embedded-charts = {
         # Enhanced features
         "animations",             # Real-time animations
         "color-support",          # Professional color palettes
-        "smooth-curves",          # Bezier curve rendering
+        "smooth-curves",          # Advanced curve interpolation (cubic spline, Catmull-Rom, Bezier)
     ]
 }
 ```

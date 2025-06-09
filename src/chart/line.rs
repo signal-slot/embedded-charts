@@ -173,6 +173,7 @@ pub struct LineChart<C: PixelColor> {
 ///     fill_color: Some(Rgb565::CSS_LIGHT_BLUE),
 ///     markers: Some(MarkerStyle::default()),
 ///     smooth: false,
+///     smooth_subdivisions: 8,
 /// };
 /// ```
 #[derive(Debug, Clone)]
@@ -195,11 +196,14 @@ pub struct LineChartStyle<C: PixelColor> {
     ///
     /// When `Some`, markers are drawn at each data point. When `None`, no markers are shown.
     pub markers: Option<MarkerStyle<C>>,
-    /// Whether to smooth the line using bezier curves.
+    /// Whether to smooth the line using interpolation.
     ///
     /// When enabled, creates smooth curves between data points instead of straight lines.
+    /// Uses Catmull-Rom spline interpolation for balanced smoothness and performance.
     /// This feature may impact performance and is recommended for larger displays.
     pub smooth: bool,
+    /// Number of subdivisions for smooth curves (only used when smooth = true)
+    pub smooth_subdivisions: u32,
 }
 
 /// Marker style configuration for data points.
@@ -339,6 +343,7 @@ where
     ///     fill_color: Some(Rgb565::CSS_LIGHT_CORAL),
     ///     markers: None,
     ///     smooth: false,
+    ///     smooth_subdivisions: 8,
     /// };
     /// chart.set_style(style);
     /// ```
@@ -574,7 +579,7 @@ where
     /// Draw area fill under the line
     fn draw_area_fill<D>(
         &self,
-        screen_points: &heapless::Vec<Point, 256>,
+        screen_points: &heapless::Vec<Point, 512>,
         fill_color: C,
         viewport: Rectangle,
         _data_bounds: &DataBounds<f32, f32>,
@@ -589,67 +594,65 @@ where
 
         // Get the chart area (with margins applied)
         let chart_area = self.config.margins.apply_to(viewport);
-        let baseline_y = chart_area.top_left.y + chart_area.size.height as i32;
+        let baseline_y = chart_area.top_left.y + chart_area.size.height as i32 - 1;
 
-        // Create polygon points for area fill
-        // Start from bottom-left, go through all data points, then back to bottom-right
-        let mut fill_points = heapless::Vec::<Point, 258>::new();
+        use embedded_graphics::primitives::{Line, PrimitiveStyle};
+        let line_style = PrimitiveStyle::with_stroke(fill_color, 1);
 
-        // Start at bottom-left
-        if let Some(first_point) = screen_points.first() {
-            fill_points
-                .push(Point::new(first_point.x, baseline_y))
-                .map_err(|_| ChartError::MemoryFull)?;
-        }
+        // Draw horizontal fill lines using scanline approach
+        let min_x = screen_points
+            .iter()
+            .map(|p| p.x)
+            .min()
+            .unwrap_or(chart_area.top_left.x);
+        let max_x = screen_points
+            .iter()
+            .map(|p| p.x)
+            .max()
+            .unwrap_or(chart_area.top_left.x);
 
-        // Add all data points
-        for point in screen_points.iter() {
-            fill_points
-                .push(*point)
-                .map_err(|_| ChartError::MemoryFull)?;
-        }
+        // For each x position, find the curve y and draw a vertical line to baseline
+        for x in min_x..=max_x {
+            if x < chart_area.top_left.x
+                || x >= chart_area.top_left.x + chart_area.size.width as i32
+            {
+                continue;
+            }
 
-        // End at bottom-right
-        if let Some(last_point) = screen_points.last() {
-            fill_points
-                .push(Point::new(last_point.x, baseline_y))
-                .map_err(|_| ChartError::MemoryFull)?;
-        }
+            // Find the y value on the curve at this x position
+            let mut curve_y = baseline_y;
 
-        // Draw filled polygon using triangulation
-        self.draw_filled_polygon(&fill_points, fill_color, target)?;
+            // Linear interpolation between adjacent points
+            for window in screen_points.windows(2) {
+                if let [p1, p2] = window {
+                    if (p1.x <= x && x <= p2.x) || (p2.x <= x && x <= p1.x) {
+                        if p1.x == p2.x {
+                            curve_y = p1.y.min(p2.y);
+                        } else {
+                            let t = (x - p1.x) as f32 / (p2.x - p1.x) as f32;
+                            curve_y = (p1.y as f32 + t * (p2.y - p1.y) as f32) as i32;
+                        }
+                        break;
+                    }
+                }
+            }
 
-        Ok(())
-    }
+            // Clip curve_y to chart area
+            curve_y = curve_y.clamp(
+                chart_area.top_left.y,
+                chart_area.top_left.y + chart_area.size.height as i32 - 1,
+            );
 
-    /// Draw a filled polygon using triangle fan approach
-    fn draw_filled_polygon<D>(
-        &self,
-        points: &heapless::Vec<Point, 258>,
-        fill_color: C,
-        target: &mut D,
-    ) -> ChartResult<()>
-    where
-        D: DrawTarget<Color = C>,
-    {
-        if points.len() < 3 {
-            return Ok(());
-        }
+            // Draw vertical line from curve to baseline
+            if curve_y <= baseline_y {
+                let top_point = Point::new(x, curve_y);
+                let bottom_point = Point::new(x, baseline_y);
 
-        use crate::render::PrimitiveRenderer;
-        use crate::style::FillStyle;
-
-        let fill_style = FillStyle::solid(fill_color);
-
-        // Use triangle fan approach: connect all triangles to the first point
-        let center = points[0];
-        for i in 1..points.len() - 1 {
-            let p1 = center;
-            let p2 = points[i];
-            let p3 = points[i + 1];
-
-            PrimitiveRenderer::draw_triangle(p1, p2, p3, None, Some(&fill_style), target)
-                .map_err(|_| ChartError::RenderingError)?;
+                Line::new(top_point, bottom_point)
+                    .into_styled(line_style)
+                    .draw(target)
+                    .map_err(|_| ChartError::RenderingError)?;
+            }
         }
 
         Ok(())
@@ -722,9 +725,46 @@ where
             grid.draw(chart_area, target)?;
         }
 
-        // Collect points for line drawing
-        let mut screen_points = heapless::Vec::<Point, 256>::new();
-        for point in data.iter() {
+        // Collect and potentially smooth the data points
+        let data_to_render = if self.style.smooth && data.len() > 2 {
+            // Create interpolated smooth curve
+            use crate::math::interpolation::{
+                CurveInterpolator, InterpolationConfig, InterpolationType,
+            };
+
+            let mut input_points = heapless::Vec::<crate::data::Point2D, 256>::new();
+            for point in data.iter() {
+                input_points
+                    .push(point)
+                    .map_err(|_| ChartError::MemoryFull)?;
+            }
+
+            let interpolation_config = InterpolationConfig {
+                interpolation_type: InterpolationType::CatmullRom,
+                subdivisions: self.style.smooth_subdivisions,
+                tension: 0.5,
+                closed: false,
+            };
+
+            let interpolated =
+                CurveInterpolator::interpolate(&input_points, &interpolation_config)?;
+
+            // Create a temporary data series with interpolated points
+            let mut smooth_data = crate::data::series::StaticDataSeries::new();
+            for point in interpolated.iter() {
+                smooth_data
+                    .push(*point)
+                    .map_err(|_| ChartError::MemoryFull)?;
+            }
+            smooth_data
+        } else {
+            // Use original data
+            data.clone()
+        };
+
+        // Transform data points to screen coordinates
+        let mut screen_points = heapless::Vec::<Point, 512>::new();
+        for point in data_to_render.iter() {
             let screen_point = self.transform_point(&point, &data_bounds, viewport);
             screen_points
                 .push(screen_point)
@@ -783,6 +823,7 @@ where
             fill_color: None,
             markers: None,
             smooth: false,
+            smooth_subdivisions: 8,
         }
     }
 }
@@ -874,6 +915,12 @@ where
     /// Enable smooth line rendering
     pub fn smooth(mut self, smooth: bool) -> Self {
         self.style.smooth = smooth;
+        self
+    }
+
+    /// Set the number of subdivisions for smooth curves
+    pub fn smooth_subdivisions(mut self, subdivisions: u32) -> Self {
+        self.style.smooth_subdivisions = subdivisions.clamp(2, 16);
         self
     }
 
@@ -1231,6 +1278,12 @@ where
     /// Enable smooth lines
     pub fn smooth(mut self, smooth: bool) -> Self {
         self.base_builder = self.base_builder.smooth(smooth);
+        self
+    }
+
+    /// Set the number of subdivisions for smooth curves
+    pub fn smooth_subdivisions(mut self, subdivisions: u32) -> Self {
+        self.base_builder = self.base_builder.smooth_subdivisions(subdivisions);
         self
     }
 

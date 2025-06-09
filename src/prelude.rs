@@ -24,7 +24,7 @@
 //! # What's Included
 //!
 //! ## Core Chart Types
-//! - [`LineChart`], [`BarChart`], [`PieChart`], `ScatterChart`, `GaugeChart`
+//! - [`LineChart`], [`CurveChart`], [`BarChart`], [`PieChart`], `ScatterChart`, `GaugeChart`
 //! - Chart builders and style configurations
 //! - Animation support (feature-gated)
 //!
@@ -182,6 +182,12 @@ pub use crate::grid::traits::TickAlignedGrid;
 #[cfg(feature = "line")]
 pub use crate::chart::{LineChart, LineChartBuilder, LineChartStyle, MarkerShape, MarkerStyle};
 
+#[cfg(feature = "line")]
+pub use crate::chart::{CurveChart, CurveChartBuilder};
+
+#[cfg(feature = "line")]
+pub use crate::math::interpolation::{InterpolationConfig, InterpolationType};
+
 #[cfg(all(feature = "line", feature = "animations"))]
 pub use crate::chart::{AnimatedLineChart, AnimatedLineChartBuilder};
 
@@ -313,6 +319,14 @@ pub mod types {
     #[cfg(feature = "line")]
     pub type Rgb565LineChartBuilder = LineChartBuilder<Rgb565>;
 
+    /// Standard RGB565 curve chart
+    #[cfg(feature = "line")]
+    pub type Rgb565CurveChart = CurveChart<Rgb565>;
+
+    /// Standard RGB565 curve chart builder
+    #[cfg(feature = "line")]
+    pub type Rgb565CurveChartBuilder = CurveChartBuilder<Rgb565>;
+
     // Note: Animated chart types are not yet implemented
     // /// Standard RGB565 animated line chart
     // #[cfg(feature = "animations")]
@@ -396,6 +410,22 @@ pub mod quick {
         LineChart::builder()
             .line_color(Rgb565::new(70 >> 3, 130 >> 2, 180 >> 3)) // Steel Blue
             .line_width(2)
+    }
+
+    /// Create a simple smooth curve chart with default styling
+    #[cfg(feature = "line")]
+    pub fn curve_chart() -> CurveChartBuilder<Rgb565> {
+        CurveChart::builder()
+    }
+
+    /// Create a smooth curve chart with professional styling
+    #[cfg(feature = "line")]
+    pub fn professional_curve_chart() -> CurveChartBuilder<Rgb565> {
+        CurveChart::builder()
+            .line_color(Rgb565::new(70 >> 3, 130 >> 2, 180 >> 3)) // Steel Blue
+            .line_width(2)
+            .interpolation_type(InterpolationType::CubicSpline)
+            .subdivisions(12)
     }
 
     /// Create a simple data series from tuples

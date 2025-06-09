@@ -170,6 +170,9 @@ pub mod stacked;
 #[cfg(feature = "custom")]
 pub mod custom;
 
+#[cfg(feature = "line")]
+pub mod curve;
+
 #[cfg(feature = "bar")]
 pub use bar::*;
 #[cfg(feature = "line")]
@@ -189,3 +192,6 @@ pub use stacked::*;
 
 #[cfg(feature = "custom")]
 pub use custom::*;
+
+#[cfg(feature = "line")]
+pub use curve::*;
