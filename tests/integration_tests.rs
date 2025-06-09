@@ -207,11 +207,21 @@ fn test_donut_chart_comprehensive_functionality() {
     let viewport = Rectangle::new(Point::new(0, 0), Size::new(50, 50));
 
     // Test that all donut charts render successfully
-    assert!(manual_donut.draw(&series, manual_donut.config(), viewport, &mut display).is_ok());
-    assert!(percentage_donut.draw(&series, percentage_donut.config(), viewport, &mut display).is_ok());
-    assert!(balanced_donut.draw(&series, balanced_donut.config(), viewport, &mut display).is_ok());
-    assert!(thin_donut.draw(&series, thin_donut.config(), viewport, &mut display).is_ok());
-    assert!(thick_donut.draw(&series, thick_donut.config(), viewport, &mut display).is_ok());
+    assert!(manual_donut
+        .draw(&series, manual_donut.config(), viewport, &mut display)
+        .is_ok());
+    assert!(percentage_donut
+        .draw(&series, percentage_donut.config(), viewport, &mut display)
+        .is_ok());
+    assert!(balanced_donut
+        .draw(&series, balanced_donut.config(), viewport, &mut display)
+        .is_ok());
+    assert!(thin_donut
+        .draw(&series, thin_donut.config(), viewport, &mut display)
+        .is_ok());
+    assert!(thick_donut
+        .draw(&series, thick_donut.config(), viewport, &mut display)
+        .is_ok());
 
     // Test comparison with regular pie chart
     let regular_pie: PieChart<Rgb565> = PieChart::builder()
@@ -223,7 +233,9 @@ fn test_donut_chart_comprehensive_functionality() {
         .unwrap();
 
     assert_eq!(regular_pie.style().donut_inner_radius, None);
-    assert!(regular_pie.draw(&series, regular_pie.config(), viewport, &mut display).is_ok());
+    assert!(regular_pie
+        .draw(&series, regular_pie.config(), viewport, &mut display)
+        .is_ok());
 }
 
 #[test]

@@ -42,7 +42,7 @@ fn main() -> ChartResult<()> {
     let colors = configs::professional_colors();
 
     // Create different donut charts demonstrating new helper methods
-    
+
     // 1. Thin donut using convenience method
     let thin_donut = PieChart::builder()
         .center(Point::new(120, 120))
@@ -133,16 +133,16 @@ fn main() -> ChartResult<()> {
         move |display, _viewport| {
             // Create separate viewports for each chart
             let chart_size = Size::new(150, 150);
-            
+
             // Top row - donut chart variations
             let thin_viewport = Rectangle::new(Point::new(20, 20), chart_size);
             let balanced_viewport = Rectangle::new(Point::new(200, 20), chart_size);
             let thick_viewport = Rectangle::new(Point::new(380, 20), chart_size);
-            
+
             // Bottom row - comparison charts
             let pie_viewport = Rectangle::new(Point::new(110, 200), chart_size);
             let embedded_viewport = Rectangle::new(Point::new(290, 200), chart_size);
-            
+
             // Draw each chart in its own viewport
             thin_donut.draw(&series, thin_donut.config(), thin_viewport, display)?;
             balanced_donut.draw(&series, balanced_donut.config(), balanced_viewport, display)?;
@@ -151,10 +151,7 @@ fn main() -> ChartResult<()> {
             embedded_donut.draw(&series, embedded_donut.config(), embedded_viewport, display)?;
 
             // Draw legend at the bottom center
-            let legend_area = Rectangle::new(
-                Point::new(150, 380),
-                Size::new(500, 60)
-            );
+            let legend_area = Rectangle::new(Point::new(150, 380), Size::new(500, 60));
             renderer.render(&legend, legend_area, display)?;
 
             // Add informational text
