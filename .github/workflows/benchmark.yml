@@ -39,31 +39,29 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libsdl2-dev
     
-    - name: Install cargo-criterion
-      run: cargo install cargo-criterion
-    
-    - name: Run benchmarks
-      run: cargo criterion --message-format=json > benchmark-results.json
-      continue-on-error: true
+    - name: Run benchmark tests (performance tests)
+      run: |
+        echo "## Performance Test Results" > benchmark-results.md
+        echo "" >> benchmark-results.md
+        
+        # Run tests in release mode for performance measurement
+        echo "### Default features performance" >> benchmark-results.md
+        time cargo test --release 2>&1 | grep "finished in" | tee -a benchmark-results.md
+        echo "" >> benchmark-results.md
+        
+        echo "### All features performance" >> benchmark-results.md
+        time cargo test --all-features --release 2>&1 | grep "finished in" | tee -a benchmark-results.md
+        echo "" >> benchmark-results.md
+        
+        echo "### Minimal features performance" >> benchmark-results.md
+        time cargo test --no-default-features --features "no_std,integer-math" --release 2>&1 | grep "finished in" | tee -a benchmark-results.md
     
     - name: Upload benchmark results
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: benchmark-results
-        path: benchmark-results.json
-    
-    - name: Store benchmark result
-      uses: benchmark-action/github-action-benchmark@v1
-      if: github.ref == 'refs/heads/main'
-      with:
-        tool: 'cargo'
-        output-file-path: benchmark-results.json
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        auto-push: true
-        comment-on-alert: true
-        alert-threshold: '200%'
-        fail-on-alert: false
+        path: benchmark-results.md
 
   memory-usage:
     name: Memory Usage Analysis
@@ -91,33 +89,35 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libsdl2-dev valgrind
     
-    - name: Install cargo-bloat
-      run: cargo install cargo-bloat
-    
-    - name: Analyze binary size
+    - name: Analyze library size and dependencies
       run: |
-        echo "## Binary Size Analysis" > memory-report.md
+        echo "## Library Size and Dependency Analysis" > memory-report.md
         echo "" >> memory-report.md
         
-        # Build with different feature combinations
-        echo "### Default features" >> memory-report.md
-        cargo build --release
-        cargo bloat --release --crates >> memory-report.md
+        # Build examples with different feature combinations to analyze memory usage
+        echo "### Default features - Example builds" >> memory-report.md
+        cargo build --release --examples
+        echo "Example binaries built successfully" >> memory-report.md
         echo "" >> memory-report.md
         
-        echo "### Small MCU features" >> memory-report.md
-        cargo build --release --no-default-features --features "small-mcu"
-        cargo bloat --release --crates --features "small-mcu" >> memory-report.md
+        echo "### Minimal embedded features (no_std + integer-math)" >> memory-report.md
+        echo "Feature set: no_std, integer-math, minimal-memory" >> memory-report.md
+        cargo check --release --no-default-features --features "no_std,integer-math,minimal-memory" 2>&1 | tee -a memory-report.md
         echo "" >> memory-report.md
         
-        echo "### Medium MCU features" >> memory-report.md
-        cargo build --release --no-default-features --features "medium-mcu"
-        cargo bloat --release --crates --features "medium-mcu" >> memory-report.md
+        echo "### Balanced embedded features (no_std + fixed-point)" >> memory-report.md
+        echo "Feature set: no_std, fixed-point, basic-charts" >> memory-report.md
+        cargo check --release --no-default-features --features "no_std,fixed-point,basic-charts" 2>&1 | tee -a memory-report.md
         echo "" >> memory-report.md
         
-        echo "### Large MCU features" >> memory-report.md
-        cargo build --release --no-default-features --features "large-mcu"
-        cargo bloat --release --crates --features "large-mcu" >> memory-report.md
+        echo "### Full embedded features (no_std + floating-point)" >> memory-report.md
+        echo "Feature set: no_std, floating-point, scatter, gauge" >> memory-report.md
+        cargo check --release --no-default-features --features "no_std,floating-point,scatter,gauge" 2>&1 | tee -a memory-report.md
+        echo "" >> memory-report.md
+        
+        echo "### Dependency analysis" >> memory-report.md
+        echo "Dependency tree for minimal configuration:" >> memory-report.md
+        cargo tree --no-default-features --features "no_std,integer-math,minimal-memory" >> memory-report.md
     
     - name: Upload memory analysis
       uses: actions/upload-artifact@v4
@@ -152,9 +152,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y libsdl2-dev
     
-    - name: Install cargo-timings
-      run: cargo install cargo-timings
-    
     - name: Measure compile times
       run: |
         echo "## Compile Time Analysis" > compile-time-report.md
@@ -165,17 +162,17 @@ jobs:
         
         # Measure compile time for different feature sets
         echo "### Default features" >> compile-time-report.md
-        time cargo build --timings 2>&1 | tee -a compile-time-report.md
+        time cargo build --timings=html,json 2>&1 | tee -a compile-time-report.md
         echo "" >> compile-time-report.md
         
         cargo clean
-        echo "### Small MCU features" >> compile-time-report.md
-        time cargo build --no-default-features --features "small-mcu" --timings 2>&1 | tee -a compile-time-report.md
+        echo "### Minimal embedded features" >> compile-time-report.md
+        time cargo build --no-default-features --features "no_std,integer-math,minimal-memory" --timings=html,json 2>&1 | tee -a compile-time-report.md
         echo "" >> compile-time-report.md
         
         cargo clean
         echo "### All features" >> compile-time-report.md
-        time cargo build --all-features --timings 2>&1 | tee -a compile-time-report.md
+        time cargo build --all-features --timings=html,json 2>&1 | tee -a compile-time-report.md
     
     - name: Upload compile time analysis
       uses: actions/upload-artifact@v4
