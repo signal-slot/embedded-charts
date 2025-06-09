@@ -165,7 +165,7 @@
 //!
 //! ### Streaming Data (requires "animations" feature)
 //! ```rust,no_run
-//! # #[cfg(feature = "animations")]
+//! # #[cfg(all(feature = "animations", feature = "line"))]
 //! # {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::{prelude::*, pixelcolor::Rgb565};
