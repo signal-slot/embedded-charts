@@ -10,6 +10,7 @@
 //! - `cordic-math`: CORDIC-based trigonometric functions
 
 pub mod backends;
+pub mod interpolation;
 pub mod traits;
 
 // Re-export the main traits

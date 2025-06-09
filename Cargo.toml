@@ -181,3 +181,8 @@ required-features = ["std", "scatter"]
 name = "time_provider_demo"
 path = "examples/basic/time_provider_demo.rs"
 required-features = ["std", "line", "animations"]
+
+[[example]]
+name = "smooth_curve_demo"
+path = "examples/basic/smooth_curve_demo.rs"
+required-features = ["std", "line"]
