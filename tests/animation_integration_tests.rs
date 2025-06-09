@@ -210,6 +210,7 @@ fn test_data_series_interpolation() -> ChartResult<()> {
 
 /// Test AnimatedChart trait integration
 #[test]
+#[cfg(feature = "line")]
 fn test_animated_chart_integration() -> ChartResult<()> {
     // Create an animated line chart
     let chart = AnimatedLineChart::<Rgb565>::new();

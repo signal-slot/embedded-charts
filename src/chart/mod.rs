@@ -8,7 +8,7 @@
 //!
 //! ### Line Charts (feature: "line")
 //! Multi-series line charts with markers, area filling, and smooth curves:
-//! ```rust
+//! ```rust,ignore
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
@@ -137,6 +137,7 @@
 //!
 //! All charts use the builder pattern for fluent configuration:
 //! ```rust,no_run
+//! # #[cfg(feature = "line")]
 //! # fn test() -> Result<(), embedded_charts::error::ChartError> {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;

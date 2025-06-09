@@ -3,15 +3,15 @@
 //! These tests verify that the API works correctly and charts can be created and rendered.
 
 use embedded_charts::{
-    chart::{
-        line::LineChart,
-        traits::{Chart, ChartBuilder},
-    },
+    chart::traits::{Chart, ChartBuilder},
     data::{
         point::Point2D,
         series::{DataSeries, StaticDataSeries},
     },
 };
+
+#[cfg(feature = "line")]
+use embedded_charts::chart::line::LineChart;
 
 #[cfg(feature = "bar")]
 use embedded_charts::chart::bar::BarChart;
@@ -35,6 +35,7 @@ use embedded_charts::chart::scatter::{
 use heapless::Vec;
 
 #[test]
+#[cfg(feature = "line")]
 fn test_line_chart_creation_and_basic_usage() {
     // Create sample data
     let mut series: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
@@ -180,6 +181,7 @@ fn test_data_series_bounds_calculation() {
 }
 
 #[test]
+#[cfg(feature = "line")]
 fn test_error_handling() {
     // Test data series capacity limit
     let mut series: StaticDataSeries<Point2D, 2> = StaticDataSeries::new();
@@ -666,6 +668,7 @@ fn test_gauge_chart_threshold_zones() {
 // ============================================================================
 
 #[test]
+#[cfg(feature = "line")]
 fn test_line_chart_large_dataset_performance() {
     // Create large dataset (250+ points - max capacity)
     let mut series: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
@@ -750,6 +753,7 @@ fn test_scatter_chart_large_dataset_performance() {
 }
 
 #[test]
+#[cfg(feature = "line")]
 fn test_memory_usage_validation() {
     // Test memory usage with different dataset sizes
     let sizes = [50, 100, 200, 256];
@@ -809,6 +813,7 @@ fn test_memory_usage_validation() {
 }
 
 #[test]
+#[cfg(feature = "line")]
 fn test_rendering_performance_benchmarks() {
     // Create benchmark dataset
     let mut series: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
@@ -882,6 +887,7 @@ fn test_rendering_performance_benchmarks() {
 // ============================================================================
 
 #[test]
+#[cfg(feature = "line")]
 fn test_visual_output_consistency() {
     // Create consistent test data
     let mut series: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
@@ -957,6 +963,7 @@ fn test_visual_output_consistency() {
 }
 
 #[test]
+#[cfg(feature = "line")]
 fn test_different_color_types() {
     use embedded_graphics::pixelcolor::BinaryColor;
 

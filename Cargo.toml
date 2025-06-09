@@ -46,7 +46,7 @@ cordic-math = ["cordic", "fixed"]     # CORDIC-based trigonometric functions
 
 # Chart type features
 basic-charts = ["line", "bar", "pie"]
-advanced-charts = ["scatter", "gauge", "custom", "stacked-charts"]
+advanced-charts = ["scatter", "gauge", "custom", "stacked-charts", "line"]
 line = []
 bar = []
 stacked-charts = ["stacked-bars", "stacked-lines"]

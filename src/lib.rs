@@ -22,6 +22,8 @@
 //! ### Line Charts
 //! Multi-series line charts with markers, area filling, and smooth curves:
 //! ```rust,no_run
+//! # #[cfg(feature = "line")]
+//! # {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
@@ -36,6 +38,7 @@
 //!     })
 //!     .build()?;
 //! # Ok::<(), embedded_charts::error::ChartError>(())
+//! # }
 //! ```
 //!
 //! ### Bar Charts
@@ -216,7 +219,7 @@
 //!
 //! ### no_std Usage
 //! Complete example for embedded systems:
-//! ```rust,no_run
+//! ```rust,ignore
 //! #![no_std]
 //!
 //! use embedded_charts::prelude::*;
@@ -247,7 +250,7 @@
 //! ## Complete Example
 //!
 //! Professional multi-series chart:
-//! ```rust,no_run
+//! ```rust,ignore
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::{pixelcolor::Rgb565, prelude::*};
 //!

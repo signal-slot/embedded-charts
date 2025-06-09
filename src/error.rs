@@ -32,6 +32,8 @@
 //!
 //! ## Using Result Types
 //! ```rust
+//! # #[cfg(feature = "line")]
+//! # {
 //! use embedded_charts::prelude::*;
 //! use embedded_charts::error::ChartResult;
 //!
@@ -40,6 +42,7 @@
 //!         .line_color(embedded_graphics::pixelcolor::Rgb565::BLUE)
 //!         .build()
 //! }
+//! # }
 //! ```
 //!
 //! ## Error Propagation

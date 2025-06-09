@@ -14,6 +14,7 @@
 //! let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
 //! data.push(Point2D::new(0.0, 10.0))?;
 //!
+//! # #[cfg(feature = "line")]
 //! let chart = LineChart::builder()
 //!     .line_color(Rgb565::BLUE)
 //!     .build()?;
@@ -55,16 +56,21 @@
 //!
 //! ## Simple Line Chart
 //! ```rust
+//! # #[cfg(feature = "line")]
+//! # {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
 //! let data = data_points![(0.0, 10.0), (1.0, 20.0), (2.0, 15.0)];
 //! let chart = quick::line_chart().build()?;
 //! # Ok::<(), embedded_charts::error::ChartError>(())
+//! # }
 //! ```
 //!
 //! ## Professional Styled Chart
 //! ```rust
+//! # #[cfg(feature = "line")]
+//! # {
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
@@ -79,6 +85,7 @@
 //!     grid: true,
 //! };
 //! # Ok::<(), embedded_charts::error::ChartError>(())
+//! # }
 //! ```
 //!
 //! ## Multi-Series Chart

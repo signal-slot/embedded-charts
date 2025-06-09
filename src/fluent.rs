@@ -9,6 +9,8 @@
 //!
 //! ## Simple Line Chart
 //! ```rust
+//! # #[cfg(feature = "line")]
+//! # {
 //! use embedded_charts::fluent::Chart;
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
@@ -20,10 +22,13 @@
 //!     .title("Temperature")
 //!     .build()?;
 //! # Ok::<(), embedded_charts::error::ChartError>(())
+//! # }
 //! ```
 //!
 //! ## Professional Styled Chart
 //! ```rust,no_run
+//! # #[cfg(feature = "line")]
+//! # {
 //! use embedded_charts::fluent::Chart;
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
@@ -34,10 +39,13 @@
 //!     .title("Sales Data")
 //!     .build()?;
 //! # Ok::<(), embedded_charts::error::ChartError>(())
+//! # }
 //! ```
 //!
 //! ## Multi-Series Chart
 //! ```rust,no_run
+//! # #[cfg(feature = "line")]
+//! # {
 //! use embedded_charts::fluent::Chart;
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
@@ -48,6 +56,7 @@
 //!     .color(Rgb565::BLUE)
 //!     .build()?;
 //! # Ok::<(), embedded_charts::error::ChartError>(())
+//! # }
 //! ```
 
 #[cfg(any(feature = "line", feature = "bar"))]
