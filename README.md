@@ -7,7 +7,7 @@
 
 A production-ready, no_std graph framework for embedded systems using embedded-graphics.
 
-This library provides comprehensive chart types (line, bar, pie), axes, grids, legends, real-time data streaming capabilities, and customizable styling while maintaining memory efficiency and performance suitable for resource-constrained environments.
+This library provides comprehensive chart types (line, bar, pie, donut), axes, grids, legends, real-time data streaming capabilities, and customizable styling while maintaining memory efficiency and performance suitable for resource-constrained environments.
 
 ## 🎨 Visual Showcase
 
@@ -31,7 +31,13 @@ This library provides comprehensive chart types (line, bar, pie), axes, grids, l
     <tr>
       <td align="center">
         <img src="docs/assets/pie_chart_example.png" width="300" alt="Pie Chart"/>
-        <br><b>Pie Charts</b><br>Full circles, donut charts, custom colors
+        <br><b>Pie Charts</b><br>Full circles, custom colors, professional styling
+      </td>
+    </tr>
+    <tr>
+      <td align="center">
+        <img src="docs/assets/donut_chart_examples_-_storage_usage.png" width="300" alt="Donut Chart"/>
+        <br><b>Donut Charts</b><br>Hollow centers, multiple sizes, embedded-optimized
       </td>
       <td align="center">
         <img src="docs/assets/basic_gauge_chart.png" width="300" alt="Gauge Chart"/>
@@ -116,7 +122,8 @@ This library provides comprehensive chart types (line, bar, pie), axes, grids, l
 |---------|--------|-------------|
 | Line Charts | ✅ Complete | Multi-series, markers, area filling |
 | Bar Charts | ✅ Complete | Vertical/horizontal, stacked support |
-| Pie Charts | ✅ Complete | Full circles, donut charts |
+| Pie Charts | ✅ Complete | Full circles, professional styling |
+| Donut Charts | ✅ Complete | Hollow centers, percentage-based sizing |
 | Gauge Charts | ✅ Complete | Semicircle gauges, threshold zones |
 | Scatter Charts | ✅ Complete | Clustering, collision detection |
 | Axes System | ✅ Complete | Linear axes, ticks, labels |
@@ -151,7 +158,7 @@ embedded-charts = {
 ```
 
 #### Chart Features
-- `basic-charts`: Line, bar, pie charts (default)
+- `basic-charts`: Line, bar, pie, donut charts (default)
 - `advanced-charts`: Scatter plots, gauges, custom charts
 - `stacked-charts`: Stacked bar and area chart support
 - `donut`: Donut chart support

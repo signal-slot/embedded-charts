@@ -19,6 +19,7 @@ echo "📊 Generating basic chart examples..."
 cargo run --example line_chart --features std,capture
 cargo run --example bar_chart --features std,capture
 cargo run --example pie_chart --features std,capture
+cargo run --example donut_chart --features std,capture,pie
 
 # Generate advanced chart examples
 echo "🔬 Generating advanced chart examples..."
