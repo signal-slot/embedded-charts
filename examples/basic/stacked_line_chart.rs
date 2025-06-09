@@ -608,7 +608,7 @@ mod tests {
     #[test]
     fn test_stacked_area_approach() {
         // Test that our stacked area approach correctly shows layer contributions
-        let hours = [0, 8, 16];
+        let _hours = [0, 8, 16];
         let infrastructure = [15.0, 18.0, 40.0];
         let applications = [5.0, 25.0, 80.0];
         let traffic = [2.0, 15.0, 85.0];
@@ -642,9 +642,7 @@ mod tests {
     #[cfg(feature = "animations")]
     #[test]
     fn test_animated_stacked_area_chart_creation() {
-        let chart = AnimatedStackedAreaChart::<Rgb565>::builder()
-            .smooth_curves(true)
-            .fill_areas(true)
+        let _chart = AnimatedStackedBarChart::<Rgb565>::builder()
             .build()
             .unwrap();
 

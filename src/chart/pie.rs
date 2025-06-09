@@ -300,19 +300,21 @@ where
         D: DrawTarget<Color = C>,
     {
         if let Some(inner_radius) = self.style.donut_inner_radius {
-            if let Some(bg_color) = self.config.background_color {
-                let fill_style = PrimitiveStyle::with_fill(bg_color);
-                Circle::new(
-                    Point::new(
-                        self.center.x - inner_radius as i32,
-                        self.center.y - inner_radius as i32,
-                    ),
-                    inner_radius * 2,
-                )
-                .into_styled(fill_style)
-                .draw(target)
-                .map_err(|_| ChartError::RenderingError)?;
-            }
+            // Use background color if available, otherwise use white as default
+            let center_color = self.config.background_color
+                .unwrap_or_else(|| embedded_graphics::pixelcolor::Rgb565::WHITE.into());
+            
+            let fill_style = PrimitiveStyle::with_fill(center_color);
+            Circle::new(
+                Point::new(
+                    self.center.x - inner_radius as i32,
+                    self.center.y - inner_radius as i32,
+                ),
+                inner_radius * 2,
+            )
+            .into_styled(fill_style)
+            .draw(target)
+            .map_err(|_| ChartError::RenderingError)?;
         }
 
         Ok(())

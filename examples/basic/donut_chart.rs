@@ -50,6 +50,7 @@ fn main() -> ChartResult<()> {
         .thin_donut() // 25% inner radius using helper method
         .colors(&colors[0..5])
         .with_title("Thin Donut (25%)")
+        .background_color(Rgb565::WHITE)
         .build()?;
 
     // 2. Balanced donut using convenience method
@@ -59,6 +60,7 @@ fn main() -> ChartResult<()> {
         .balanced_donut() // 50% inner radius using helper method
         .colors(&colors[0..5])
         .with_title("Balanced Donut (50%)")
+        .background_color(Rgb565::WHITE)
         .build()?;
 
     // 3. Thick donut using convenience method
@@ -68,6 +70,7 @@ fn main() -> ChartResult<()> {
         .thick_donut() // 75% inner radius using helper method
         .colors(&colors[0..5])
         .with_title("Thick Donut (75%)")
+        .background_color(Rgb565::WHITE)
         .build()?;
 
     // 4. Regular pie chart for comparison
@@ -86,6 +89,7 @@ fn main() -> ChartResult<()> {
         .donut_percentage(50) // 50% inner radius using percentage method
         .colors(&colors[0..5])
         .with_title("Embedded (50% method)")
+        .background_color(Rgb565::WHITE)
         .build()?;
 
     // Create a shared legend for all charts

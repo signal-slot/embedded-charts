@@ -322,7 +322,7 @@ mod tests {
 
     #[test]
     fn test_chart_area_adjustment() {
-        let viewport = Rectangle::new(Point::zero(), Size::new(400, 300));
+        let _viewport = Rectangle::new(Point::zero(), Size::new(400, 300));
         let legend_margins = 80u32;
 
         let adjusted_area = Rectangle::new(

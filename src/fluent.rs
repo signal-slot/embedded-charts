@@ -68,7 +68,9 @@
 #[cfg(any(feature = "line", feature = "bar"))]
 use crate::chart::traits::ChartBuilder;
 #[cfg(any(feature = "line", feature = "bar"))]
-use crate::data::{MultiSeries, Point2D, StaticDataSeries};
+use crate::data::{Point2D, StaticDataSeries};
+#[allow(unused_imports)]
+use crate::data::MultiSeries;
 #[cfg(any(feature = "line", feature = "bar"))]
 use crate::error::ChartResult;
 #[cfg(any(feature = "line", feature = "bar"))]

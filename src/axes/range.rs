@@ -117,7 +117,7 @@ pub fn calculate_nice_range(min: f32, max: f32, config: RangeCalculationConfig) 
                 }
             };
             #[cfg(not(any(feature = "std", feature = "floating-point", feature = "libm-math")))]
-            let magnitude = 1.0; // Simplified for fixed-point and integer math
+            let _magnitude = 1.0; // Simplified for fixed-point and integer math
 
             #[cfg(feature = "std")]
             let result = (min * config.far_from_zero_margin / magnitude).floor() * magnitude;

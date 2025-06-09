@@ -616,7 +616,7 @@ mod tests {
     #[cfg(feature = "animations")]
     #[test]
     fn test_animated_stacked_chart_creation() {
-        let chart = AnimatedStackedBarChart::<Rgb565>::builder()
+        let _chart = AnimatedStackedBarChart::<Rgb565>::builder()
             .bar_width(StackedBarWidth::Auto)
             .spacing(20)
             .build()

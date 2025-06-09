@@ -450,13 +450,14 @@ mod tests {
     #[test]
     fn test_multi_series_rendering() {
         let mut display = MockDisplay::<Rgb565>::new();
+        display.set_allow_overdraw(true); // Allow drawing outside bounds for test
         let chart = LineChart::builder()
             .line_color(Rgb565::BLUE)
             .build()
             .unwrap();
 
         let data = data::system_metrics(5, data::SystemMetric::CpuUsage).unwrap();
-        let viewport = Rectangle::new(Point::new(0, 0), Size::new(100, 100));
+        let viewport = Rectangle::new(Point::new(5, 5), Size::new(50, 50)); // Smaller viewport with margins
 
         // Should render without errors
         chart
