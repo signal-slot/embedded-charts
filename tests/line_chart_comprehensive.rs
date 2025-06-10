@@ -7,6 +7,8 @@
 //! Some tests may fail with MockDisplay due to its strict pixel drawing validation.
 //! Use `cargo test --test line_chart_comprehensive` to run these tests specifically.
 
+#![cfg(feature = "line")]
+
 use embedded_charts::{
     chart::{
         line::{LineChart, LineChartBuilder, LineChartStyle, MarkerShape, MarkerStyle},

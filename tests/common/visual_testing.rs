@@ -313,8 +313,10 @@ pub struct PixelDistribution {
 
 #[cfg(test)]
 mod tests {
-    use super::super::data_generators;
     use super::*;
+
+    #[cfg(feature = "line")]
+    use super::super::data_generators;
 
     #[test]
     #[cfg(feature = "line")]

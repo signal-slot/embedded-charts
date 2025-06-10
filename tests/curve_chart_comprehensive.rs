@@ -7,15 +7,16 @@
 //! Some tests may fail with MockDisplay due to its strict pixel drawing validation.
 //! Use `cargo test --test curve_chart_comprehensive` to run these tests specifically.
 
+#![cfg(feature = "line")]
+
 mod common;
 
-#[cfg(feature = "line")]
 mod curve_tests {
     use embedded_charts::{
         chart::{
             curve::{CurveChart, CurveChartBuilder},
             line::{MarkerShape, MarkerStyle},
-            traits::{Chart, ChartConfig, Margins},
+            traits::{Chart, ChartBuilder, ChartConfig, Margins},
         },
         data::{point::Point2D, series::StaticDataSeries},
         error::{ChartError, ChartResult},
