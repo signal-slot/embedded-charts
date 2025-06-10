@@ -16,7 +16,7 @@ mod curve_tests {
         chart::{
             curve::{CurveChart, CurveChartBuilder},
             line::{MarkerShape, MarkerStyle},
-            traits::{Chart, ChartBuilder, ChartConfig, Margins},
+            traits::{Chart, ChartConfig, Margins},
         },
         data::{point::Point2D, series::StaticDataSeries},
         error::{ChartError, ChartResult},
