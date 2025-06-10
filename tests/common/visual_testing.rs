@@ -2,6 +2,8 @@
 //!
 //! Provides tools for validating visual output and detecting rendering regressions
 
+#![allow(dead_code)] // Allow unused testing utilities - they're part of testing infrastructure
+
 use embedded_charts::{
     chart::traits::{Chart, ChartConfig},
     data::{point::Point2D, series::StaticDataSeries, DataSeries},

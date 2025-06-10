@@ -300,9 +300,9 @@ fn test_error_handling_comprehensive() -> ChartResult<()> {
     let result = chart.draw(&empty_data, &config, TEST_VIEWPORT, &mut display);
     // Should either succeed (for charts that handle empty data) or fail gracefully
     match result {
-        Ok(_) => {}, // Chart handles empty data gracefully
-        Err(ChartError::InsufficientData) => {}, // Expected error
-        Err(_) => {}, // Other errors are also acceptable for edge cases
+        Ok(_) => {}                             // Chart handles empty data gracefully
+        Err(ChartError::InsufficientData) => {} // Expected error
+        Err(_) => {}                            // Other errors are also acceptable for edge cases
     }
 
     // Test with single point
@@ -311,9 +311,9 @@ fn test_error_handling_comprehensive() -> ChartResult<()> {
     let result = chart.draw(&single_point, &config, TEST_VIEWPORT, &mut display);
     // Should either succeed or fail gracefully
     match result {
-        Ok(_) => {}, // Chart handles single point gracefully
-        Err(ChartError::InsufficientData) => {}, // Expected error
-        Err(_) => {}, // Other errors are also acceptable for edge cases
+        Ok(_) => {}                             // Chart handles single point gracefully
+        Err(ChartError::InsufficientData) => {} // Expected error
+        Err(_) => {}                            // Other errors are also acceptable for edge cases
     }
 
     // Test with zero-size viewport
@@ -348,12 +348,11 @@ fn test_edge_case_data() -> ChartResult<()> {
 
         // First two cases (empty and single point) should fail
         if i <= 1 {
-            assert!(result.is_err(), "Edge case {} should fail", i);
+            assert!(result.is_err(), "Edge case {i} should fail");
         } else {
             // Other cases should succeed
-            result.unwrap_or_else(|e| {
-                panic!("Edge case {} should succeed but failed with: {:?}", i, e)
-            });
+            result
+                .unwrap_or_else(|e| panic!("Edge case {i} should succeed but failed with: {e:?}"));
         }
     }
 

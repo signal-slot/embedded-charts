@@ -2,14 +2,14 @@
 //!
 //! Provides specialized testing infrastructure for different chart types
 
+#![allow(dead_code)] // Allow unused testing utilities - they're part of testing infrastructure
+
 use embedded_charts::{
     chart::traits::{Chart, ChartBuilder, ChartConfig},
     data::{point::Point2D, series::StaticDataSeries, DataSeries},
     error::{ChartError, ChartResult},
 };
-use embedded_graphics::{
-    mock_display::MockDisplay, pixelcolor::Rgb565, prelude::*, primitives::Rectangle,
-};
+use embedded_graphics::{pixelcolor::Rgb565, prelude::*, primitives::Rectangle};
 
 use super::{create_test_display, PerformanceMetrics, TestColors, TEST_VIEWPORT};
 
@@ -188,7 +188,7 @@ impl ChartTestSuite {
 #[cfg(feature = "line")]
 pub mod line_chart_testing {
     use super::*;
-    use embedded_charts::chart::line::{LineChart, LineChartStyle, MarkerShape, MarkerStyle};
+    use embedded_charts::chart::line::{LineChart, MarkerShape, MarkerStyle};
 
     pub struct LineChartTester;
 

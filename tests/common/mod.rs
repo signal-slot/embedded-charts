@@ -3,8 +3,10 @@
 //! This module provides shared utilities, test data generators, and helper functions
 //! to support comprehensive testing across all chart types and components.
 
+#![allow(dead_code)] // Allow unused testing utilities - they're part of testing infrastructure
+
 use embedded_charts::{
-    data::{point::Point2D, series::StaticDataSeries, DataSeries},
+    data::{point::Point2D, series::StaticDataSeries},
     error::{ChartError, ChartResult},
 };
 use embedded_graphics::{

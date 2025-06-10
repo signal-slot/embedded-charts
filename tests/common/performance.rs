@@ -2,14 +2,14 @@
 //!
 //! Provides tools for measuring and validating chart performance characteristics
 
+#![allow(dead_code)] // Allow unused testing utilities - they're part of testing infrastructure
+
 use embedded_charts::{
     chart::traits::{Chart, ChartConfig},
     data::{point::Point2D, series::StaticDataSeries},
     error::ChartResult,
 };
-use embedded_graphics::{
-    mock_display::MockDisplay, pixelcolor::Rgb565, prelude::*, primitives::Rectangle,
-};
+use embedded_graphics::{pixelcolor::Rgb565, prelude::*, primitives::Rectangle};
 
 use super::{MemoryMetrics, PerformanceMetrics, TEST_VIEWPORT};
 

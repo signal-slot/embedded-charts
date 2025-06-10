@@ -15,7 +15,7 @@ mod curve_tests {
         chart::{
             curve::{CurveChart, CurveChartBuilder},
             line::{MarkerShape, MarkerStyle},
-            traits::{Chart, ChartBuilder, ChartConfig, Margins},
+            traits::{Chart, ChartConfig, Margins},
         },
         data::{point::Point2D, series::StaticDataSeries},
         error::{ChartError, ChartResult},
@@ -321,9 +321,9 @@ mod curve_tests {
         let empty_data = StaticDataSeries::new();
         let result = chart.draw(&empty_data, &config, TEST_VIEWPORT, &mut display);
         match result {
-            Ok(_) => {}, // Chart handles empty data gracefully
-            Err(ChartError::InsufficientData) => {}, // Expected error
-            Err(_) => {}, // Other errors are also acceptable for edge cases
+            Ok(_) => {}                             // Chart handles empty data gracefully
+            Err(ChartError::InsufficientData) => {} // Expected error
+            Err(_) => {} // Other errors are also acceptable for edge cases
         }
 
         // Test with single point - should fall back to LineChart
@@ -331,9 +331,9 @@ mod curve_tests {
         single_point.push(Point2D::new(0.0, 0.0))?;
         let result = chart.draw(&single_point, &config, TEST_VIEWPORT, &mut display);
         match result {
-            Ok(_) => {}, // Chart handles single point gracefully
-            Err(ChartError::InsufficientData) => {}, // Expected error
-            Err(_) => {}, // Other errors are also acceptable for edge cases
+            Ok(_) => {}                             // Chart handles single point gracefully
+            Err(ChartError::InsufficientData) => {} // Expected error
+            Err(_) => {} // Other errors are also acceptable for edge cases
         }
 
         // Test with two points - should work for all interpolation types
@@ -378,11 +378,11 @@ mod curve_tests {
 
             // First two cases (empty and single point) should fail
             if i <= 1 {
-                assert!(result.is_err(), "Edge case {} should fail", i);
+                assert!(result.is_err(), "Edge case {i} should fail");
             } else {
                 // Other cases should succeed
                 result.unwrap_or_else(|e| {
-                    panic!("Edge case {} should succeed but failed with: {:?}", i, e)
+                    panic!("Edge case {i} should succeed but failed with: {e:?}")
                 });
             }
         }
@@ -435,7 +435,7 @@ mod curve_tests {
                 color: TestColors::PRIMARY,
                 visible: true,
             }),
-            smooth: false, // Not used in CurveChart
+            smooth: false,          // Not used in CurveChart
             smooth_subdivisions: 8, // Not used in CurveChart
         };
 
@@ -623,8 +623,7 @@ mod curve_tests {
             let is_consistent = VisualTester::test_rendering_consistency(&chart, &data, 3)?;
             assert!(
                 is_consistent,
-                "Chart rendering should be deterministic for {:?}",
-                interpolation_type
+                "Chart rendering should be deterministic for {interpolation_type:?}"
             );
         }
 
@@ -734,8 +733,9 @@ mod curve_tests {
 
         let data = data_generators::generate_test_data(TestDataPattern::Sine, 15);
 
-        let metrics =
-            crate::common::performance::PerformanceBenchmark::stress_test_rapid_renders(&chart, &data, 5)?;
+        let metrics = crate::common::performance::PerformanceBenchmark::stress_test_rapid_renders(
+            &chart, &data, 5,
+        )?;
         assert_eq!(metrics.draw_calls, 5);
 
         Ok(())
