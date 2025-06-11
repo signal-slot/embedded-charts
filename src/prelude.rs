@@ -307,6 +307,12 @@ pub use embedded_graphics::{
 // Re-export heapless types for data storage
 pub use heapless::{String, Vec};
 
+// Enhanced heapless utilities for no_std support
+pub use crate::heapless_utils::{sizes, string, vec, CircularBuffer, HeaplessConfig, HeaplessPool};
+
+// Re-export heapless utility macros
+pub use crate::{heapless_string, heapless_vec};
+
 /// Common type aliases for convenience
 pub mod types {
     use super::*;
