@@ -22,13 +22,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TBD
 
 ### Fixed
-- All clippy warnings resolved (reduced from 19 to 1 remaining legitimate warning)
-- Improved code quality with better error handling and type conversions
-- Enhanced performance with optimized mathematical operations
-- Fixed useless type conversions in chart rendering modules
-- Replaced manual arithmetic operations with standard library equivalents
-- Improved code readability with inline format arguments
-- **Examples cleanup (2025-06-07)**: Comprehensive cleanup of all examples
+- TBD
+
+### Security
+- TBD
+
+## [0.2.0] - 2025-06-15
+
+### Added
+- **Smooth Curve Interpolation System** - Comprehensive smooth curve rendering with multiple algorithms:
+  - Linear, Cubic Spline, Catmull-Rom, and Bezier interpolation methods
+  - Memory-bounded operations with configurable subdivision counts
+  - Full integration with CurveChart for professional data visualization
+- **Enhanced Testing Infrastructure**:
+  - Comprehensive test suites for CurveChart with all interpolation algorithms
+  - Comprehensive data series testing framework (Phase 1.3)
+  - Significantly improved test coverage infrastructure and organization
+- **Improved no_std Support**:
+  - Enhanced heapless support for embedded environments
+  - Better memory management for resource-constrained systems
+  - Fixed no_std floating-point math operations
+- **Enhanced Donut Chart Support**:
+  - Comprehensive improvements to donut chart rendering
+  - Better layout and visual quality
+  - Improved CI coverage for donut charts
+
+### Changed
+- Updated MSRV to 1.83.0 for Cargo.lock v4 support
+- Improved CI/CD pipeline with real-world feature combination scenarios
+- Changed screenshot save path from assets/ to docs/assets/ for better organization
+- Enhanced documentation with comprehensive examples and showcases
+
+### Fixed
+- Resolved all 52 failing documentation tests
+- Fixed all clippy warnings (reduced from 19 to 0)
+- Resolved rustfmt formatting issues across the entire codebase
+- Fixed CI failures for various feature combinations:
+  - std,pie,donut combination
+  - std,color-support combination
+  - no_std floating-point operations
+  - Advanced-charts feature dependencies
+- Fixed doctest return types for proper error handling
+- Resolved benchmark CI failures
+- Fixed no-std target build failures
+- **Examples cleanup**: Comprehensive cleanup of all examples
   - Resolved all compilation errors across all examples
   - Removed unused imports and dead code warnings
   - Streamlined common utilities module (633 → ~330 lines)
@@ -36,9 +73,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed missing function exports and import issues
   - Verified functionality across all chart types
   - Maintained backward compatibility while improving maintainability
-
-### Security
-- TBD
 
 ## [0.1.0] - 2025-06-02
 
@@ -108,5 +142,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implemented dependency vulnerability monitoring through GitHub Dependabot
 - Added security-focused CI workflows for continuous vulnerability assessment
 
-[Unreleased]: https://github.com/signal-slot/embedded-charts/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/signal-slot/embedded-charts/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/signal-slot/embedded-charts/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/signal-slot/embedded-charts/releases/tag/v0.1.0
