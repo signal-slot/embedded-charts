@@ -12,7 +12,45 @@ jobs:
   # First, run all CI checks to ensure quality
   ci-check:
     name: CI Check
-    uses: ./.github/workflows/ci.yml
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-ci-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-ci-
+          ${{ runner.os }}-cargo-
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev
+    
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+    
+    - name: Run clippy
+      run: cargo clippy --all-targets --all-features -- -D warnings
+    
+    - name: Run tests
+      run: cargo test --all-features
+    
+    - name: Check no_std build
+      run: |
+        cargo build --no-default-features --features "no_std,basic-charts"
+        cargo build --no-default-features --features "no_std,advanced-charts"
 
   # Create GitHub release
   create-release:
@@ -37,17 +75,17 @@ jobs:
     - name: Generate changelog
       id: changelog
       run: |
-        # Extract changelog for this version if CHANGELOG.md exists
-        if [ -f "CHANGELOG.md" ]; then
+        # Extract changelog for this version from docs/CHANGELOG.md
+        if [ -f "docs/CHANGELOG.md" ]; then
           # Try to extract the section for this version
           VERSION=${{ steps.get_version.outputs.version }}
-          awk "/^## \[?$VERSION\]?/,/^## \[?[0-9]/ { if (/^## \[?[0-9]/ && !/^## \[?$VERSION\]?/) exit; print }" CHANGELOG.md > release_notes.md
+          awk "/^## \[?$VERSION\]?/,/^## \[?[0-9]/ { if (/^## \[?[0-9]/ && !/^## \[?$VERSION\]?/) exit; print }" docs/CHANGELOG.md > release_notes.md
           
           # If no specific version section found, use a generic message
           if [ ! -s release_notes.md ]; then
             echo "Release $VERSION" > release_notes.md
             echo "" >> release_notes.md
-            echo "See [CHANGELOG.md](CHANGELOG.md) for details." >> release_notes.md
+            echo "See [CHANGELOG.md](docs/CHANGELOG.md) for details." >> release_notes.md
           fi
         else
           # No changelog file, create basic release notes
