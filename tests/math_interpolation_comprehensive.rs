@@ -76,7 +76,7 @@ fn test_linear_interpolation_edge_cases() {
     let points = create_points(&[(0.0, 0.0), (10.0, 10.0)]);
     let result = CurveInterpolator::interpolate(&points, &config).unwrap();
     assert_eq!(result.len(), 11); // start + 9 subdivisions + end
-    
+
     // Verify linear progression
     for (i, point) in result.iter().enumerate() {
         let expected_t = i as f32 / 10.0;
@@ -116,18 +116,12 @@ fn test_cubic_spline_interpolation_comprehensive() {
     };
 
     // Test with smooth curve data
-    let points = create_points(&[
-        (0.0, 0.0),
-        (1.0, 1.0),
-        (2.0, 4.0),
-        (3.0, 9.0),
-        (4.0, 16.0),
-    ]);
+    let points = create_points(&[(0.0, 0.0), (1.0, 1.0), (2.0, 4.0), (3.0, 9.0), (4.0, 16.0)]);
     let result = CurveInterpolator::interpolate(&points, &config).unwrap();
-    
+
     // Should have many more points due to subdivision
     assert!(result.len() > points.len() * config.subdivisions as usize / 2);
-    
+
     // Verify smoothness - check that intermediate points exist
     for i in 0..result.len() - 1 {
         let dx = (result[i + 1].x - result[i].x).abs();
@@ -170,14 +164,8 @@ fn test_catmull_rom_interpolation_comprehensive() {
             closed: false,
         };
 
-        let points = create_points(&[
-            (0.0, 0.0),
-            (1.0, 2.0),
-            (2.0, 1.0),
-            (3.0, 3.0),
-            (4.0, 0.0),
-        ]);
-        
+        let points = create_points(&[(0.0, 0.0), (1.0, 2.0), (2.0, 1.0), (3.0, 3.0), (4.0, 0.0)]);
+
         let result = CurveInterpolator::interpolate(&points, &config).unwrap();
         assert!(result.len() > points.len());
 
@@ -199,15 +187,10 @@ fn test_catmull_rom_interpolation_comprehensive() {
         closed: false,
     };
 
-    let points = create_points(&[
-        (0.0, 0.0),
-        (1.0, 2.0),
-        (2.0, 1.0),
-        (3.0, 3.0),
-    ]);
-    
+    let points = create_points(&[(0.0, 0.0), (1.0, 2.0), (2.0, 1.0), (3.0, 3.0)]);
+
     let result = CurveInterpolator::interpolate(&points, &config).unwrap();
-    
+
     // Should produce many interpolated points
     assert!(result.len() > points.len() * 2);
 }
@@ -222,13 +205,8 @@ fn test_bezier_interpolation_comprehensive() {
     };
 
     // Test with control points forming a simple curve
-    let points = create_points(&[
-        (0.0, 0.0),
-        (1.0, 3.0),
-        (3.0, 3.0),
-        (4.0, 0.0),
-    ]);
-    
+    let points = create_points(&[(0.0, 0.0), (1.0, 3.0), (3.0, 3.0), (4.0, 0.0)]);
+
     let result = CurveInterpolator::interpolate(&points, &config).unwrap();
     assert!(result.len() > points.len());
 
@@ -237,7 +215,7 @@ fn test_bezier_interpolation_comprehensive() {
     let max_x = points.iter().map(|p| p.x).fold(f32::NEG_INFINITY, f32::max);
     let min_y = points.iter().map(|p| p.y).fold(f32::INFINITY, f32::min);
     let max_y = points.iter().map(|p| p.y).fold(f32::NEG_INFINITY, f32::max);
-    
+
     verify_points_bounded(&result, min_x, max_x, min_y, max_y);
 
     // Test with many control points
@@ -250,18 +228,14 @@ fn test_bezier_interpolation_comprehensive() {
         (2.5, 2.0),
         (3.0, 0.0),
     ]);
-    
+
     let result = CurveInterpolator::interpolate(&points, &config).unwrap();
     assert!(result.len() > points.len());
 }
 
 #[test]
 fn test_subdivision_limits() {
-    let points = create_points(&[
-        (0.0, 0.0),
-        (1.0, 1.0),
-        (2.0, 0.0),
-    ]);
+    let points = create_points(&[(0.0, 0.0), (1.0, 1.0), (2.0, 0.0)]);
 
     // Test minimum subdivisions
     let config = InterpolationConfig {
@@ -309,11 +283,11 @@ fn test_memory_boundary_conditions() {
 fn test_smoothing_algorithms_comprehensive() {
     let points = create_points(&[
         (0.0, 0.0),
-        (1.0, 10.0),  // Spike
+        (1.0, 10.0), // Spike
         (2.0, 0.0),
         (3.0, -10.0), // Negative spike
         (4.0, 0.0),
-        (5.0, 5.0),   // Smaller spike
+        (5.0, 5.0), // Smaller spike
         (6.0, 0.0),
     ]);
 
@@ -321,7 +295,11 @@ fn test_smoothing_algorithms_comprehensive() {
     for &factor in &[0.0, 0.25, 0.5, 0.75, 1.0] {
         let smoothed = CurveInterpolator::smooth_point(&points, 1, factor).unwrap();
         if factor > 0.0 {
-            assert!(smoothed.y.abs() < 10.0, "Smoothing factor {} didn't reduce spike", factor);
+            assert!(
+                smoothed.y.abs() < 10.0,
+                "Smoothing factor {} didn't reduce spike",
+                factor
+            );
         }
     }
 
@@ -329,7 +307,7 @@ fn test_smoothing_algorithms_comprehensive() {
     for &window in &[1, 2, 3] {
         let smoothed = CurveInterpolator::smooth_series(&points, 0.5, window).unwrap();
         assert_eq!(smoothed.len(), points.len());
-        
+
         // Verify that spikes are reduced
         assert!(smoothed[1].y.abs() < points[1].y.abs());
         assert!(smoothed[3].y.abs() < points[3].y.abs());
@@ -346,33 +324,21 @@ fn test_smoothing_algorithms_comprehensive() {
 #[test]
 fn test_numerical_stability() {
     // Test with very small values
-    let points = create_points(&[
-        (0.0, 1e-6),
-        (1e-6, 2e-6),
-        (2e-6, 1e-6),
-    ]);
-    
+    let points = create_points(&[(0.0, 1e-6), (1e-6, 2e-6), (2e-6, 1e-6)]);
+
     let config = InterpolationConfig::default();
     let result = CurveInterpolator::interpolate(&points, &config).unwrap();
     assert!(result.len() > points.len());
-    
+
     // Test with very large values
-    let points = create_points(&[
-        (0.0, 1e6),
-        (1e6, 2e6),
-        (2e6, 1e6),
-    ]);
-    
+    let points = create_points(&[(0.0, 1e6), (1e6, 2e6), (2e6, 1e6)]);
+
     let result = CurveInterpolator::interpolate(&points, &config).unwrap();
     assert!(result.len() > points.len());
-    
+
     // Test with mixed scale values
-    let points = create_points(&[
-        (0.0, 1e-3),
-        (1.0, 1e3),
-        (2.0, 1e-3),
-    ]);
-    
+    let points = create_points(&[(0.0, 1e-3), (1.0, 1e3), (2.0, 1e-3)]);
+
     let result = CurveInterpolator::interpolate(&points, &config).unwrap();
     assert!(result.len() > points.len());
 }
@@ -380,28 +346,19 @@ fn test_numerical_stability() {
 #[test]
 fn test_special_floating_point_cases() {
     let config = InterpolationConfig::default();
-    
+
     // Test with zero slopes
-    let points = create_points(&[
-        (0.0, 5.0),
-        (1.0, 5.0),
-        (2.0, 5.0),
-        (3.0, 5.0),
-    ]);
-    
+    let points = create_points(&[(0.0, 5.0), (1.0, 5.0), (2.0, 5.0), (3.0, 5.0)]);
+
     let result = CurveInterpolator::interpolate(&points, &config).unwrap();
     // All y values should remain constant
     for point in &result {
         assert!((point.y - 5.0).abs() < 0.01);
     }
-    
+
     // Test with steep slopes
-    let points = create_points(&[
-        (0.0, 0.0),
-        (0.01, 100.0),
-        (0.02, 0.0),
-    ]);
-    
+    let points = create_points(&[(0.0, 0.0), (0.01, 100.0), (0.02, 0.0)]);
+
     let result = CurveInterpolator::interpolate(&points, &config).unwrap();
     assert!(result.len() > points.len());
 }
@@ -409,13 +366,8 @@ fn test_special_floating_point_cases() {
 #[test]
 fn test_interpolation_accuracy() {
     // Test that interpolation passes through original points
-    let points = create_points(&[
-        (0.0, 0.0),
-        (1.0, 1.0),
-        (2.0, 4.0),
-        (3.0, 9.0),
-    ]);
-    
+    let points = create_points(&[(0.0, 0.0), (1.0, 1.0), (2.0, 4.0), (3.0, 9.0)]);
+
     for interpolation_type in &[
         InterpolationType::Linear,
         InterpolationType::CubicSpline,
@@ -427,9 +379,9 @@ fn test_interpolation_accuracy() {
             tension: 0.5,
             closed: false,
         };
-        
+
         let result = CurveInterpolator::interpolate(&points, &config).unwrap();
-        
+
         // Verify that original points are preserved (approximately)
         for original in &points {
             let mut found = false;
@@ -454,14 +406,8 @@ fn test_interpolation_accuracy() {
 #[test]
 fn test_edge_preservation() {
     // Test that interpolation preserves edge points exactly
-    let points = create_points(&[
-        (0.0, 0.0),
-        (1.0, 5.0),
-        (2.0, 3.0),
-        (3.0, 8.0),
-        (4.0, 2.0),
-    ]);
-    
+    let points = create_points(&[(0.0, 0.0), (1.0, 5.0), (2.0, 3.0), (3.0, 8.0), (4.0, 2.0)]);
+
     for interpolation_type in &[
         InterpolationType::Linear,
         InterpolationType::CubicSpline,
@@ -474,13 +420,21 @@ fn test_edge_preservation() {
             tension: 0.5,
             closed: false,
         };
-        
+
         let result = CurveInterpolator::interpolate(&points, &config).unwrap();
-        
+
         // First and last points should be preserved exactly
-        assert_eq!(result[0], points[0], "First point not preserved for {:?}", interpolation_type);
-        assert_eq!(result[result.len() - 1], points[points.len() - 1], 
-                   "Last point not preserved for {:?}", interpolation_type);
+        assert_eq!(
+            result[0], points[0],
+            "First point not preserved for {:?}",
+            interpolation_type
+        );
+        assert_eq!(
+            result[result.len() - 1],
+            points[points.len() - 1],
+            "Last point not preserved for {:?}",
+            interpolation_type
+        );
     }
 }
 
@@ -488,10 +442,10 @@ fn test_edge_preservation() {
 #[cfg(feature = "std")]
 fn test_performance_characteristics() {
     use std::time::Instant;
-    
+
     // Create test data sets of different sizes
     let sizes = [10, 25, 40];
-    
+
     for &size in &sizes {
         let mut points = Vec::<Point2D, 64>::new();
         for i in 0..size {
@@ -499,7 +453,7 @@ fn test_performance_characteristics() {
             let y = (x * 2.0).sin() * 10.0;
             points.push(Point2D::new(x, y)).unwrap();
         }
-        
+
         // Test each interpolation type
         for interpolation_type in &[
             InterpolationType::Linear,
@@ -513,16 +467,16 @@ fn test_performance_characteristics() {
                 tension: 0.5,
                 closed: false,
             };
-            
+
             let start = Instant::now();
             let result = CurveInterpolator::interpolate(&points, &config).unwrap();
             let duration = start.elapsed();
-            
+
             println!(
                 "{:?} interpolation with {} points took {:?}",
                 interpolation_type, size, duration
             );
-            
+
             assert!(result.len() > points.len());
             // Performance assertion: should complete in reasonable time
             assert!(duration.as_millis() < 100, "Interpolation too slow");
@@ -536,7 +490,7 @@ fn test_error_propagation() {
     let points = create_points(&[(0.0, 0.0), (1.0, 1.0)]);
     let result = CurveInterpolator::smooth_series(&points, 0.5, 10);
     assert!(result.is_ok()); // Should handle gracefully
-    
+
     // Test with out of bounds index for point smoothing
     let result = CurveInterpolator::smooth_point(&points, 100, 0.5);
     assert!(matches!(result, Err(ChartError::InvalidRange)));
