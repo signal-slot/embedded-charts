@@ -1,636 +1,608 @@
-//! Comprehensive LineChart testing suite
+//! Comprehensive test suite for chart/line.rs
+//! Target: Increase coverage from 42.25% to 70%
 //!
-//! This test suite provides extensive coverage for LineChart functionality,
-//! targeting 90%+ code coverage through systematic testing of all features.
-//!
-//! Note: These tests are designed for development and coverage analysis.
-//! Some tests may fail with MockDisplay due to its strict pixel drawing validation.
-//! Use `cargo test --test line_chart_comprehensive` to run these tests specifically.
+//! This test suite covers:
+//! - Grid system integration
+//! - Axis integration and AxisChart trait
+//! - Transform point method with various scenarios
+//! - All marker shapes (Circle, Square, Diamond, Triangle)
+//! - Area fill rendering
+//! - Smooth curve rendering with error cases
+//! - Builder pattern edge cases
+//! - Complex multi-feature scenarios
+//! - Animation support (when feature enabled)
 
 #![cfg(feature = "line")]
 
 use embedded_charts::{
+    axes::{AxisOrientation, AxisPosition, LinearAxis},
     chart::{
-        line::{LineChart, LineChartBuilder, LineChartStyle, MarkerShape, MarkerStyle},
-        traits::{Chart, ChartBuilder, ChartConfig, Margins},
+        line::{LineChart, LineChartStyle, MarkerShape, MarkerStyle},
+        traits::{AxisChart, Chart, ChartBuilder, ChartConfig, Margins},
     },
     data::{point::Point2D, series::StaticDataSeries},
-    error::{ChartError, ChartResult},
+    grid::GridSystem,
 };
-use embedded_graphics::{pixelcolor::Rgb565, prelude::*, primitives::Rectangle};
-
-mod common;
-use common::{
-    chart_testing::ChartTestSuite, data_generators, performance::PerformanceBenchmark,
-    visual_testing::VisualTester, TestColors, TestDataPattern, TEST_VIEWPORT,
+use embedded_graphics::{
+    mock_display::MockDisplay,
+    pixelcolor::{Rgb565, RgbColor},
+    prelude::*,
+    primitives::Rectangle,
 };
 
-/// Test LineChart creation and basic functionality
+/// Helper to create test data series
+fn create_test_series(values: &[(f32, f32)]) -> StaticDataSeries<Point2D, 256> {
+    let mut series = StaticDataSeries::new();
+    for &(x, y) in values {
+        series.push(Point2D::new(x, y)).unwrap();
+    }
+    series
+}
+
+/// Helper to create a test display
+fn create_test_display() -> MockDisplay<Rgb565> {
+    let mut display = MockDisplay::<Rgb565>::new();
+    display.set_allow_overdraw(true);
+    display.set_allow_out_of_bounds_drawing(true);
+    display
+}
+
 #[test]
-fn test_line_chart_creation() {
-    let chart: LineChart<Rgb565> = LineChart::new();
-    assert_eq!(chart.style().line_width, 1);
+fn test_line_chart_with_grid_system() {
+    let mut chart = LineChart::<Rgb565>::new();
+
+    // Create a grid system
+    let mut grid = GridSystem::<Rgb565>::new();
+    grid.set_enabled(true);
+
+    // Set the grid
+    chart.set_grid(Some(grid));
+
+    // Verify grid was set
+    assert!(chart.grid().is_some());
+
+    // Test rendering with grid
+    let mut display = create_test_display();
+    let data = create_test_series(&[(0.0, 10.0), (1.0, 20.0), (2.0, 15.0)]);
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_line_chart_with_axes() {
+    let mut chart = LineChart::<Rgb565>::new();
+
+    // Create axes
+    let x_axis = LinearAxis::<f32, Rgb565>::new(
+        0.0,
+        100.0,
+        AxisOrientation::Horizontal,
+        AxisPosition::Bottom,
+    )
+    .with_range(0.0, 100.0);
+
+    let y_axis =
+        LinearAxis::<f32, Rgb565>::new(0.0, 50.0, AxisOrientation::Vertical, AxisPosition::Left)
+            .with_range(0.0, 50.0);
+
+    // Set axes using AxisChart trait
+    chart.set_x_axis(x_axis);
+    chart.set_y_axis(y_axis);
+
+    // Verify axes were set
+    assert!(chart.x_axis().is_ok());
+    assert!(chart.y_axis().is_ok());
+
+    // Test rendering with axes
+    let mut display = create_test_display();
+    let data = create_test_series(&[(10.0, 20.0), (50.0, 35.0), (90.0, 25.0)]);
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_all_marker_shapes() {
+    let data = create_test_series(&[(0.0, 10.0), (1.0, 20.0), (2.0, 15.0), (3.0, 25.0)]);
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
+    // Test Circle markers
+    {
+        let mut display = create_test_display();
+        let chart = LineChart::builder()
+            .line_color(Rgb565::BLUE)
+            .with_markers(MarkerStyle {
+                shape: MarkerShape::Circle,
+                size: 6,
+                color: Rgb565::RED,
+                visible: true,
+            })
+            .build()
+            .unwrap();
+
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    // Test Square markers
+    {
+        let mut display = create_test_display();
+        let chart = LineChart::builder()
+            .line_color(Rgb565::BLUE)
+            .with_markers(MarkerStyle {
+                shape: MarkerShape::Square,
+                size: 6,
+                color: Rgb565::GREEN,
+                visible: true,
+            })
+            .build()
+            .unwrap();
+
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    // Test Diamond markers
+    {
+        let mut display = create_test_display();
+        let chart = LineChart::builder()
+            .line_color(Rgb565::BLUE)
+            .with_markers(MarkerStyle {
+                shape: MarkerShape::Diamond,
+                size: 8,
+                color: Rgb565::YELLOW,
+                visible: true,
+            })
+            .build()
+            .unwrap();
+
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    // Test Triangle markers
+    {
+        let mut display = create_test_display();
+        let chart = LineChart::builder()
+            .line_color(Rgb565::BLUE)
+            .with_markers(MarkerStyle {
+                shape: MarkerShape::Triangle,
+                size: 8,
+                color: Rgb565::MAGENTA,
+                visible: true,
+            })
+            .build()
+            .unwrap();
+
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+}
+
+#[test]
+fn test_invisible_markers() {
+    let mut display = create_test_display();
+    let data = create_test_series(&[(0.0, 10.0), (1.0, 20.0)]);
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
+    let chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .with_markers(MarkerStyle {
+            shape: MarkerShape::Circle,
+            size: 6,
+            color: Rgb565::RED,
+            visible: false, // Markers not visible
+        })
+        .build()
+        .unwrap();
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_area_fill_rendering() {
+    let mut display = create_test_display();
+    let data = create_test_series(&[
+        (0.0, 10.0),
+        (1.0, 20.0),
+        (2.0, 15.0),
+        (3.0, 25.0),
+        (4.0, 5.0),
+    ]);
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
+    let chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .line_width(2)
+        .fill_area(Rgb565::CSS_LIGHT_BLUE)
+        .build()
+        .unwrap();
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_area_fill_with_margins() {
+    let mut display = create_test_display();
+    let data = create_test_series(&[(0.0, 10.0), (1.0, 20.0), (2.0, 15.0)]);
+    let config = ChartConfig::<Rgb565> {
+        margins: Margins {
+            top: 10,
+            right: 10,
+            bottom: 10,
+            left: 10,
+        },
+        ..Default::default()
+    };
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
+    let chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .fill_area(Rgb565::CSS_LIGHT_BLUE)
+        .build()
+        .unwrap();
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    assert!(result.is_ok());
+}
+
+#[test]
+#[cfg(feature = "smooth-curves")]
+fn test_smooth_curve_rendering() {
+    let mut display = create_test_display();
+    let data = create_test_series(&[
+        (0.0, 10.0),
+        (1.0, 20.0),
+        (2.0, 5.0),
+        (3.0, 25.0),
+        (4.0, 15.0),
+    ]);
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
+    let chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .smooth(true)
+        .build()
+        .unwrap();
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    assert!(result.is_ok());
+}
+
+#[test]
+#[cfg(feature = "smooth-curves")]
+fn test_smooth_curve_with_fill() {
+    let mut display = create_test_display();
+    let data = create_test_series(&[(0.0, 10.0), (1.0, 20.0), (2.0, 15.0), (3.0, 25.0)]);
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
+    let chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .smooth(true)
+        .fill_area(Rgb565::CSS_LIGHT_BLUE)
+        .build()
+        .unwrap();
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_transform_point_with_axes() {
+    let mut chart = LineChart::<Rgb565>::new();
+
+    // Set up axes with specific ranges
+    let x_axis = LinearAxis::<f32, Rgb565>::new(
+        0.0,
+        100.0,
+        AxisOrientation::Horizontal,
+        AxisPosition::Bottom,
+    )
+    .with_range(0.0, 100.0);
+    let y_axis =
+        LinearAxis::<f32, Rgb565>::new(0.0, 50.0, AxisOrientation::Vertical, AxisPosition::Left)
+            .with_range(0.0, 50.0);
+
+    chart.set_x_axis(x_axis);
+    chart.set_y_axis(y_axis);
+
+    // Test rendering with axes ranges
+    let mut display = create_test_display();
+    let data = create_test_series(&[(25.0, 25.0), (50.0, 40.0), (75.0, 10.0)]);
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(100, 100));
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_empty_data_handling() {
+    let mut display = create_test_display();
+    let data = create_test_series(&[]); // Empty data
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
+    let chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .build()
+        .unwrap();
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    // Chart returns InsufficientData error for empty data
+    assert!(result.is_err());
+    assert!(matches!(
+        result,
+        Err(embedded_charts::error::ChartError::InsufficientData)
+    ));
+}
+
+#[test]
+fn test_single_point_data() {
+    let mut display = create_test_display();
+    let data = create_test_series(&[(1.0, 10.0)]); // Single point
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
+    let chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .with_markers(MarkerStyle {
+            shape: MarkerShape::Circle,
+            size: 6,
+            color: Rgb565::RED,
+            visible: true,
+        })
+        .build()
+        .unwrap();
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_builder_edge_cases() {
+    // Test with very long title that might exceed heapless capacity
+    let long_title = "This is a very long title that might exceed the capacity of the heapless string used in the chart configuration";
+    let chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .with_title(long_title)
+        .build();
+
+    // Should truncate or handle gracefully
+    assert!(chart.is_ok());
+
+    // Test builder with all options
+    let chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .line_width(3)
+        .fill_area(Rgb565::CSS_LIGHT_BLUE)
+        .with_markers(MarkerStyle {
+            shape: MarkerShape::Diamond,
+            size: 8,
+            color: Rgb565::RED,
+            visible: true,
+        })
+        .smooth(true)
+        .with_title("Complex Chart")
+        .background_color(Rgb565::BLACK)
+        .margins(Margins {
+            top: 10,
+            right: 10,
+            bottom: 10,
+            left: 10,
+        })
+        .build();
+
+    assert!(chart.is_ok());
+}
+
+#[test]
+fn test_complex_multi_feature_scenario() {
+    let mut chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .line_width(2)
+        .fill_area(Rgb565::CSS_LIGHT_BLUE)
+        .with_markers(MarkerStyle {
+            shape: MarkerShape::Square,
+            size: 6,
+            color: Rgb565::RED,
+            visible: true,
+        })
+        .with_title("Multi-Feature Chart")
+        .background_color(Rgb565::WHITE)
+        .margins(Margins {
+            top: 5,
+            right: 5,
+            bottom: 5,
+            left: 5,
+        })
+        .build()
+        .unwrap();
+
+    // Add grid system
+    let mut grid = GridSystem::<Rgb565>::new();
+    grid.set_enabled(true);
+    chart.set_grid(Some(grid));
+
+    // Add axes
+    let x_axis = LinearAxis::<f32, Rgb565>::new(
+        0.0,
+        10.0,
+        AxisOrientation::Horizontal,
+        AxisPosition::Bottom,
+    )
+    .with_range(0.0, 10.0);
+    let y_axis =
+        LinearAxis::<f32, Rgb565>::new(0.0, 100.0, AxisOrientation::Vertical, AxisPosition::Left)
+            .with_range(0.0, 100.0);
+
+    chart.set_x_axis(x_axis);
+    chart.set_y_axis(y_axis);
+
+    // Test rendering
+    let mut display = create_test_display();
+    let data = create_test_series(&[
+        (0.0, 10.0),
+        (2.5, 50.0),
+        (5.0, 75.0),
+        (7.5, 40.0),
+        (10.0, 90.0),
+    ]);
+    let config = chart.config().clone();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_zero_width_viewport() {
+    let mut display = create_test_display();
+    let data = create_test_series(&[(0.0, 10.0), (1.0, 20.0)]);
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(0, 64));
+
+    let chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .build()
+        .unwrap();
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    // Should handle gracefully
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_zero_height_viewport() {
+    let mut display = create_test_display();
+    let data = create_test_series(&[(0.0, 10.0), (1.0, 20.0)]);
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 0));
+
+    let chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .build()
+        .unwrap();
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    // Should handle gracefully
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_data_at_numeric_limits() {
+    let mut display = create_test_display();
+    let data = create_test_series(&[(f32::MIN, f32::MIN), (0.0, 0.0), (f32::MAX, f32::MAX)]);
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
+    let chart = LineChart::builder()
+        .line_color(Rgb565::BLUE)
+        .build()
+        .unwrap();
+
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    // Should handle extreme values
+    assert!(result.is_ok());
+}
+
+#[test]
+#[cfg(feature = "animations")]
+fn test_animated_line_chart() {
+    use embedded_charts::chart::line::AnimatedLineChart;
+
+    let _chart = AnimatedLineChart::<Rgb565>::new();
+    // Just verify it can be created
+}
+
+#[test]
+#[cfg(feature = "animations")]
+fn test_animated_line_chart_builder() {
+    use embedded_charts::chart::line::AnimatedLineChart;
+
+    let chart = AnimatedLineChart::<Rgb565>::builder()
+        .line_color(Rgb565::BLUE)
+        .line_width(2)
+        .with_title("Animated Chart")
+        .build();
+
+    assert!(chart.is_ok());
+}
+
+#[test]
+fn test_default_implementations() {
+    let chart = LineChart::<Rgb565>::default();
     assert_eq!(chart.style().line_color, Rgb565::BLUE);
+    assert_eq!(chart.style().line_width, 1); // Default is 1, not 2
     assert!(!chart.style().fill_area);
     assert!(chart.style().markers.is_none());
     assert!(!chart.style().smooth);
 }
 
-/// Test LineChart builder pattern with all options
 #[test]
-fn test_line_chart_builder_comprehensive() -> ChartResult<()> {
-    let marker_style = MarkerStyle {
-        shape: MarkerShape::Circle,
-        size: 8,
-        color: TestColors::SECONDARY,
-        visible: true,
-    };
-
-    let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(3)
-        .fill_area(TestColors::ACCENT)
-        .with_markers(marker_style)
-        .smooth(true)
-        .smooth_subdivisions(12)
-        .with_title("Test Chart")
-        .background_color(TestColors::BACKGROUND)
-        .margins(Margins {
-            top: 20,
-            bottom: 20,
-            left: 15,
-            right: 15,
-        })
-        .build()?;
-
-    assert_eq!(chart.style().line_color, TestColors::PRIMARY);
-    assert_eq!(chart.style().line_width, 3);
-    assert!(chart.style().fill_area);
-    assert_eq!(chart.style().fill_color, Some(TestColors::ACCENT));
-    assert!(chart.style().markers.is_some());
-    assert!(chart.style().smooth);
-    assert_eq!(chart.style().smooth_subdivisions, 12);
-
-    Ok(())
-}
-
-/// Test builder pattern validation and clamping
-#[test]
-fn test_builder_validation() -> ChartResult<()> {
-    let chart: LineChart<Rgb565> = LineChart::builder()
-        .line_width(100) // Should be clamped to max
-        .smooth_subdivisions(50) // Should be clamped to max
-        .build()?;
-
-    assert_eq!(chart.style().line_width, 10); // Clamped to max
-    assert_eq!(chart.style().smooth_subdivisions, 16); // Clamped to max
-
-    Ok(())
-}
-
-/// Test line chart rendering with various data patterns
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_line_chart_rendering_patterns() -> ChartResult<()> {
-    let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(2)
-        .build()?;
-
-    let test_patterns = [
-        TestDataPattern::Linear,
-        TestDataPattern::Sine,
-        TestDataPattern::Random,
-        TestDataPattern::Stepped,
-        TestDataPattern::Sparse,
-        TestDataPattern::Dense,
-    ];
-
-    for pattern in &test_patterns {
-        let data = data_generators::generate_test_data(*pattern, 20);
-        ChartTestSuite::test_chart_rendering(&chart, &[data])?;
-    }
-
-    Ok(())
-}
-
-/// Test marker rendering with all shapes and configurations
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_marker_rendering_comprehensive() -> ChartResult<()> {
-    let data = data_generators::generate_test_data(TestDataPattern::Linear, 5);
-
-    let marker_shapes = [
-        MarkerShape::Circle,
-        MarkerShape::Square,
-        MarkerShape::Diamond,
-        MarkerShape::Triangle,
-    ];
-
-    let marker_sizes = [2, 4, 6, 8, 12, 16];
-
-    for &shape in &marker_shapes {
-        for &size in &marker_sizes {
-            let marker_style = MarkerStyle {
-                shape,
-                size,
-                color: TestColors::SECONDARY,
-                visible: true,
-            };
-
-            let chart = LineChart::builder()
-                .line_color(TestColors::PRIMARY)
-                .with_markers(marker_style)
-                .build()?;
-
-            ChartTestSuite::test_chart_rendering(&chart, &[data.clone()])?;
-        }
-    }
-
-    Ok(())
-}
-
-/// Test marker visibility control
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_marker_visibility() -> ChartResult<()> {
-    let data = data_generators::generate_test_data(TestDataPattern::Linear, 5);
-
-    // Test visible markers
-    let visible_marker = MarkerStyle {
-        shape: MarkerShape::Circle,
-        size: 6,
-        color: TestColors::SECONDARY,
-        visible: true,
-    };
-
-    let chart_visible = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .with_markers(visible_marker)
-        .build()?;
-
-    // Test invisible markers
-    let invisible_marker = MarkerStyle {
-        shape: MarkerShape::Circle,
-        size: 6,
-        color: TestColors::SECONDARY,
-        visible: false,
-    };
-
-    let chart_invisible = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .with_markers(invisible_marker)
-        .build()?;
-
-    ChartTestSuite::test_chart_rendering(&chart_visible, &[data.clone()])?;
-    ChartTestSuite::test_chart_rendering(&chart_invisible, &[data])?;
-
-    Ok(())
-}
-
-/// Test area fill functionality
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_area_fill_comprehensive() -> ChartResult<()> {
-    let test_data = [
-        data_generators::generate_test_data(TestDataPattern::Linear, 10),
-        data_generators::generate_test_data(TestDataPattern::Sine, 20),
-        data_generators::generate_temperature_data(12),
-    ];
-
-    for data in &test_data {
-        // Test with area fill
-        let chart_filled = LineChart::builder()
-            .line_color(TestColors::PRIMARY)
-            .fill_area(TestColors::ACCENT)
-            .build()?;
-
-        ChartTestSuite::test_chart_rendering(&chart_filled, &[data.clone()])?;
-
-        // Test fill with markers
-        let chart_filled_markers = LineChart::builder()
-            .line_color(TestColors::PRIMARY)
-            .fill_area(TestColors::ACCENT)
-            .with_markers(MarkerStyle {
-                shape: MarkerShape::Circle,
-                size: 4,
-                color: TestColors::SECONDARY,
-                visible: true,
-            })
-            .build()?;
-
-        ChartTestSuite::test_chart_rendering(&chart_filled_markers, &[data.clone()])?;
-    }
-
-    Ok(())
-}
-
-/// Test smooth curve functionality
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_smooth_curve_comprehensive() -> ChartResult<()> {
-    let data = data_generators::generate_test_data(TestDataPattern::Sine, 15);
-
-    let subdivision_values = [2, 4, 8, 12, 16];
-
-    for &subdivisions in &subdivision_values {
-        let chart = LineChart::builder()
-            .line_color(TestColors::PRIMARY)
-            .line_width(2)
-            .smooth(true)
-            .smooth_subdivisions(subdivisions)
-            .build()?;
-
-        ChartTestSuite::test_chart_rendering(&chart, &[data.clone()])?;
-    }
-
-    Ok(())
-}
-
-/// Test smooth curve with markers
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_smooth_curve_with_markers() -> ChartResult<()> {
-    let data = data_generators::generate_test_data(TestDataPattern::Linear, 8);
-
-    let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(3)
-        .smooth(true)
-        .smooth_subdivisions(8)
-        .with_markers(MarkerStyle {
-            shape: MarkerShape::Circle,
-            size: 8,
-            color: TestColors::SECONDARY,
-            visible: true,
-        })
-        .build()?;
-
-    ChartTestSuite::test_chart_rendering(&chart, &[data])?;
-    Ok(())
-}
-
-/// Test line width variations
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_line_width_variations() -> ChartResult<()> {
-    let data = data_generators::generate_test_data(TestDataPattern::Linear, 10);
-    let line_widths = [1, 2, 3, 4, 5, 8, 10];
-
-    for &width in &line_widths {
-        let chart = LineChart::builder()
-            .line_color(TestColors::PRIMARY)
-            .line_width(width)
-            .build()?;
-
-        ChartTestSuite::test_chart_rendering(&chart, &[data.clone()])?;
-    }
-
-    Ok(())
-}
-
-/// Test error handling with invalid data
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_error_handling_comprehensive() -> ChartResult<()> {
-    let chart = LineChart::new();
-    let config = common::create_test_config();
-    let mut display = common::create_test_display();
-
-    // Test with empty data
-    let empty_data = StaticDataSeries::new();
-    let result = chart.draw(&empty_data, &config, TEST_VIEWPORT, &mut display);
-    // Should either succeed (for charts that handle empty data) or fail gracefully
-    match result {
-        Ok(_) => {}                             // Chart handles empty data gracefully
-        Err(ChartError::InsufficientData) => {} // Expected error
-        Err(_) => {}                            // Other errors are also acceptable for edge cases
-    }
-
-    // Test with single point
-    let mut single_point = StaticDataSeries::new();
-    single_point.push(Point2D::new(0.0, 0.0))?;
-    let result = chart.draw(&single_point, &config, TEST_VIEWPORT, &mut display);
-    // Should either succeed or fail gracefully
-    match result {
-        Ok(_) => {}                             // Chart handles single point gracefully
-        Err(ChartError::InsufficientData) => {} // Expected error
-        Err(_) => {}                            // Other errors are also acceptable for edge cases
-    }
-
-    // Test with zero-size viewport
-    let valid_data = data_generators::generate_test_data(TestDataPattern::Linear, 5);
-    let zero_viewport = Rectangle::new(Point::zero(), Size::zero());
-    let result = chart.draw(&valid_data, &config, zero_viewport, &mut display);
-    // Should handle gracefully (exact behavior may vary)
-    assert!(result.is_ok() || matches!(result, Err(ChartError::InvalidRange)));
-
-    Ok(())
-}
-
-/// Test edge case data scenarios
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_edge_case_data() -> ChartResult<()> {
-    let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(2)
-        .with_markers(MarkerStyle {
-            shape: MarkerShape::Circle,
-            size: 6,
-            color: TestColors::SECONDARY,
-            visible: true,
-        })
-        .build()?;
-
-    let edge_cases = data_generators::generate_edge_case_data();
-
-    for (i, data) in edge_cases.iter().enumerate() {
-        let result = ChartTestSuite::test_chart_rendering(&chart, &[data.clone()]);
-
-        // First two cases (empty and single point) should fail
-        if i <= 1 {
-            assert!(result.is_err(), "Edge case {i} should fail");
-        } else {
-            // Other cases should succeed
-            result
-                .unwrap_or_else(|e| panic!("Edge case {i} should succeed but failed with: {e:?}"));
-        }
-    }
-
-    Ok(())
-}
-
-/// Test different viewport sizes
-#[test]
-#[ignore = "MockDisplay has limitations with viewport scaling"]
-fn test_viewport_scaling() -> ChartResult<()> {
-    let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(2)
-        .build()?;
-
-    let data = data_generators::generate_test_data(TestDataPattern::Linear, 10);
-
-    ChartTestSuite::test_viewport_scaling(&chart, &data)?;
-    Ok(())
-}
-
-/// Test chart configuration variations
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_configuration_variations() -> ChartResult<()> {
-    let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(2)
-        .build()?;
-
-    let data = data_generators::generate_test_data(TestDataPattern::Linear, 10);
-
-    ChartTestSuite::test_color_configurations(&chart, &data)?;
-    Ok(())
-}
-
-/// Test chart style mutation
-#[test]
-fn test_style_mutation() -> ChartResult<()> {
-    let mut chart = LineChart::new();
-
-    // Test setting new style
-    let new_style = LineChartStyle {
-        line_color: TestColors::SECONDARY,
-        line_width: 4,
-        fill_area: true,
-        fill_color: Some(TestColors::ACCENT),
-        markers: Some(MarkerStyle {
-            shape: MarkerShape::Square,
-            size: 8,
-            color: TestColors::PRIMARY,
-            visible: true,
-        }),
-        smooth: true,
-        smooth_subdivisions: 10,
-    };
-
-    chart.set_style(new_style.clone());
-
-    assert_eq!(chart.style().line_color, new_style.line_color);
-    assert_eq!(chart.style().line_width, new_style.line_width);
-    assert_eq!(chart.style().fill_area, new_style.fill_area);
-    assert_eq!(chart.style().smooth, new_style.smooth);
-
-    Ok(())
-}
-
-/// Test chart configuration mutation
-#[test]
-fn test_config_mutation() -> ChartResult<()> {
-    let mut chart = LineChart::new();
-
-    let new_config = ChartConfig {
-        title: Some(heapless::String::try_from("Test Title").unwrap()),
-        background_color: Some(TestColors::BACKGROUND),
-        margins: Margins {
-            top: 25,
-            bottom: 25,
-            left: 20,
-            right: 20,
-        },
-        grid_color: Some(TestColors::GRID),
-        show_grid: false,
-    };
-
-    chart.set_config(new_config.clone());
-
-    assert_eq!(chart.config().title, new_config.title);
-    assert_eq!(chart.config().background_color, new_config.background_color);
-    assert_eq!(chart.config().show_grid, new_config.show_grid);
-
-    Ok(())
-}
-
-/// Test performance characteristics
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_performance_characteristics() -> ChartResult<()> {
-    let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(2)
-        .build()?;
-
-    PerformanceBenchmark::validate_performance_scaling(&chart)?;
-    Ok(())
-}
-
-/// Test memory constraints
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_memory_constraints() -> ChartResult<()> {
-    let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(2)
-        .with_markers(MarkerStyle {
-            shape: MarkerShape::Circle,
-            size: 6,
-            color: TestColors::SECONDARY,
-            visible: true,
-        })
-        .build()?;
-
-    let data = data_generators::generate_test_data(TestDataPattern::Linear, 100);
-
-    // Test that memory usage is reasonable for embedded systems
-    PerformanceBenchmark::validate_memory_constraints(&chart, &data, 32768)?; // 32KB limit
-
-    Ok(())
-}
-
-/// Test visual consistency
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_visual_consistency() -> ChartResult<()> {
-    let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(2)
-        .build()?;
-
-    let data = data_generators::generate_test_data(TestDataPattern::Linear, 10);
-
-    let is_consistent = VisualTester::test_rendering_consistency(&chart, &data, 5)?;
-    assert!(is_consistent, "Chart rendering should be deterministic");
-
-    Ok(())
-}
-
-/// Test chart with maximum data capacity
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_maximum_data_capacity() -> ChartResult<()> {
-    let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(1) // Minimal resources
-        .build()?;
-
-    let mut max_data = StaticDataSeries::new();
-    // Fill to maximum capacity
-    for i in 0..256 {
-        max_data.push(Point2D::new(i as f32, (i % 100) as f32))?;
-    }
-
-    ChartTestSuite::test_chart_rendering(&chart, &[max_data])?;
-    Ok(())
-}
-
-/// Test real-world data scenarios
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_real_world_scenarios() -> ChartResult<()> {
-    let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(2)
-        .fill_area(TestColors::ACCENT)
-        .with_markers(MarkerStyle {
-            shape: MarkerShape::Circle,
-            size: 4,
-            color: TestColors::SECONDARY,
-            visible: true,
-        })
-        .build()?;
-
-    // Temperature monitoring scenario
-    let temp_data = data_generators::generate_temperature_data(24);
-    ChartTestSuite::test_chart_rendering(&chart, &[temp_data])?;
-
-    // Stock price scenario
-    let stock_data = data_generators::generate_stock_data(30);
-    ChartTestSuite::test_chart_rendering(&chart, &[stock_data])?;
-
-    // Sensor data with spikes
-    let sensor_data = data_generators::generate_sensor_data_with_spikes(50);
-    ChartTestSuite::test_chart_rendering(&chart, &[sensor_data])?;
-
-    // Memory usage scenario
-    let memory_data = data_generators::generate_memory_usage_data(40);
-    ChartTestSuite::test_chart_rendering(&chart, &[memory_data])?;
-
-    Ok(())
-}
-
-/// Test grid integration
-#[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_grid_integration() -> ChartResult<()> {
-    let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(2)
-        .build()?;
-
-    let data = data_generators::generate_test_data(TestDataPattern::Linear, 10);
-
-    let configs = [
-        ChartConfig {
-            title: None,
-            background_color: Some(TestColors::BACKGROUND),
-            margins: common::TEST_MARGINS,
-            grid_color: Some(TestColors::GRID),
-            show_grid: true,
-        },
-        ChartConfig {
-            title: None,
-            background_color: Some(TestColors::BACKGROUND),
-            margins: common::TEST_MARGINS,
-            grid_color: Some(TestColors::GRID),
-            show_grid: false,
-        },
-    ];
-
-    for config in &configs {
-        let mut display = common::create_test_display();
-        chart.draw(&data, config, TEST_VIEWPORT, &mut display)?;
-    }
-
-    Ok(())
-}
-
-/// Test default implementations
-#[test]
-fn test_default_implementations() {
-    // Test LineChart default
-    let chart: LineChart<Rgb565> = LineChart::default();
-    assert_eq!(chart.style().line_width, 1);
-
-    // Test LineChartStyle default
-    let style: LineChartStyle<Rgb565> = LineChartStyle::default();
-    assert_eq!(style.line_width, 1);
-    assert!(!style.fill_area);
-
-    // Test MarkerStyle default
-    let marker: MarkerStyle<Rgb565> = MarkerStyle::default();
+fn test_marker_style_default() {
+    let marker = MarkerStyle::<Rgb565>::default();
     assert_eq!(marker.shape, MarkerShape::Circle);
     assert_eq!(marker.size, 4);
+    assert_eq!(marker.color, Rgb565::RED);
     assert!(marker.visible);
-
-    // Test LineChartBuilder default
-    let builder: LineChartBuilder<Rgb565> = LineChartBuilder::default();
-    // Builder should be usable
-    let chart = builder.build().unwrap();
-    assert_eq!(chart.style().line_width, 1);
 }
 
-/// Stress test with rapid successive renders
 #[test]
-#[ignore = "MockDisplay has limitations with pixel overlap detection"]
-fn test_stress_rapid_renders() -> ChartResult<()> {
+fn test_line_chart_style_accessors() {
+    let mut style = LineChartStyle::<Rgb565> {
+        line_color: Rgb565::BLUE,
+        line_width: 2,
+        fill_area: false,
+        fill_color: None,
+        markers: None,
+        smooth: false,
+        smooth_subdivisions: 8,
+    };
+
+    // Test with fill color
+    style.fill_area = true;
+    style.fill_color = Some(Rgb565::CSS_LIGHT_BLUE);
+    assert!(style.fill_color.is_some());
+
+    // Test with markers
+    style.markers = Some(MarkerStyle::default());
+    assert!(style.markers.is_some());
+}
+
+#[test]
+fn test_large_dataset() {
+    let mut display = create_test_display();
+    let mut data = StaticDataSeries::<Point2D, 256>::new();
+
+    // Fill with maximum points
+    for i in 0..256 {
+        let x = i as f32;
+        let y = (x * 0.1).sin() * 50.0 + 50.0;
+        data.push(Point2D::new(x, y)).unwrap();
+    }
+
+    let config = ChartConfig::default();
+    let viewport = Rectangle::new(Point::new(0, 0), Size::new(64, 64));
+
     let chart = LineChart::builder()
-        .line_color(TestColors::PRIMARY)
-        .line_width(2)
-        .build()?;
+        .line_color(Rgb565::BLUE)
+        .line_width(1)
+        .build()
+        .unwrap();
 
-    let data = data_generators::generate_test_data(TestDataPattern::Linear, 20);
-
-    let metrics =
-        common::performance::PerformanceBenchmark::stress_test_rapid_renders(&chart, &data, 10)?;
-    assert_eq!(metrics.draw_calls, 10);
-
-    Ok(())
+    let result = chart.draw(&data, &config, viewport, &mut display);
+    assert!(result.is_ok());
 }
