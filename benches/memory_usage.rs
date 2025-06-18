@@ -11,10 +11,13 @@ use embedded_charts::{
     },
     data::{
         point::Point2D,
-        series::{MultiSeries, SlidingWindowSeries, StaticDataSeries},
+        series::{MultiSeries, StaticDataSeries},
     },
     memory::{ChartMemoryManager, FixedCapacityCollections, LabelStorage, MemoryStats},
 };
+
+#[cfg(feature = "animations")]
+use embedded_charts::data::series::SlidingWindowSeries;
 
 #[cfg(feature = "scatter")]
 use embedded_charts::chart::scatter::ScatterChart;
@@ -63,6 +66,7 @@ fn bench_data_structure_memory(c: &mut Criterion) {
     });
 
     // SlidingWindowSeries memory usage
+    #[cfg(feature = "animations")]
     group.bench_function("sliding_window", |b| {
         b.iter(|| {
             let window = SlidingWindowSeries::<Point2D, 100>::new();

@@ -58,25 +58,8 @@ jobs:
       run: |
         cargo bench --all-features
     
-    # Compare with baseline if this is a PR
-    - name: Checkout base branch for comparison
-      if: github.event_name == 'pull_request'
-      run: |
-        git fetch origin ${{ github.base_ref }}
-        git checkout origin/${{ github.base_ref }}
-    
-    - name: Run baseline benchmarks
-      if: github.event_name == 'pull_request'
-      run: |
-        cargo bench --all-features
-    
-    - name: Checkout PR branch
-      if: github.event_name == 'pull_request'
-      run: |
-        git checkout ${{ github.head_ref }}
-    
-    # Note: Comparison step removed as baseline features aren't working
-    # TODO: Implement proper benchmark comparison once stabilized
+    # Note: Benchmark comparison steps removed temporarily
+    # The criterion baseline features need proper configuration
     
     # Upload benchmark results as artifacts
     - name: Upload benchmark results
