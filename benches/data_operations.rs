@@ -6,9 +6,12 @@ use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criteri
 use embedded_charts::data::{
     bounds::DataBounds,
     point::Point2D,
-    series::{MultiSeries, SlidingWindowSeries, StaticDataSeries},
+    series::{MultiSeries, StaticDataSeries},
     DataPoint, DataSeries,
 };
+
+#[cfg(feature = "animations")]
+use embedded_charts::data::series::SlidingWindowSeries;
 
 /// Benchmark StaticDataSeries operations
 fn bench_static_data_series(c: &mut Criterion) {
@@ -176,6 +179,7 @@ fn bench_multi_series(c: &mut Criterion) {
 }
 
 /// Benchmark SlidingWindowSeries operations
+#[cfg(feature = "animations")]
 fn bench_sliding_window(c: &mut Criterion) {
     let mut group = c.benchmark_group("sliding_window");
 
@@ -297,6 +301,18 @@ fn bench_data_transformation(c: &mut Criterion) {
     group.finish();
 }
 
+// Group benchmarks based on available features
+#[cfg(not(feature = "animations"))]
+criterion_group!(
+    data_benches,
+    bench_static_data_series,
+    bench_data_bounds,
+    bench_multi_series,
+    bench_label_operations,
+    bench_data_transformation
+);
+
+#[cfg(feature = "animations")]
 criterion_group!(
     data_benches,
     bench_static_data_series,
