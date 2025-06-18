@@ -4,6 +4,35 @@
 //! with static allocation and predictable memory usage. All data structures are designed
 //! for embedded systems with limited memory.
 //!
+//! ## Data Processing Features
+//!
+//! ### Aggregation and Downsampling
+//! Efficient algorithms for reducing data density while preserving important characteristics:
+//! ```rust
+//! use embedded_charts::prelude::*;
+//! use embedded_charts::data::aggregation::*;
+//!
+//! let mut large_dataset: StaticDataSeries<Point2D, 10000> = StaticDataSeries::new();
+//! // ... populate with data ...
+//!
+//! // Aggregate using different strategies
+//! let config = AggregationConfig {
+//!     strategy: AggregationStrategy::Mean,
+//!     target_points: 100,
+//!     preserve_endpoints: true,
+//!     ..Default::default()
+//! };
+//! let aggregated: StaticDataSeries<Point2D, 256> = large_dataset.aggregate(&config)?;
+//!
+//! // Downsample using LTTB algorithm
+//! let downsample_config = DownsamplingConfig {
+//!     max_points: 50,
+//!     ..Default::default()
+//! };
+//! let downsampled: StaticDataSeries<Point2D, 256> = large_dataset.downsample_lttb(&downsample_config)?;
+//! # Ok::<(), embedded_charts::error::DataError>(())
+//! ```
+//!
 //! ## Core Data Types
 //!
 //! ### Point2D
@@ -156,6 +185,7 @@
 //! assert_eq!(data.len(), 4);
 //! ```
 
+pub mod aggregation;
 pub mod bounds;
 pub mod point;
 pub mod ring_buffer;
@@ -164,6 +194,7 @@ pub mod series;
 #[cfg(feature = "animations")]
 pub mod streaming;
 
+pub use aggregation::*;
 pub use bounds::*;
 pub use point::*;
 pub use ring_buffer::*;
