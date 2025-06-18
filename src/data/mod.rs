@@ -158,6 +158,7 @@
 
 pub mod bounds;
 pub mod point;
+pub mod ring_buffer;
 pub mod series;
 
 #[cfg(feature = "animations")]
@@ -165,6 +166,7 @@ pub mod streaming;
 
 pub use bounds::*;
 pub use point::*;
+pub use ring_buffer::*;
 pub use series::*;
 
 #[cfg(feature = "animations")]

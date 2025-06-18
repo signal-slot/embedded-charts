@@ -89,6 +89,66 @@ A production-ready, high-performance chart library for embedded systems and reso
   </table>
 </div>
 
+### 🔄 Real-time Data Streaming with Ring Buffers
+
+<div align="center">
+  <img src="docs/assets/ring_buffer_demo.gif" width="600" alt="Ring Buffer Real-time Demo"/>
+  <br><b>High-Performance Ring Buffer</b><br>
+  <sub>Real-time data streaming with chronological ordering, moving averages, and buffer visualization</sub>
+</div>
+
+The library includes a high-performance ring buffer implementation for efficient real-time data streaming:
+
+```rust
+use embedded_charts::prelude::*;
+use embedded_charts::data::{PointRingBuffer, RingBuffer, RingBufferConfig};
+
+// Create ring buffer with 100-point capacity
+let mut data_buffer: PointRingBuffer<100> = PointRingBuffer::new();
+
+// Configure for real-time streaming
+let config = RingBufferConfig {
+    overflow_mode: OverflowMode::Overwrite,  // Overwrite oldest data
+    enable_events: true,                      // Event notifications
+    track_bounds: true,                       // Auto bounds tracking
+    ..Default::default()
+};
+
+let mut streaming_buffer: RingBuffer<Point2D, 100> = RingBuffer::with_config(config);
+
+// Set up event handler
+streaming_buffer.set_event_handler(|event| match event {
+    RingBufferEvent::BufferFull => println!("Buffer is now full!"),
+    RingBufferEvent::BoundsChanged => println!("Data bounds have changed"),
+    _ => {}
+});
+
+// Stream data through the buffer
+loop {
+    let sensor_value = read_sensor();
+    streaming_buffer.push_point(Point2D::new(timestamp, sensor_value))?;
+    
+    // Use chronological iterator for proper time ordering
+    let mut chart_data = StaticDataSeries::<Point2D, 256>::new();
+    for point in streaming_buffer.iter_chronological() {
+        chart_data.push(*point)?;
+    }
+    
+    // Calculate moving average
+    if let Some(avg) = streaming_buffer.moving_average(20) {
+        display_average(avg);
+    }
+}
+```
+
+**Key Features:**
+- 🚀 **Zero allocation** after initialization
+- 📊 **Chronological iteration** even with wrap-around
+- 📈 **Built-in statistics**: moving average, rate of change, downsampling
+- 🎯 **Event-driven architecture** with configurable overflow behavior
+- 📍 **Automatic bounds tracking** for dynamic axis scaling
+- 🔧 **No unsafe code** - memory safe by design
+
 ## 🚀 Quick Start
 
 ### Installation
@@ -255,6 +315,7 @@ fn main() -> ! {
 | System Feature | Status | Description |
 |----------------|--------|-------------|
 | **Real-time Animation** | ✅ | Smooth transitions, easing functions, streaming data |
+| **Ring Buffer Streaming** | ✅ | High-performance circular buffers with chronological ordering |
 | **Professional Styling** | ✅ | Themes, color palettes, typography |
 | **Memory Management** | ✅ | Static allocation, configurable capacity, zero heap |
 | **no_std Support** | ✅ | Full embedded compatibility, minimal dependencies |

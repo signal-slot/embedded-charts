@@ -38,6 +38,11 @@ cargo run --example multi_series_dashboard --features std,capture,line,bar,anima
 echo "⚡ Generating real-time examples..."
 cargo run --example real_time_dashboard --features std,capture,line,gauge,animations
 
+# Generate GIF animations
+echo "🎬 Generating GIF animations..."
+echo "  - Ring buffer demo..."
+CAPTURE_GIF=1 cargo run --example ring_buffer_demo --all-features --release
+
 echo "✅ All visual assets generated successfully!"
 echo "📁 Assets saved to: docs/assets/"
 echo ""
