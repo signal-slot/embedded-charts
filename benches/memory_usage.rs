@@ -140,7 +140,7 @@ fn bench_memory_management(c: &mut Criterion) {
     // ChartMemoryManager
     group.bench_function("memory_manager", |b| {
         b.iter(|| {
-            let manager = ChartMemoryManager::new();
+            let manager = ChartMemoryManager::<4096>::new();
             let size = type_size(&manager);
             black_box(size);
         });
@@ -163,7 +163,7 @@ fn bench_memory_management(c: &mut Criterion) {
             let mut storage = LabelStorage::<32, 16>::new();
             for i in 0..10 {
                 let mut label = heapless::String::<32>::new();
-                label.push_str(&format!("Label {}", i)).unwrap();
+                label.push_str(&format!("Label {i}")).unwrap();
                 storage.add_label(&label).unwrap();
             }
             let size = type_size(&storage);
@@ -315,6 +315,7 @@ fn bench_config_memory(c: &mut Criterion) {
                     left: 30,
                 },
                 show_grid: true,
+                grid_color: Some(Rgb565::new(10, 10, 10)),
             };
 
             let size = type_size(&config);

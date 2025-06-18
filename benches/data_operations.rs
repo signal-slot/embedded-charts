@@ -95,12 +95,12 @@ fn bench_data_bounds(c: &mut Criterion) {
     });
 
     group.bench_function("bounds_expansion", |b| {
-        let initial = DataBounds::new(0.0, 0.0, 10.0, 10.0);
+        let initial = DataBounds::new(0.0, 0.0, 10.0, 10.0).unwrap();
 
         b.iter(|| {
             let mut bounds = initial;
             for i in 0..50 {
-                bounds.expand(Point2D::new((i * 2) as f32, (i * 3) as f32));
+                bounds.expand_to_include(&Point2D::new((i * 2) as f32, (i * 3) as f32));
             }
             black_box(bounds);
         });
@@ -183,12 +183,12 @@ fn bench_sliding_window(c: &mut Criterion) {
     group.bench_function("push_with_slide", |b| {
         let mut window = SlidingWindowSeries::<Point2D, 100>::new();
         for i in 0..100 {
-            let _ = window.push(Point2D::new(i as f32, i as f32));
+            window.push(Point2D::new(i as f32, i as f32));
         }
 
         b.iter(|| {
             // Push new point, sliding out the oldest
-            let _ = window.push(Point2D::new(101.0, 101.0));
+            window.push(Point2D::new(101.0, 101.0));
             black_box(&window);
         });
     });
@@ -197,7 +197,7 @@ fn bench_sliding_window(c: &mut Criterion) {
     group.bench_function("iterate_window", |b| {
         let mut window = SlidingWindowSeries::<Point2D, 100>::new();
         for i in 0..100 {
-            let _ = window.push(Point2D::new(i as f32, i as f32));
+            window.push(Point2D::new(i as f32, i as f32));
         }
 
         b.iter(|| {
