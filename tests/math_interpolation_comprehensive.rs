@@ -297,8 +297,7 @@ fn test_smoothing_algorithms_comprehensive() {
         if factor > 0.0 {
             assert!(
                 smoothed.y.abs() < 10.0,
-                "Smoothing factor {} didn't reduce spike",
-                factor
+                "Smoothing factor {factor} didn't reduce spike"
             );
         }
     }
@@ -426,14 +425,12 @@ fn test_edge_preservation() {
         // First and last points should be preserved exactly
         assert_eq!(
             result[0], points[0],
-            "First point not preserved for {:?}",
-            interpolation_type
+            "First point not preserved for {interpolation_type:?}"
         );
         assert_eq!(
             result[result.len() - 1],
             points[points.len() - 1],
-            "Last point not preserved for {:?}",
-            interpolation_type
+            "Last point not preserved for {interpolation_type:?}"
         );
     }
 }
@@ -472,10 +469,7 @@ fn test_performance_characteristics() {
             let result = CurveInterpolator::interpolate(&points, &config).unwrap();
             let duration = start.elapsed();
 
-            println!(
-                "{:?} interpolation with {} points took {:?}",
-                interpolation_type, size, duration
-            );
+            println!("{interpolation_type:?} interpolation with {size} points took {duration:?}");
 
             assert!(result.len() > points.len());
             // Performance assertion: should complete in reasonable time

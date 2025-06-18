@@ -295,13 +295,16 @@ fn test_point_ring_buffer_rate_of_change() {
 #[test]
 fn test_ring_buffer_events() {
     // Event handler tests
+    use std::cell::RefCell;
 
-    static mut EVENTS: Vec<RingBufferEvent> = Vec::new();
+    thread_local! {
+        static EVENTS: RefCell<Vec<RingBufferEvent>> = const { RefCell::new(Vec::new()) };
+    }
 
     fn event_handler(event: RingBufferEvent) {
-        unsafe {
-            EVENTS.push(event);
-        }
+        EVENTS.with(|events| {
+            events.borrow_mut().push(event);
+        });
     }
 
     let config = RingBufferConfig {
@@ -314,34 +317,38 @@ fn test_ring_buffer_events() {
     let mut buffer: RingBuffer<Point2D, 2> = RingBuffer::with_config(config);
     buffer.set_event_handler(event_handler);
 
-    unsafe {
-        EVENTS.clear();
-    }
+    EVENTS.with(|events| {
+        events.borrow_mut().clear();
+    });
 
     // Add first point
     buffer.push_point(Point2D::new(1.0, 1.0)).unwrap();
-    unsafe {
-        assert!(EVENTS.contains(&RingBufferEvent::DataAdded));
-        assert!(EVENTS.contains(&RingBufferEvent::BoundsChanged));
-    }
+    EVENTS.with(|events| {
+        let events = events.borrow();
+        assert!(events.contains(&RingBufferEvent::DataAdded));
+        assert!(events.contains(&RingBufferEvent::BoundsChanged));
+    });
 
     // Fill buffer
     buffer.push_point(Point2D::new(2.0, 2.0)).unwrap();
-    unsafe {
-        assert!(EVENTS.contains(&RingBufferEvent::BufferFull));
-    }
+    EVENTS.with(|events| {
+        let events = events.borrow();
+        assert!(events.contains(&RingBufferEvent::BufferFull));
+    });
 
     // Overflow
     buffer.push_point(Point2D::new(3.0, 3.0)).unwrap();
-    unsafe {
-        assert!(EVENTS.contains(&RingBufferEvent::DataOverwritten));
-    }
+    EVENTS.with(|events| {
+        let events = events.borrow();
+        assert!(events.contains(&RingBufferEvent::DataOverwritten));
+    });
 
     // Clear
     buffer.clear();
-    unsafe {
-        assert!(EVENTS.contains(&RingBufferEvent::BufferEmpty));
-    }
+    EVENTS.with(|events| {
+        let events = events.borrow();
+        assert!(events.contains(&RingBufferEvent::BufferEmpty));
+    });
 }
 
 #[test]
@@ -413,14 +420,17 @@ fn test_ring_buffer_chronological_iterator() {
 #[test]
 fn test_ring_buffer_with_overflow_callback() {
     // Overflow callback tests
+    use std::cell::RefCell;
 
-    static mut OVERFLOW_COUNT: u32 = 0;
+    thread_local! {
+        static OVERFLOW_COUNT: RefCell<u32> = const { RefCell::new(0) };
+    }
 
     fn overflow_handler(event: RingBufferEvent) {
         if event == RingBufferEvent::DataOverwritten {
-            unsafe {
-                OVERFLOW_COUNT += 1;
-            }
+            OVERFLOW_COUNT.with(|count| {
+                *count.borrow_mut() += 1;
+            });
         }
     }
 
@@ -433,18 +443,18 @@ fn test_ring_buffer_with_overflow_callback() {
     let mut buffer: RingBuffer<Point2D, 2> = RingBuffer::with_config(config);
     buffer.set_event_handler(overflow_handler);
 
-    unsafe {
-        OVERFLOW_COUNT = 0;
-    }
+    OVERFLOW_COUNT.with(|count| {
+        *count.borrow_mut() = 0;
+    });
 
     // Fill and overflow
     buffer.push(Point2D::new(1.0, 1.0)).unwrap();
     buffer.push(Point2D::new(2.0, 2.0)).unwrap();
     buffer.push(Point2D::new(3.0, 3.0)).unwrap(); // Should trigger callback
 
-    unsafe {
-        assert_eq!(OVERFLOW_COUNT, 1);
-    }
+    OVERFLOW_COUNT.with(|count| {
+        assert_eq!(*count.borrow(), 1);
+    });
 }
 
 #[test]
