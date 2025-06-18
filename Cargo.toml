@@ -194,6 +194,11 @@ path = "examples/basic/logarithmic_scale_demo.rs"
 required-features = ["std", "line", "floating-point"]
 
 [[example]]
+name = "data_aggregation_demo"
+path = "examples/basic/data_aggregation_demo.rs"
+required-features = ["std", "line", "floating-point"]
+
+[[example]]
 name = "ring_buffer_demo"
 path = "examples/basic/ring_buffer_demo.rs"
 required-features = ["std", "line"]
