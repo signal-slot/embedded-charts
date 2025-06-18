@@ -7,8 +7,6 @@ use embedded_charts::{
     chart::{
         bar::BarChart,
         line::LineChart,
-        pie::PieChart,
-        scatter::ScatterChart,
         traits::{Chart, ChartBuilder, ChartConfig},
     },
     data::{
@@ -17,6 +15,12 @@ use embedded_charts::{
     },
     memory::{ChartMemoryManager, FixedCapacityCollections, LabelStorage, MemoryStats},
 };
+
+#[cfg(feature = "scatter")]
+use embedded_charts::chart::scatter::ScatterChart;
+
+#[cfg(feature = "pie")]
+use embedded_charts::chart::pie::PieChart;
 use embedded_graphics::{pixelcolor::Rgb565, prelude::*, primitives::Rectangle};
 
 /// Helper to estimate memory usage of a type
@@ -93,6 +97,7 @@ fn bench_chart_memory(c: &mut Criterion) {
     });
 
     // Pie chart
+    #[cfg(feature = "pie")]
     group.bench_function("pie_chart", |b| {
         b.iter(|| {
             let chart = PieChart::<Rgb565>::new(Point::new(160, 120), 100);
@@ -102,6 +107,7 @@ fn bench_chart_memory(c: &mut Criterion) {
     });
 
     // Scatter chart
+    #[cfg(feature = "scatter")]
     group.bench_function("scatter_chart", |b| {
         b.iter(|| {
             let chart = ScatterChart::<Rgb565>::new();
@@ -143,11 +149,9 @@ fn bench_memory_management(c: &mut Criterion) {
     // MemoryStats tracking
     group.bench_function("memory_stats", |b| {
         b.iter(|| {
-            let mut stats = MemoryStats::default();
-            stats.used_bytes = 1024;
-            stats.total_bytes = 4096;
-            stats.peak_bytes = 2048;
-            stats.allocation_count = 100;
+            let mut stats = MemoryStats::new(4096);
+            stats.update_usage(1024);
+            stats.peak_usage = 2048;
             let size = type_size(&stats);
             black_box(size);
         });
@@ -160,7 +164,7 @@ fn bench_memory_management(c: &mut Criterion) {
             for i in 0..10 {
                 let mut label = heapless::String::<32>::new();
                 label.push_str(&format!("Label {}", i)).unwrap();
-                storage.store(i, label).unwrap();
+                storage.add_label(&label).unwrap();
             }
             let size = type_size(&storage);
             black_box(size);
@@ -170,8 +174,10 @@ fn bench_memory_management(c: &mut Criterion) {
     // FixedCapacityCollections
     group.bench_function("fixed_capacity_collections", |b| {
         b.iter(|| {
-            let collections = FixedCapacityCollections::<1024>::new();
-            let size = type_size(&collections);
+            let data_vec = FixedCapacityCollections::data_vec::<Point2D, 256>();
+            let string_vec = FixedCapacityCollections::string_vec::<16, 32>();
+            let color_vec = FixedCapacityCollections::color_vec::<Rgb565, 16>();
+            let size = type_size(&data_vec) + type_size(&string_vec) + type_size(&color_vec);
             black_box(size);
         });
     });
@@ -230,10 +236,8 @@ fn bench_memory_scaling(c: &mut Criterion) {
                 }
 
                 // Simulate memory tracking
-                let mut stats = MemoryStats::default();
-                stats.used_bytes = size * std::mem::size_of::<Point2D>();
-                stats.total_bytes = 256 * std::mem::size_of::<Point2D>();
-                stats.allocation_count = size;
+                let mut stats = MemoryStats::new(256 * std::mem::size_of::<Point2D>());
+                stats.update_usage(size * std::mem::size_of::<Point2D>());
 
                 black_box(stats);
             });
@@ -247,44 +251,35 @@ fn bench_memory_scaling(c: &mut Criterion) {
 fn bench_memory_pool(c: &mut Criterion) {
     let mut group = c.benchmark_group("memory_pool");
 
-    // Pool allocation
-    group.bench_function("pool_allocate", |b| {
+    // Memory usage tracking
+    group.bench_function("memory_usage_tracking", |b| {
         b.iter(|| {
-            let mut manager = ChartMemoryManager::new();
+            let mut manager = ChartMemoryManager::<4096>::new();
 
-            // Simulate allocations
+            // Simulate memory usage updates
             for i in 0..50 {
-                manager.allocate(64).unwrap();
+                manager.update_usage(i * 64);
             }
 
-            let stats = manager.get_stats();
+            let stats = manager.stats();
             black_box(stats);
         });
     });
 
-    // Pool deallocation and reuse
-    group.bench_function("pool_reuse", |b| {
-        let mut manager = ChartMemoryManager::new();
-
-        // Pre-allocate some blocks
-        let mut handles = Vec::new();
-        for _ in 0..10 {
-            handles.push(manager.allocate(64).unwrap());
-        }
+    // High water mark tracking
+    group.bench_function("high_water_mark", |b| {
+        let mut manager = ChartMemoryManager::<8192>::new();
 
         b.iter(|| {
-            // Deallocate
-            for handle in &handles {
-                manager.deallocate(*handle);
+            // Update with varying usage
+            for i in 0..10 {
+                manager.update_usage(i * 256);
             }
 
-            // Reallocate
-            for _ in 0..10 {
-                manager.allocate(64).unwrap();
-            }
+            let high_water = manager.high_water_mark();
+            black_box(high_water);
 
-            let stats = manager.get_stats();
-            black_box(stats);
+            manager.reset_stats();
         });
     });
 
@@ -319,8 +314,7 @@ fn bench_config_memory(c: &mut Criterion) {
                     bottom: 30,
                     left: 30,
                 },
-                grid_visible: true,
-                legend_visible: true,
+                show_grid: true,
             };
 
             let size = type_size(&config);

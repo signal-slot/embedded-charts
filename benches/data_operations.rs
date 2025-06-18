@@ -53,34 +53,9 @@ fn bench_static_data_series(c: &mut Criterion) {
         });
     });
 
-    // Sorting performance
-    group.bench_function("sort_by_x", |b| {
-        let mut unsorted = StaticDataSeries::<Point2D, 256>::new();
-        for i in 0..100 {
-            let x = (100 - i) as f32; // Reverse order
-            unsorted.push(Point2D::new(x, i as f32)).unwrap();
-        }
-
-        b.iter(|| {
-            let mut series = unsorted.clone();
-            series.sort_by_x();
-            black_box(series);
-        });
-    });
-
-    group.bench_function("sort_by_y", |b| {
-        let mut unsorted = StaticDataSeries::<Point2D, 256>::new();
-        for i in 0..100 {
-            let y = ((i * 37) % 100) as f32; // Pseudo-random order
-            unsorted.push(Point2D::new(i as f32, y)).unwrap();
-        }
-
-        b.iter(|| {
-            let mut series = unsorted.clone();
-            series.sort_by_y();
-            black_box(series);
-        });
-    });
+    // Note: Sorting benchmarks commented out because f32 doesn't implement Ord
+    // The library would need to provide sort_by_x_float() and sort_by_y_float() methods
+    // that handle NaN values appropriately for f32 coordinates.
 
     group.finish();
 }
@@ -189,8 +164,8 @@ fn bench_multi_series(c: &mut Criterion) {
 
         b.iter(|| {
             let sum: f32 = multi
-                .iter()
-                .flat_map(|series| series.iter())
+                .iter_series()
+                .flat_map(|series| series.iter_ref())
                 .map(|p| p.x() + p.y())
                 .sum();
             black_box(sum);
@@ -208,16 +183,12 @@ fn bench_sliding_window(c: &mut Criterion) {
     group.bench_function("push_with_slide", |b| {
         let mut window = SlidingWindowSeries::<Point2D, 100>::new();
         for i in 0..100 {
-            window.push(Point2D::new(i as f32, i as f32)).unwrap();
+            let _ = window.push(Point2D::new(i as f32, i as f32));
         }
 
         b.iter(|| {
             // Push new point, sliding out the oldest
-            window
-                .push(Point2D::new(101.0, 101.0))
-                .unwrap_or_else(|old| {
-                    window.push_force(Point2D::new(101.0, 101.0));
-                });
+            let _ = window.push(Point2D::new(101.0, 101.0));
             black_box(&window);
         });
     });
@@ -226,7 +197,7 @@ fn bench_sliding_window(c: &mut Criterion) {
     group.bench_function("iterate_window", |b| {
         let mut window = SlidingWindowSeries::<Point2D, 100>::new();
         for i in 0..100 {
-            window.push(Point2D::new(i as f32, i as f32)).unwrap();
+            let _ = window.push(Point2D::new(i as f32, i as f32));
         }
 
         b.iter(|| {
@@ -235,20 +206,8 @@ fn bench_sliding_window(c: &mut Criterion) {
         });
     });
 
-    // Bounds calculation on sliding window
-    group.bench_function("sliding_bounds", |b| {
-        let mut window = SlidingWindowSeries::<Point2D, 100>::new();
-        for i in 0..100 {
-            let x = i as f32;
-            let y = (x * 0.1).sin() * 50.0 + 50.0;
-            window.push(Point2D::new(x, y)).unwrap();
-        }
-
-        b.iter(|| {
-            let bounds = window.bounds().unwrap();
-            black_box(bounds);
-        });
-    });
+    // Note: SlidingWindowSeries doesn't have a bounds() method
+    // This would need to be calculated manually by iterating through the window
 
     group.finish();
 }
@@ -263,7 +222,7 @@ fn bench_label_operations(c: &mut Criterion) {
             let mut series = StaticDataSeries::<Point2D, 256>::new();
             let labels = ["Data 1", "Data 2", "Data 3", "Data 4", "Data 5"];
 
-            for (i, label) in labels.iter().enumerate() {
+            for (i, _label) in labels.iter().enumerate() {
                 series.push(Point2D::new(i as f32, i as f32)).unwrap();
             }
             // Series can only have one label for the whole series
@@ -327,9 +286,9 @@ fn bench_data_transformation(c: &mut Criterion) {
 
         b.iter(|| {
             let filtered: Vec<Point2D> = series
-                .iter()
+                .iter_ref()
                 .filter(|p| p.x() >= 50.0 && p.x() <= 150.0)
-                .cloned()
+                .copied()
                 .collect();
             black_box(filtered);
         });

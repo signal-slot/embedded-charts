@@ -166,7 +166,7 @@ fn bench_series_interpolation(c: &mut Criterion) {
 
             b.iter(|| {
                 // Convert series to points for interpolation
-                let points: Vec<Point2D> = series.iter().cloned().collect();
+                let points: Vec<Point2D> = series.iter_ref().copied().collect();
                 let interpolated = CurveInterpolator::interpolate(&points, &config).unwrap();
                 black_box(interpolated);
             });
@@ -183,7 +183,7 @@ fn bench_tension_effects(c: &mut Criterion) {
 
     for tension in [0.0, 0.25, 0.5, 0.75, 1.0] {
         group.bench_with_input(
-            BenchmarkId::new("catmull_rom", format!("{:.2}", tension)),
+            BenchmarkId::new("catmull_rom", format!("{tension:.2}")),
             &tension,
             |b, &tension| {
                 let config = InterpolationConfig {
@@ -288,7 +288,7 @@ fn bench_smoothing(c: &mut Criterion) {
 
     for factor in [0.0, 0.3, 0.5, 0.7, 1.0] {
         group.bench_with_input(
-            BenchmarkId::new("smooth_points", format!("{:.1}", factor)),
+            BenchmarkId::new("smooth_points", format!("{factor:.1}")),
             &factor,
             |b, &factor| {
                 b.iter(|| {
@@ -298,7 +298,7 @@ fn bench_smoothing(c: &mut Criterion) {
                         series.push(*point).unwrap();
                     }
                     // Convert series to points for smoothing
-                    let points: Vec<Point2D> = series.iter().cloned().collect();
+                    let points: Vec<Point2D> = series.iter_ref().copied().collect();
                     let smoothed = CurveInterpolator::smooth_series(&points, factor, 1).unwrap();
                     black_box(smoothed);
                 });
@@ -315,7 +315,7 @@ fn bench_smoothing(c: &mut Criterion) {
 
         b.iter(|| {
             // Convert series to points for smoothing
-            let points: Vec<Point2D> = series.iter().cloned().collect();
+            let points: Vec<Point2D> = series.iter_ref().copied().collect();
             let smoothed = CurveInterpolator::smooth_series(&points, 0.5, 1).unwrap();
             black_box(smoothed);
         });
