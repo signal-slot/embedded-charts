@@ -315,13 +315,51 @@ pub fn profile_embedded_performance(target: EmbeddedTarget) -> ProfileReport;
 - **Complexity Management**: Break down large test suites into manageable modules
 - **Knowledge Transfer**: Document test patterns and infrastructure for team use
 
-## Timeline Summary
+## Next Steps for v0.3.0
 
-| Phase | Weeks | Focus | Coverage Gain | Total Target |
-|-------|-------|-------|---------------|--------------|
-| 1 | 1-4 | Critical Components | +15-18% | ~59-62% |
-| 2 | 5-8 | High Priority Systems | +8-10% | ~67-72% |
-| 3 | 9-12 | Supporting Systems | +5-7% | ~72-79% |
-| 4 | 13-16 | Integration & Polish | +3-5% | **65%+ sustained** |
+### Phase 4: New Feature Testing
+**Target**: Comprehensive test coverage for v0.3.0 features
 
-**Final Target**: 65%+ overall coverage with 90%+ coverage for critical components, achieved through systematic, phase-based implementation over 16 weeks.
+1. **Real-Time Data Streaming Tests**
+   - Ring buffer operations and overflow handling
+   - Sliding window correctness and performance
+   - Update notification system testing
+   - Memory usage validation under continuous updates
+
+2. **Animation System Tests**
+   - Frame interpolation accuracy
+   - Easing function correctness
+   - State transition integrity
+   - Performance impact measurement
+
+3. **Advanced Axis Scaling Tests**
+   - Logarithmic scale accuracy and edge cases
+   - Custom scale function validation
+   - Auto-scaling with various data distributions
+   - Multi-axis synchronization testing
+
+4. **Chart Composition Tests**
+   - Layout calculation correctness
+   - Event propagation between charts
+   - Shared axis synchronization
+   - Memory efficiency with multiple charts
+
+5. **Data Processing Tests**
+   - Aggregation function accuracy
+   - Downsampling algorithm validation
+   - Statistical calculation correctness
+   - Performance benchmarks for all operations
+
+## Timeline Summary (Updated)
+
+| Phase | Status | Focus | Coverage Achieved | Current Total |
+|-------|--------|-------|-------------------|---------------|
+| 1.2 | ✅ | Math & Rendering | +8% | ~52% |
+| 1.3 | ✅ | Core Charts | +6% | ~50% |
+| 2 | 🔄 | Remaining Charts | +5% (est) | ~55% |
+| 3 | 📋 | Supporting Systems | +7% (est) | ~62% |
+| 4 | 📋 | New Features | +3% (est) | **65%+ target** |
+
+**Current Status**: ~50% coverage achieved through systematic improvements
+**Remaining Work**: Complete remaining chart types and new v0.3.0 feature testing
+**Final Target**: 65%+ overall coverage with comprehensive testing for all new features

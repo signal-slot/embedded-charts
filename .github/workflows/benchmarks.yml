@@ -1,0 +1,152 @@
+name: Performance Benchmarks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      compare_to:
+        description: 'Branch/tag to compare performance against'
+        required: false
+        default: 'main'
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  benchmark:
+    name: Run Performance Benchmarks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+    
+    - name: Cache cargo registry
+      uses: actions/cache@v4
+      with:
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Cache cargo index
+      uses: actions/cache@v4
+      with:
+        path: ~/.cargo/git
+        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+    
+    - name: Cache cargo build
+      uses: actions/cache@v4
+      with:
+        path: target
+        key: ${{ runner.os }}-cargo-build-bench-${{ hashFiles('**/Cargo.lock') }}
+    
+    # Install required system dependencies
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev
+    
+    # Run benchmarks and save results
+    - name: Run benchmarks
+      run: |
+        cargo bench --all-features -- --save-baseline current
+    
+    # Compare with baseline if this is a PR
+    - name: Checkout base branch for comparison
+      if: github.event_name == 'pull_request'
+      run: |
+        git fetch origin ${{ github.base_ref }}
+        git checkout origin/${{ github.base_ref }}
+    
+    - name: Run baseline benchmarks
+      if: github.event_name == 'pull_request'
+      run: |
+        cargo bench --all-features -- --save-baseline base
+    
+    - name: Checkout PR branch
+      if: github.event_name == 'pull_request'
+      run: |
+        git checkout ${{ github.head_ref }}
+    
+    - name: Compare benchmarks
+      if: github.event_name == 'pull_request'
+      run: |
+        cargo bench --all-features -- --baseline base
+    
+    # Upload benchmark results as artifacts
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results
+        path: target/criterion
+        retention-days: 30
+    
+    # Comment on PR with performance changes (if significant)
+    - name: Comment PR with benchmark results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Check if there are any significant performance changes
+          // This is a simplified version - you might want to parse criterion output more carefully
+          const comment = `## Performance Benchmark Results
+          
+          Benchmarks have been run comparing this PR against the base branch.
+          
+          Full results are available as artifacts in the [Actions tab](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+          
+          To run benchmarks locally:
+          \`\`\`bash
+          cargo bench --all-features
+          \`\`\``;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+  # Run memory-specific benchmarks on different feature combinations
+  memory-benchmarks:
+    name: Memory Usage Benchmarks
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        features:
+          - "no_std,basic-charts,minimal-memory"
+          - "no_std,basic-charts,integer-math"
+          - "std,basic-charts,floating-point"
+          - "std,advanced-charts,animations"
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev
+    
+    - name: Run memory benchmarks for ${{ matrix.features }}
+      run: |
+        cargo bench --no-default-features --features "${{ matrix.features }}" --bench memory_usage
+    
+    - name: Upload memory benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: memory-benchmark-${{ matrix.features }}
+        path: target/criterion/memory_usage
+        retention-days: 30
