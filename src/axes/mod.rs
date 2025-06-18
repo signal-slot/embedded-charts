@@ -8,6 +8,7 @@
 pub mod builder;
 pub mod linear;
 pub mod range;
+pub mod scale;
 pub mod style;
 pub mod ticks;
 pub mod traits;
@@ -16,6 +17,7 @@ pub use builder::presets;
 pub use builder::*;
 pub use linear::*;
 pub use range::*;
+pub use scale::*;
 pub use style::*;
 pub use ticks::*;
 pub use traits::*;
