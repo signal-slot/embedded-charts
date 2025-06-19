@@ -18,10 +18,10 @@ use embedded_graphics::{
 use embedded_graphics_simulator::{OutputSettingsBuilder, SimulatorDisplay, Window};
 
 /// Generate a large dataset with noise and trends
-fn generate_large_dataset() -> StaticDataSeries<Point2D, 2048> {
+fn generate_large_dataset() -> StaticDataSeries<Point2D, 1024> {
     let mut series = StaticDataSeries::new();
 
-    for i in 0..2000 {
+    for i in 0..1000 {
         let x = i as f32 * 0.1;
 
         // Create a signal with multiple components:
@@ -88,10 +88,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let original_data = generate_large_dataset();
         println!("Original dataset: {} points", original_data.len());
 
-        // Chart 1: Original data (first 500 points to fit in display)
+        // Chart 1: Original data (first 250 points to fit in display)
         let mut truncated: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
         for (i, point) in original_data.iter().enumerate() {
-            if i < 500 {
+            if i < 250 {
                 truncated.push(point)?;
             } else {
                 break;
@@ -101,7 +101,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let chart = LineChart::<Rgb565>::builder()
             .line_color(Rgb565::BLUE)
             .line_width(1)
-            .with_title("Original (500/2000 pts)")
+            .with_title("Original (250/1000 pts)")
             .build()?;
 
         let config = ChartConfig::default();
@@ -110,7 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Chart 2: Mean aggregation
         let mean_config = AggregationConfig {
             strategy: AggregationStrategy::Mean,
-            target_points: 100,
+            target_points: 50,
             preserve_endpoints: true,
             ..Default::default()
         };
@@ -122,7 +122,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let chart = LineChart::<Rgb565>::builder()
             .line_color(Rgb565::GREEN)
             .line_width(2)
-            .with_title("Mean Aggregation (100 pts)")
+            .with_title("Mean Aggregation (50 pts)")
             .build()?;
 
         chart.draw(&mean_aggregated, &config, chart_areas[1], &mut display)?;
@@ -130,7 +130,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Chart 3: MinMax aggregation (preserves extremes)
         let minmax_config = AggregationConfig {
             strategy: AggregationStrategy::MinMax,
-            target_points: 100,
+            target_points: 50,
             preserve_endpoints: true,
             ..Default::default()
         };
@@ -142,14 +142,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let chart = LineChart::<Rgb565>::builder()
             .line_color(Rgb565::RED)
             .line_width(2)
-            .with_title("MinMax Aggregation (100 pts)")
+            .with_title("MinMax Aggregation (50 pts)")
             .build()?;
 
         chart.draw(&minmax_aggregated, &config, chart_areas[2], &mut display)?;
 
         // Chart 4: LTTB downsampling (preserves visual characteristics)
         let lttb_config = DownsamplingConfig {
-            max_points: 100,
+            max_points: 50,
             preserve_endpoints: true,
             min_reduction_ratio: 1.0,
         };
@@ -161,7 +161,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let chart = LineChart::<Rgb565>::builder()
             .line_color(Rgb565::MAGENTA)
             .line_width(2)
-            .with_title("LTTB Downsampling (100 pts)")
+            .with_title("LTTB Downsampling (50 pts)")
             .build()?;
 
         chart.draw(&lttb_downsampled, &config, chart_areas[3], &mut display)?;
@@ -176,7 +176,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let chart = LineChart::<Rgb565>::builder()
             .line_color(Rgb565::BLUE)
             .line_width(1)
-            .with_title("High-Freq Sensor (1500 pts)")
+            .with_title("High-Freq Sensor (250 pts)")
             .build()?;
 
         let config = ChartConfig::default();
@@ -184,7 +184,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Chart 6: Uniform downsampling
         let uniform_config = DownsamplingConfig {
-            max_points: 75,
+            max_points: 40,
             preserve_endpoints: true,
             min_reduction_ratio: 1.0,
         };
@@ -196,7 +196,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let chart = LineChart::<Rgb565>::builder()
             .line_color(Rgb565::CYAN)
             .line_width(2)
-            .with_title("Uniform Downsampling (75 pts)")
+            .with_title("Uniform Downsampling (40 pts)")
             .build()?;
 
         chart.draw(&uniform_downsampled, &config, chart_areas[5], &mut display)?;
@@ -213,11 +213,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ];
 
     let labels = [
-        "Shows first 500 of 2000 points",
+        "Shows first 250 of 1000 points",
         "Smooth, preserves trends",
         "Preserves peaks and valleys",
         "Best visual preservation",
-        "Raw 100Hz sensor data",
+        "Raw high-freq sensor data",
         "Reduced while preserving trend",
     ];
 
@@ -233,11 +233,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Performance comparison
     println!("\n=== Performance Comparison ===");
-    println!("Original data: 2000 points");
+    println!("Original data: 1000 points");
     println!("Mean aggregation: 20x reduction, preserves overall trend");
     println!("MinMax aggregation: 20x reduction, preserves extremes");
     println!("LTTB downsampling: 20x reduction, best visual fidelity");
-    println!("Uniform downsampling: 20x reduction, fastest processing");
+    println!("Uniform downsampling: 6x reduction, fastest processing");
 
     // Show the display
     let output_settings = OutputSettingsBuilder::new().build();
