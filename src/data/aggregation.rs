@@ -86,6 +86,12 @@
 use crate::data::{DataPoint, DataSeries, StaticDataSeries};
 use crate::error::{DataError, DataResult};
 
+#[cfg(feature = "std")]
+use libm::{ceilf, floorf, roundf};
+
+#[cfg(not(feature = "std"))]
+use micromath::F32Ext;
+
 /// Strategy for aggregating multiple data points into a single representative point
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AggregationStrategy {
@@ -265,7 +271,7 @@ where
         let points = self.as_slice();
 
         // Calculate group size
-        let group_size = self.len().div_ceil(config.target_points);
+        let group_size = (self.len() + config.target_points - 1) / config.target_points;
         let group_size = group_size.max(config.min_group_size);
 
         let mut i = 0;
@@ -358,7 +364,13 @@ where
         // Process each bucket
         for _i in 1..(config.max_points - 1) {
             let bucket_end = bucket_start + bucket_size;
+            #[cfg(feature = "std")]
+            let start_idx = floorf(bucket_start) as usize;
+            #[cfg(not(feature = "std"))]
             let start_idx = bucket_start.floor() as usize;
+            #[cfg(feature = "std")]
+            let end_idx = (ceilf(bucket_end) as usize).min(data_len - 1);
+            #[cfg(not(feature = "std"))]
             let end_idx = (bucket_end.ceil() as usize).min(data_len - 1);
 
             if start_idx >= end_idx {
@@ -368,7 +380,13 @@ where
             // Calculate average point of next bucket for triangle area calculation
             let next_bucket_start = bucket_end;
             let next_bucket_end = next_bucket_start + bucket_size;
+            #[cfg(feature = "std")]
+            let next_start_idx = floorf(next_bucket_start) as usize;
+            #[cfg(not(feature = "std"))]
             let next_start_idx = next_bucket_start.floor() as usize;
+            #[cfg(feature = "std")]
+            let next_end_idx = (ceilf(next_bucket_end) as usize).min(data_len);
+            #[cfg(not(feature = "std"))]
             let next_end_idx = (next_bucket_end.ceil() as usize).min(data_len);
 
             let avg_next = if next_start_idx < next_end_idx && next_end_idx <= data_len {
@@ -432,6 +450,9 @@ where
         let mut current: f32 = 0.0;
 
         for _ in 0..config.max_points {
+            #[cfg(feature = "std")]
+            let idx = (roundf(current) as usize).min(data_len - 1);
+            #[cfg(not(feature = "std"))]
             let idx = (current.round() as usize).min(data_len - 1);
             result.push(points[idx])?;
             current += step;
