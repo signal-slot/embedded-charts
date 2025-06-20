@@ -378,6 +378,9 @@ pub mod memory;
 // Heapless utilities for enhanced no_std support
 pub mod heapless_utils;
 
+// Dashboard layout system
+pub mod dashboard;
+
 // Convenience re-exports
 pub mod prelude;
 
