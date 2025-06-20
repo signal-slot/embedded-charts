@@ -84,9 +84,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     )
     .draw(&mut display)?;
 
-    // Show the window
-    window.show_static(&display);
-
+    // Print info to console
     println!("Dashboard Layout Demo");
     println!("====================");
     println!("Total viewport: {}x{}", total_viewport.size.width, total_viewport.size.height);
@@ -101,6 +99,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             viewport.size.width, 
             viewport.size.height
         );
+    }
+    println!();
+    println!("Close the window to exit.");
+
+    // Show the window and handle events
+    loop {
+        window.update(&display);
+        
+        // Check for window close event
+        if window.events().any(|e| matches!(e, embedded_graphics_simulator::SimulatorEvent::Quit)) {
+            break;
+        }
+        
+        // Small delay to prevent busy waiting
+        std::thread::sleep(std::time::Duration::from_millis(16)); // ~60 FPS
     }
 
     Ok(())
