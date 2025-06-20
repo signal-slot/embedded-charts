@@ -33,7 +33,8 @@ impl DashboardLayout {
                         if index >= panel_count {
                             break 'outer;
                         }
-                        positions.push(GridPosition::new(row, col))
+                        positions
+                            .push(GridPosition::new(row, col))
                             .map_err(|_| crate::error::ChartError::MemoryFull)?;
                         index += 1;
                     }
@@ -106,18 +107,18 @@ mod tests {
     fn test_dashboard_layout_calculate_viewports() {
         let layout = DashboardLayout::Grid(GridLayout::new(2, 2));
         let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 200));
-        
+
         let viewports = layout.calculate_viewports(viewport, 3, 10).unwrap();
         assert_eq!(viewports.len(), 3);
-        
+
         // First viewport should be top-left
         assert_eq!(viewports[0].top_left, Point::new(0, 0));
         assert_eq!(viewports[0].size, Size::new(95, 95));
-        
+
         // Second viewport should be top-right
         assert_eq!(viewports[1].top_left, Point::new(105, 0));
         assert_eq!(viewports[1].size, Size::new(95, 95));
-        
+
         // Third viewport should be bottom-left
         assert_eq!(viewports[2].top_left, Point::new(0, 105));
         assert_eq!(viewports[2].size, Size::new(95, 95));

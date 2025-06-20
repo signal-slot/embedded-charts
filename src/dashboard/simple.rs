@@ -27,7 +27,8 @@ impl SimpleDashboard {
 
     /// Calculate viewport for a specific grid position
     pub fn get_viewport(&self, position: GridPosition, total_viewport: Rectangle) -> Rectangle {
-        self.grid.calculate_cell_viewport(total_viewport, position, self.spacing)
+        self.grid
+            .calculate_cell_viewport(total_viewport, position, self.spacing)
     }
 
     /// Calculate all viewports for a given number of panels
@@ -44,13 +45,15 @@ impl SimpleDashboard {
                 if index >= panel_count {
                     break 'outer;
                 }
-                positions.push(GridPosition::new(row, col))
+                positions
+                    .push(GridPosition::new(row, col))
                     .map_err(|_| crate::error::ChartError::MemoryFull)?;
                 index += 1;
             }
         }
 
-        self.grid.calculate_viewports(total_viewport, &positions, self.spacing)
+        self.grid
+            .calculate_viewports(total_viewport, &positions, self.spacing)
     }
 }
 
@@ -63,12 +66,12 @@ mod tests {
     fn test_simple_dashboard() {
         let dashboard = SimpleDashboard::new(2, 2, 10);
         let total_viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 200));
-        
+
         // Test single viewport
         let viewport = dashboard.get_viewport(GridPosition::new(0, 0), total_viewport);
         assert_eq!(viewport.top_left, Point::new(0, 0));
         assert_eq!(viewport.size, Size::new(95, 95));
-        
+
         // Test all viewports
         let viewports: Vec<Rectangle, 4> = dashboard.get_all_viewports(total_viewport, 3).unwrap();
         assert_eq!(viewports.len(), 3);

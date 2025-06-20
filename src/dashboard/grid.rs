@@ -75,21 +75,18 @@ impl GridLayout {
         let cell_height = (total_height.saturating_sub(v_spacing)) / self.rows as u32;
 
         // Calculate position
-        let x = total_viewport.top_left.x + 
-            (position.col as i32 * (cell_width as i32 + spacing as i32));
-        let y = total_viewport.top_left.y + 
-            (position.row as i32 * (cell_height as i32 + spacing as i32));
+        let x = total_viewport.top_left.x
+            + (position.col as i32 * (cell_width as i32 + spacing as i32));
+        let y = total_viewport.top_left.y
+            + (position.row as i32 * (cell_height as i32 + spacing as i32));
 
         // Calculate size with span
-        let width = (cell_width * position.col_span as u32) + 
-            (spacing * position.col_span.saturating_sub(1) as u32);
-        let height = (cell_height * position.row_span as u32) + 
-            (spacing * position.row_span.saturating_sub(1) as u32);
+        let width = (cell_width * position.col_span as u32)
+            + (spacing * position.col_span.saturating_sub(1) as u32);
+        let height = (cell_height * position.row_span as u32)
+            + (spacing * position.row_span.saturating_sub(1) as u32);
 
-        Rectangle::new(
-            Point::new(x, y),
-            Size::new(width, height),
-        )
+        Rectangle::new(Point::new(x, y), Size::new(width, height))
     }
 
     /// Calculate viewports for all panels in order
@@ -103,7 +100,8 @@ impl GridLayout {
 
         for position in positions {
             let viewport = self.calculate_cell_viewport(total_viewport, *position, spacing);
-            viewports.push(viewport)
+            viewports
+                .push(viewport)
                 .map_err(|_| crate::error::ChartError::MemoryFull)?;
         }
 
@@ -138,7 +136,7 @@ mod tests {
     fn test_grid_layout_2x2() {
         let layout = GridLayout::new(2, 2);
         let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 200));
-        
+
         // Test top-left cell
         let cell = layout.calculate_cell_viewport(
             viewport,
@@ -149,11 +147,7 @@ mod tests {
         assert_eq!(cell.size, Size::new(95, 95)); // (200 - 10) / 2 = 95
 
         // Test bottom-right cell
-        let cell = layout.calculate_cell_viewport(
-            viewport,
-            GridPosition::new(1, 1),
-            10,
-        );
+        let cell = layout.calculate_cell_viewport(viewport, GridPosition::new(1, 1), 10);
         assert_eq!(cell.top_left, Point::new(105, 105)); // 95 + 10 = 105
         assert_eq!(cell.size, Size::new(95, 95));
     }
@@ -162,13 +156,10 @@ mod tests {
     fn test_grid_layout_with_span() {
         let layout = GridLayout::new(3, 3);
         let viewport = Rectangle::new(Point::new(0, 0), Size::new(320, 320));
-        
+
         // Test 2x2 span starting at (0,0)
-        let cell = layout.calculate_cell_viewport(
-            viewport,
-            GridPosition::with_span(0, 0, 2, 2),
-            10,
-        );
+        let cell =
+            layout.calculate_cell_viewport(viewport, GridPosition::with_span(0, 0, 2, 2), 10);
         assert_eq!(cell.top_left, Point::new(0, 0));
         assert_eq!(cell.size, Size::new(210, 210)); // 2*100 + 10 = 210
     }
