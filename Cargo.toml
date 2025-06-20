@@ -203,6 +203,16 @@ name = "ring_buffer_demo"
 path = "examples/basic/ring_buffer_demo.rs"
 required-features = ["std", "line"]
 
+[[example]]
+name = "chart_animation_demo"
+path = "examples/basic/chart_animation_demo.rs"
+required-features = ["std", "line", "animations"]
+
+[[example]]
+name = "simple_animation_demo"
+path = "examples/basic/simple_animation_demo.rs"
+required-features = ["std", "line", "animations"]
+
 # Benchmarks
 [[bench]]
 name = "simple_benchmarks"
