@@ -44,11 +44,11 @@ mod tests {
     fn test_simple_dashboard_creation() {
         let dashboard = SimpleDashboard::new(2, 2, 10);
         let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 200));
-        
+
         // Test getting individual viewport
         let pos = GridPosition::new(0, 0);
         let chart_viewport = dashboard.get_viewport(pos, viewport);
-        
+
         assert_eq!(chart_viewport.top_left, Point::new(0, 0));
         assert_eq!(chart_viewport.size.width, 95); // (200 - 10) / 2
     }
@@ -57,7 +57,7 @@ mod tests {
     fn test_layout_presets() {
         let preset = LayoutPreset::Quadrants;
         let layout = preset.to_layout();
-        
+
         match layout {
             DashboardLayout::Grid(grid) => {
                 assert_eq!(grid.rows, 2);
