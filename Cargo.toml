@@ -218,6 +218,11 @@ name = "dashboard_layouts_showcase"
 path = "examples/basic/dashboard_layouts_showcase.rs"
 required-features = ["std"]
 
+[[example]]
+name = "gradient_showcase"
+path = "examples/basic/gradient_showcase.rs"
+required-features = ["std", "bar", "color-support"]
+
 # Benchmarks
 [[bench]]
 name = "simple_benchmarks"

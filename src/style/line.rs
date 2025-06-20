@@ -205,32 +205,62 @@ impl<C: PixelColor> From<LineStyle<C>> for StrokeStyle<C> {
     }
 }
 
+use super::gradient::{LinearGradient, PatternFill, RadialGradient, MAX_GRADIENT_STOPS};
+
 /// Fill style for drawing operations
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct FillStyle<C: PixelColor> {
-    /// Fill color
-    pub color: C,
-    /// Fill pattern (for future use)
-    pub pattern: FillPattern,
+    /// Fill pattern
+    pub pattern: FillPattern<C>,
 }
 
 /// Fill pattern types
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FillPattern {
-    /// Solid fill
-    Solid,
-    /// Gradient fill (not implemented in basic version)
-    Gradient,
-    /// Pattern fill (not implemented in basic version)
-    Pattern,
+#[derive(Debug, Clone)]
+pub enum FillPattern<C: PixelColor> {
+    /// Solid fill with a single color
+    Solid(C),
+    /// Linear gradient fill
+    LinearGradient(LinearGradient<C, MAX_GRADIENT_STOPS>),
+    /// Radial gradient fill
+    RadialGradient(RadialGradient<C, MAX_GRADIENT_STOPS>),
+    /// Pattern fill
+    Pattern(PatternFill<C>),
 }
 
 impl<C: PixelColor> FillStyle<C> {
     /// Create a solid fill style
     pub const fn solid(color: C) -> Self {
         Self {
-            color,
-            pattern: FillPattern::Solid,
+            pattern: FillPattern::Solid(color),
+        }
+    }
+
+    /// Create a linear gradient fill style
+    pub fn linear_gradient(gradient: LinearGradient<C, MAX_GRADIENT_STOPS>) -> Self {
+        Self {
+            pattern: FillPattern::LinearGradient(gradient),
+        }
+    }
+
+    /// Create a radial gradient fill style
+    pub fn radial_gradient(gradient: RadialGradient<C, MAX_GRADIENT_STOPS>) -> Self {
+        Self {
+            pattern: FillPattern::RadialGradient(gradient),
+        }
+    }
+
+    /// Create a pattern fill style
+    pub const fn pattern(pattern: PatternFill<C>) -> Self {
+        Self {
+            pattern: FillPattern::Pattern(pattern),
+        }
+    }
+
+    /// Get the solid color if this is a solid fill
+    pub fn solid_color(&self) -> Option<C> {
+        match &self.pattern {
+            FillPattern::Solid(color) => Some(*color),
+            _ => None,
         }
     }
 }
@@ -292,7 +322,7 @@ mod tests {
     #[test]
     fn test_fill_style() {
         let fill = FillStyle::solid(Rgb565::YELLOW);
-        assert_eq!(fill.color, Rgb565::YELLOW);
-        assert_eq!(fill.pattern, FillPattern::Solid);
+        assert_eq!(fill.solid_color(), Some(Rgb565::YELLOW));
+        assert!(matches!(fill.pattern, FillPattern::Solid(_)));
     }
 }
