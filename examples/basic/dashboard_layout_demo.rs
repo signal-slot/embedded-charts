@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Example of a chart spanning multiple cells
     let span_position = GridPosition::with_span(0, 0, 1, 2); // spans 2 columns
-    let span_viewport = dashboard.get_viewport(span_position, total_viewport);
+    let _span_viewport = dashboard.get_viewport(span_position, total_viewport);
     
     // Draw a semi-transparent overlay to show the span
     let overlay_text = "2-column span example";
