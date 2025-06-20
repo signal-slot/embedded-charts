@@ -1,7 +1,7 @@
 //! Rendering utilities for chart components.
 
 use crate::error::{RenderError, RenderResult};
-use crate::style::{FillStyle, LineStyle, StrokeStyle};
+use crate::style::{FillStyle, GradientDirection, LineStyle, StrokeStyle};
 use embedded_graphics::{
     draw_target::DrawTarget,
     prelude::*,
@@ -69,12 +69,25 @@ impl ChartRenderer {
         C: PixelColor,
         D: DrawTarget<Color = C>,
     {
-        let primitive_style = PrimitiveStyle::with_fill(fill_style.color);
+        use crate::style::FillPattern;
 
-        rect.into_styled(primitive_style)
-            .draw(target)
-            .map_err(|_| RenderError::DrawingFailed)?;
-
+        match &fill_style.pattern {
+            FillPattern::Solid(color) => {
+                let primitive_style = PrimitiveStyle::with_fill(*color);
+                rect.into_styled(primitive_style)
+                    .draw(target)
+                    .map_err(|_| RenderError::DrawingFailed)?;
+            }
+            FillPattern::LinearGradient(gradient) => {
+                Self::draw_linear_gradient_rect(rect, gradient, target)?;
+            }
+            FillPattern::RadialGradient(gradient) => {
+                Self::draw_radial_gradient_rect(rect, gradient, target)?;
+            }
+            FillPattern::Pattern(pattern) => {
+                Self::draw_pattern_rect(rect, pattern, target)?;
+            }
+        }
         Ok(())
     }
 
@@ -92,7 +105,9 @@ impl ChartRenderer {
         let mut style_builder = PrimitiveStyleBuilder::new();
 
         if let Some(fill) = fill_style {
-            style_builder = style_builder.fill_color(fill.color);
+            if let Some(color) = fill.solid_color() {
+                style_builder = style_builder.fill_color(color);
+            }
         }
 
         if let Some(stroke) = stroke_style {
@@ -123,7 +138,9 @@ impl ChartRenderer {
         let mut style_builder = PrimitiveStyleBuilder::new();
 
         if let Some(fill) = fill_style {
-            style_builder = style_builder.fill_color(fill.color);
+            if let Some(color) = fill.solid_color() {
+                style_builder = style_builder.fill_color(color);
+            }
         }
 
         if let Some(stroke) = stroke_style {
@@ -185,6 +202,311 @@ impl ChartRenderer {
     {
         let fill_style = FillStyle::solid(color);
         Self::draw_filled_rectangle(area, &fill_style, target)
+    }
+
+    /// Draw a rectangle filled with a linear gradient
+    fn draw_linear_gradient_rect<C, D, const N: usize>(
+        rect: Rectangle,
+        gradient: &crate::style::LinearGradient<C, N>,
+        target: &mut D,
+    ) -> RenderResult<()>
+    where
+        C: PixelColor,
+        D: DrawTarget<Color = C>,
+    {
+        if !gradient.is_valid() {
+            return Ok(());
+        }
+
+        match gradient.direction() {
+            GradientDirection::Horizontal => {
+                // Draw vertical lines with interpolated colors
+                for x in 0..rect.size.width {
+                    let t = x as f32 / (rect.size.width - 1) as f32;
+                    if let Some(color) = gradient.color_at(t) {
+                        let line_start = Point::new(rect.top_left.x + x as i32, rect.top_left.y);
+                        let line_end = Point::new(
+                            rect.top_left.x + x as i32,
+                            rect.top_left.y + rect.size.height as i32 - 1,
+                        );
+                        Line::new(line_start, line_end)
+                            .into_styled(PrimitiveStyle::with_stroke(color, 1))
+                            .draw(target)
+                            .map_err(|_| RenderError::DrawingFailed)?;
+                    }
+                }
+            }
+            GradientDirection::Vertical => {
+                // Draw horizontal lines with interpolated colors
+                for y in 0..rect.size.height {
+                    let t = y as f32 / (rect.size.height - 1) as f32;
+                    if let Some(color) = gradient.color_at(t) {
+                        Self::draw_horizontal_line(
+                            Point::new(rect.top_left.x, rect.top_left.y + y as i32),
+                            rect.size.width,
+                            color,
+                            target,
+                        )?;
+                    }
+                }
+            }
+            GradientDirection::Diagonal | GradientDirection::ReverseDiagonal => {
+                // Use the same diagonal line approach as the optimized version
+                let total = rect.size.width + rect.size.height - 2;
+                let step_size = if total > 100 { 2 } else { 1 }; // Skip pixels for large gradients
+
+                for y in (0..rect.size.height).step_by(step_size as usize) {
+                    for x in (0..rect.size.width).step_by(step_size as usize) {
+                        let t = if gradient.direction() == GradientDirection::Diagonal {
+                            (x + y) as f32 / total as f32
+                        } else {
+                            (rect.size.width - 1 - x + y) as f32 / total as f32
+                        };
+
+                        if let Some(color) = gradient.color_at(t) {
+                            // Draw a small filled rectangle instead of single pixel
+                            let pixel_rect = Rectangle::new(
+                                Point::new(rect.top_left.x + x as i32, rect.top_left.y + y as i32),
+                                Size::new(step_size, step_size),
+                            );
+                            pixel_rect
+                                .into_styled(PrimitiveStyle::with_fill(color))
+                                .draw(target)
+                                .map_err(|_| RenderError::DrawingFailed)?;
+                        }
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// Draw a rectangle filled with a radial gradient
+    fn draw_radial_gradient_rect<C, D, const N: usize>(
+        rect: Rectangle,
+        gradient: &crate::style::RadialGradient<C, N>,
+        target: &mut D,
+    ) -> RenderResult<()>
+    where
+        C: PixelColor,
+        D: DrawTarget<Color = C>,
+    {
+        if !gradient.is_valid() {
+            return Ok(());
+        }
+
+        let center = gradient.center();
+        let center_x = rect.top_left.x + (rect.size.width as i32 * center.x / 100);
+        let center_y = rect.top_left.y + (rect.size.height as i32 * center.y / 100);
+
+        // Calculate maximum distance from center to corners
+        let max_dist = {
+            let dx1 = (rect.top_left.x - center_x).abs();
+            let dx2 = (rect.top_left.x + rect.size.width as i32 - center_x).abs();
+            let dy1 = (rect.top_left.y - center_y).abs();
+            let dy2 = (rect.top_left.y + rect.size.height as i32 - center_y).abs();
+            let max_dx = dx1.max(dx2) as f32;
+            let max_dy = dy1.max(dy2) as f32;
+            (max_dx * max_dx + max_dy * max_dy).sqrt()
+        };
+
+        // Draw each pixel with color based on distance from center
+        for y in 0..rect.size.height {
+            for x in 0..rect.size.width {
+                let px = rect.top_left.x + x as i32;
+                let py = rect.top_left.y + y as i32;
+                let dx = (px - center_x) as f32;
+                let dy = (py - center_y) as f32;
+                let dist = (dx * dx + dy * dy).sqrt();
+                let t = (dist / max_dist).clamp(0.0, 1.0);
+
+                if let Some(color) = gradient.color_at_distance(t) {
+                    Pixel(Point::new(px, py), color)
+                        .draw(target)
+                        .map_err(|_| RenderError::DrawingFailed)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// Draw a rectangle filled with a pattern
+    fn draw_pattern_rect<C, D>(
+        rect: Rectangle,
+        pattern: &crate::style::PatternFill<C>,
+        target: &mut D,
+    ) -> RenderResult<()>
+    where
+        C: PixelColor,
+        D: DrawTarget<Color = C>,
+    {
+        // Draw each pixel with pattern color
+        for y in 0..rect.size.height {
+            for x in 0..rect.size.width {
+                let color = pattern.color_at(x as i32, y as i32);
+                Pixel(
+                    Point::new(rect.top_left.x + x as i32, rect.top_left.y + y as i32),
+                    color,
+                )
+                .draw(target)
+                .map_err(|_| RenderError::DrawingFailed)?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Draw a horizontal line (optimized for gradient rendering)
+    fn draw_horizontal_line<C, D>(
+        start: Point,
+        width: u32,
+        color: C,
+        target: &mut D,
+    ) -> RenderResult<()>
+    where
+        C: PixelColor,
+        D: DrawTarget<Color = C>,
+    {
+        Line::new(start, Point::new(start.x + width as i32 - 1, start.y))
+            .into_styled(PrimitiveStyle::with_stroke(color, 1))
+            .draw(target)
+            .map_err(|_| RenderError::DrawingFailed)?;
+        Ok(())
+    }
+
+    /// Draw a rectangle filled with a linear gradient (Rgb565 optimized version)
+    #[cfg(feature = "color-support")]
+    pub fn draw_linear_gradient_rect_rgb565<D, const N: usize>(
+        rect: Rectangle,
+        gradient: &crate::style::LinearGradient<embedded_graphics::pixelcolor::Rgb565, N>,
+        target: &mut D,
+    ) -> RenderResult<()>
+    where
+        D: DrawTarget<Color = embedded_graphics::pixelcolor::Rgb565>,
+    {
+        use crate::style::GradientInterpolation;
+
+        if !gradient.is_valid() {
+            return Ok(());
+        }
+
+        match gradient.direction() {
+            GradientDirection::Horizontal => {
+                // Draw vertical lines with interpolated colors
+                for x in 0..rect.size.width {
+                    let t = x as f32 / (rect.size.width - 1) as f32;
+                    if let Some(color) = gradient.interpolated_color_at(t) {
+                        let line_start = Point::new(rect.top_left.x + x as i32, rect.top_left.y);
+                        let line_end = Point::new(
+                            rect.top_left.x + x as i32,
+                            rect.top_left.y + rect.size.height as i32 - 1,
+                        );
+                        Line::new(line_start, line_end)
+                            .into_styled(PrimitiveStyle::with_stroke(color, 1))
+                            .draw(target)
+                            .map_err(|_| RenderError::DrawingFailed)?;
+                    }
+                }
+            }
+            GradientDirection::Vertical => {
+                // Draw horizontal lines with interpolated colors
+                for y in 0..rect.size.height {
+                    let t = y as f32 / (rect.size.height - 1) as f32;
+                    if let Some(color) = gradient.interpolated_color_at(t) {
+                        Self::draw_horizontal_line(
+                            Point::new(rect.top_left.x, rect.top_left.y + y as i32),
+                            rect.size.width,
+                            color,
+                            target,
+                        )?;
+                    }
+                }
+            }
+            GradientDirection::Diagonal | GradientDirection::ReverseDiagonal => {
+                // Draw diagonal gradient using small rectangles
+                let step = 3; // Size of each rectangle
+
+                for y in (0..rect.size.height).step_by(step) {
+                    for x in (0..rect.size.width).step_by(step) {
+                        // Calculate position along diagonal
+                        let t = if gradient.direction() == GradientDirection::Diagonal {
+                            (x + y) as f32 / (rect.size.width + rect.size.height - 2) as f32
+                        } else {
+                            (rect.size.width - 1 - x + y) as f32
+                                / (rect.size.width + rect.size.height - 2) as f32
+                        };
+
+                        if let Some(color) = gradient.interpolated_color_at(t) {
+                            Rectangle::new(
+                                Point::new(rect.top_left.x + x as i32, rect.top_left.y + y as i32),
+                                Size::new(step as u32, step as u32),
+                            )
+                            .into_styled(PrimitiveStyle::with_fill(color))
+                            .draw(target)
+                            .map_err(|_| RenderError::DrawingFailed)?;
+                        }
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// Draw a rectangle filled with a radial gradient (Rgb565 optimized version)
+    #[cfg(feature = "color-support")]
+    pub fn draw_radial_gradient_rect_rgb565<D, const N: usize>(
+        rect: Rectangle,
+        gradient: &crate::style::RadialGradient<embedded_graphics::pixelcolor::Rgb565, N>,
+        target: &mut D,
+    ) -> RenderResult<()>
+    where
+        D: DrawTarget<Color = embedded_graphics::pixelcolor::Rgb565>,
+    {
+        use crate::style::RadialGradientInterpolation;
+
+        if !gradient.is_valid() {
+            return Ok(());
+        }
+
+        let center = gradient.center();
+        let center_x = rect.top_left.x + (rect.size.width as i32 * center.x / 100);
+        let center_y = rect.top_left.y + (rect.size.height as i32 * center.y / 100);
+
+        // Calculate maximum distance from center to corners
+        let max_dist = {
+            let dx1 = (rect.top_left.x - center_x).abs();
+            let dx2 = (rect.top_left.x + rect.size.width as i32 - center_x).abs();
+            let dy1 = (rect.top_left.y - center_y).abs();
+            let dy2 = (rect.top_left.y + rect.size.height as i32 - center_y).abs();
+            let max_dx = dx1.max(dx2) as f32;
+            let max_dy = dy1.max(dy2) as f32;
+            (max_dx * max_dx + max_dy * max_dy).sqrt()
+        };
+
+        // Draw radial gradient using filled rectangles for better performance
+        // We'll use a lower resolution for speed
+        let step_size = 3;
+
+        for y in (0..rect.size.height).step_by(step_size) {
+            for x in (0..rect.size.width).step_by(step_size) {
+                let px = rect.top_left.x + x as i32;
+                let py = rect.top_left.y + y as i32;
+                let dx = (px - center_x) as f32;
+                let dy = (py - center_y) as f32;
+                let dist = (dx * dx + dy * dy).sqrt();
+                let t = (dist / max_dist).clamp(0.0, 1.0);
+
+                if let Some(color) = gradient.interpolated_color_at_distance(t) {
+                    Rectangle::new(
+                        Point::new(px, py),
+                        Size::new(step_size as u32, step_size as u32),
+                    )
+                    .into_styled(PrimitiveStyle::with_fill(color))
+                    .draw(target)
+                    .map_err(|_| RenderError::DrawingFailed)?;
+                }
+            }
+        }
+        Ok(())
     }
 }
 
@@ -408,7 +730,9 @@ impl PrimitiveRenderer {
             // All points on same horizontal line
             let min_x = top.x.min(mid.x).min(bottom.x);
             let max_x = top.x.max(mid.x).max(bottom.x);
-            Self::draw_horizontal_line(min_x, max_x, top.y, fill_style.color, target)?;
+            if let Some(color) = fill_style.solid_color() {
+                Self::draw_horizontal_line(min_x, max_x, top.y, color, target)?;
+            }
             return Ok(());
         }
 
@@ -426,7 +750,9 @@ impl PrimitiveRenderer {
                 let x2 = top.x + ((mid.x - top.x) as f32 * beta) as i32;
 
                 let (min_x, max_x) = if x1 < x2 { (x1, x2) } else { (x2, x1) };
-                Self::draw_horizontal_line(min_x, max_x, y, fill_style.color, target)?;
+                if let Some(color) = fill_style.solid_color() {
+                    Self::draw_horizontal_line(min_x, max_x, y, color, target)?;
+                }
             }
         }
 
@@ -441,7 +767,9 @@ impl PrimitiveRenderer {
                 let x2 = mid.x + ((bottom.x - mid.x) as f32 * beta) as i32;
 
                 let (min_x, max_x) = if x1 < x2 { (x1, x2) } else { (x2, x1) };
-                Self::draw_horizontal_line(min_x, max_x, y, fill_style.color, target)?;
+                if let Some(color) = fill_style.solid_color() {
+                    Self::draw_horizontal_line(min_x, max_x, y, color, target)?;
+                }
             }
         }
 

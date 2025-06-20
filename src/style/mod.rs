@@ -142,20 +142,16 @@
 //! use embedded_charts::prelude::*;
 //! use embedded_graphics::pixelcolor::Rgb565;
 //!
-//! // Solid fill
-//! let solid_fill = FillStyle {
-//!     color: Rgb565::BLUE,
-//!     pattern: FillPattern::Solid,
-//! };
+//! // Solid fill using convenience method
+//! let solid_fill = FillStyle::solid(Rgb565::BLUE);
 //!
 //! // Different color fill
-//! let red_fill = FillStyle {
-//!     color: Rgb565::RED,
-//!     pattern: FillPattern::Solid,
-//! };
+//! let red_fill = FillStyle::solid(Rgb565::RED);
 //!
-//! // Using convenience method
-//! let green_fill = FillStyle::solid(Rgb565::GREEN);
+//! // Manual construction
+//! let green_fill = FillStyle {
+//!     pattern: FillPattern::Solid(Rgb565::GREEN),
+//! };
 //! ```
 //!
 //! ## Border Styles
@@ -253,10 +249,12 @@
 
 pub mod colors;
 pub mod fonts;
+pub mod gradient;
 pub mod line;
 pub mod themes;
 
 pub use colors::*;
 pub use fonts::*;
+pub use gradient::*;
 pub use line::*;
 pub use themes::*;
