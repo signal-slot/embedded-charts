@@ -2,10 +2,7 @@
 
 use super::{GridLayout, GridPosition};
 use crate::error::ChartResult;
-use embedded_graphics::{
-    prelude::{Point, Size},
-    primitives::Rectangle,
-};
+use embedded_graphics::primitives::Rectangle;
 use heapless::Vec;
 
 /// Maximum number of charts in a dashboard
@@ -60,6 +57,7 @@ impl SimpleDashboard {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use embedded_graphics::prelude::*;
 
     #[test]
     fn test_simple_dashboard() {
