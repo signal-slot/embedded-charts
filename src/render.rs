@@ -8,6 +8,9 @@ use embedded_graphics::{
     primitives::{Circle, Line, PrimitiveStyle, PrimitiveStyleBuilder, Rectangle},
 };
 
+#[cfg(not(feature = "std"))]
+use micromath::F32Ext;
+
 /// Main renderer for chart components
 pub struct ChartRenderer;
 
