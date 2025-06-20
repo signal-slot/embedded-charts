@@ -243,12 +243,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Note: In a real implementation, we would modify BarChart to support gradient fills
         // For now, just draw the background with a gradient
         let bg_gradient = LinearGradient::simple(
-            Rgb565::new(0, 0, 64),  // Dark blue
-            Rgb565::new(0, 0, 128), // Medium blue
+            Rgb565::new(0, 32, 64),   // Dark teal
+            Rgb565::new(0, 128, 255), // Bright blue
             GradientDirection::Vertical,
         )?;
-        let bg_fill = FillStyle::linear_gradient(bg_gradient);
-        ChartRenderer::draw_filled_rectangle(rect, &bg_fill, &mut display)?;
+        // Use the optimized RGB565 gradient rendering for smooth gradients
+        ChartRenderer::draw_linear_gradient_rect_rgb565(rect, &bg_gradient, &mut display)?;
 
         // Draw the chart over it with transparent background
         let config = ChartConfig {
