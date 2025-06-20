@@ -218,6 +218,11 @@ name = "dashboard_layout_demo"
 path = "examples/basic/dashboard_layout_demo.rs"
 required-features = ["std"]
 
+[[example]]
+name = "dashboard_layouts_showcase"
+path = "examples/basic/dashboard_layouts_showcase.rs"
+required-features = ["std"]
+
 # Benchmarks
 [[bench]]
 name = "simple_benchmarks"
