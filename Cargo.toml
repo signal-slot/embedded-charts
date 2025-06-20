@@ -213,6 +213,16 @@ name = "simple_animation_demo"
 path = "examples/basic/simple_animation_demo.rs"
 required-features = ["std", "line", "animations"]
 
+[[example]]
+name = "dashboard_simple"
+path = "examples/basic/dashboard_simple.rs"
+required-features = ["std", "line", "bar", "pie", "gauge"]
+
+[[example]]
+name = "dashboard_layout_demo"
+path = "examples/basic/dashboard_layout_demo.rs"
+required-features = ["std"]
+
 # Benchmarks
 [[bench]]
 name = "simple_benchmarks"
