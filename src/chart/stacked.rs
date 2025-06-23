@@ -3,8 +3,11 @@
 //! This module provides animated stacked bar and line (area) charts that support
 //! smooth transitions between data states with proper cumulative value interpolation.
 
+#[cfg(feature = "animations")]
 use crate::animation::Interpolatable;
-use crate::chart::traits::{AnimatedChart, Chart, ChartConfig, Margins};
+use crate::chart::traits::{Chart, ChartConfig, Margins};
+#[cfg(feature = "animations")]
+use crate::chart::traits::AnimatedChart;
 use crate::data::{DataPoint, DataSeries};
 use crate::error::{ChartError, ChartResult};
 use crate::math::{Math, NumericConversion};
@@ -127,6 +130,7 @@ impl<T: Copy + Clone + DataPoint, const N: usize> Default for StackedData<T, N> 
     }
 }
 
+#[cfg(feature = "animations")]
 impl<T: Copy + Clone + DataPoint, const N: usize> Interpolatable for StackedData<T, N>
 where
     T: Interpolatable,
@@ -463,6 +467,7 @@ where
     }
 }
 
+#[cfg(feature = "animations")]
 impl<C: PixelColor> AnimatedChart<C> for AnimatedStackedBarChart<C>
 where
     C: From<Rgb565>,
@@ -949,6 +954,7 @@ where
     }
 }
 
+#[cfg(feature = "animations")]
 impl<C: PixelColor> AnimatedChart<C> for AnimatedStackedLineChart<C>
 where
     C: From<Rgb565>,
