@@ -1,6 +1,6 @@
 [package]
 name = "embedded-charts"
-version = "0.3.0"
+version = "0.4.0-dev"
 edition = "2021"
 rust-version = "1.83.0"
 authors = ["Tasuku Suzuki <tasuku.suzuki@signal-slot.co.jp>"]
@@ -239,7 +239,24 @@ name = "simple_pie_chart"
 path = "examples/simple_pie_chart.rs"
 required-features = ["std", "pie"]
 
+[[example]]
+name = "memory_report"
+path = "examples/memory_report.rs"
+required-features = ["std", "advanced-charts", "animations"]
+
 # Benchmarks
 [[bench]]
 name = "simple_benchmarks"
+harness = false
+
+[[bench]]
+name = "chart_benchmarks"
+harness = false
+
+[[bench]]
+name = "platform_benchmarks"
+harness = false
+
+[[bench]]
+name = "memory_benchmarks"
 harness = false
