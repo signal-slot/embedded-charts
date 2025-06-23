@@ -558,22 +558,6 @@ Vehicle dashboard and infotainment:
 - Navigation route display
 - Vehicle diagnostics
 
-## 📱 Display Compatibility
-
-### Tested Display Types
-- **OLED**: SSD1306, SH1106, SSD1351
-- **TFT**: ST7735, ILI9341, ST7789
-- **E-Paper**: Waveshare 2.9", 4.2", 7.5"
-- **Memory LCD**: Sharp Memory Displays
-- **Custom**: Any display implementing embedded-graphics `DrawTarget`
-
-### Resolution Recommendations
-| Display Size | Chart Types | Recommended Features |
-|-------------|-------------|---------------------|
-| **128x64** | Line, Bar | Minimal styling, 1px lines |
-| **240x135** | Line, Bar, Pie | Basic styling, legends |
-| **320x240** | All types | Full features, animations |
-| **480x320+** | All types | Professional styling, complex layouts |
 
 ## 🔬 Advanced Examples
 
