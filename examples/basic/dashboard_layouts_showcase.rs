@@ -53,7 +53,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn create_layout_demos() -> Vec<LayoutDemo> {
-
     vec![
         // 1. Single chart
         LayoutDemo {
@@ -162,7 +161,6 @@ fn render_dashboard(
     last_switch: &mut Instant,
     switch_interval: Duration,
 ) -> Result<(), embedded_charts::error::ChartError> {
-
     let total_viewport = Rectangle::new(Point::new(20, 60), Size::new(760, 520));
     let text_style = MonoTextStyle::new(&FONT_6X10, Rgb565::WHITE);
     let title_style = MonoTextStyle::new(&FONT_6X10, Rgb565::new(255, 255, 0));

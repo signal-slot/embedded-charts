@@ -302,7 +302,7 @@ where
 
     // Initial update to show window
     window_manager.update(&display);
-    
+
     // Run animation loop
     loop {
         // Check for exit conditions
@@ -395,7 +395,7 @@ where
 
         // Update window with the newly drawn content
         window_manager.update(&display);
-        
+
         // Frame rate limiting
         std::thread::sleep(std::time::Duration::from_millis(
             window_manager.config.frame_delay_ms(),

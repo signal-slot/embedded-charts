@@ -103,7 +103,10 @@ fn draw_theme_grid(
     let title_style = MonoTextStyle::new(&FONT_6X10, title_color);
     Text::with_alignment(
         "🎨 Theme Showcase - Beautiful Eye-Friendly Color Palettes",
-        Point::new(viewport.top_left.x + viewport.size.width as i32 / 2, viewport.top_left.y + 15),
+        Point::new(
+            viewport.top_left.x + viewport.size.width as i32 / 2,
+            viewport.top_left.y + 15,
+        ),
         title_style,
         Alignment::Center,
     )
@@ -124,8 +127,13 @@ fn draw_theme_grid(
         let col = i % (params.cols as usize);
         let row = i / (params.cols as usize);
 
-        let x = viewport.top_left.x + params.margin as i32 + (col as u32 * (cell_width + params.spacing)) as i32;
-        let y = viewport.top_left.y + 30i32 + params.margin as i32 + (row as u32 * (cell_height + params.spacing)) as i32;
+        let x = viewport.top_left.x
+            + params.margin as i32
+            + (col as u32 * (cell_width + params.spacing)) as i32;
+        let y = viewport.top_left.y
+            + 30i32
+            + params.margin as i32
+            + (row as u32 * (cell_height + params.spacing)) as i32;
 
         let cell_area = Rectangle::new(Point::new(x, y), Size::new(cell_width, cell_height));
 
@@ -146,15 +154,15 @@ fn draw_theme_grid(
 fn create_improved_cyberpunk_theme() -> Theme<embedded_graphics::pixelcolor::Rgb565> {
     // Improved cyberpunk theme with better color balance
     Theme {
-        background: Rgb565::new(2, 3, 2), // Very dark gray
-        primary: Rgb565::new(0, 63, 15), // Spring green (changed from cyan)
+        background: Rgb565::new(2, 3, 2),  // Very dark gray
+        primary: Rgb565::new(0, 63, 15),   // Spring green (changed from cyan)
         secondary: Rgb565::new(31, 0, 31), // Magenta
-        text: Rgb565::new(0, 63, 31), // Cyan (moved from primary)
-        grid: Rgb565::new(8, 16, 8),  // Dark gray
-        accent: Rgb565::new(31, 63, 0), // Yellow
-        success: Rgb565::new(6, 51, 6), // Lime green
-        warning: Rgb565::new(31, 41, 0), // Orange
-        error: Rgb565::new(31, 17, 0), // Red orange
+        text: Rgb565::new(0, 63, 31),      // Cyan (moved from primary)
+        grid: Rgb565::new(8, 16, 8),       // Dark gray
+        accent: Rgb565::new(31, 63, 0),    // Yellow
+        success: Rgb565::new(6, 51, 6),    // Lime green
+        warning: Rgb565::new(31, 41, 0),   // Orange
+        error: Rgb565::new(31, 17, 0),     // Red orange
     }
 }
 
