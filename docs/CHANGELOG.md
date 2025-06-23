@@ -27,6 +27,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - TBD
 
+## [0.3.0] - 2025-06-23
+
+### Added
+- **Gradient Fills & Advanced Styling** - Linear/radial gradients, pattern fills (lines, dots, checkerboard, cross-hatch), multi-stop gradients with optimized rendering
+- **Chart Animations & Transitions** - Smooth transitions with easing functions, real-time streaming animations, multi-state animations, time-based progress tracking
+- **Advanced Axis Scales** - Logarithmic scales for wide data ranges, custom scale functions, automatic tick generation, scale transformations with inverse mapping
+- **Dashboard Layouts** - Grid-based layouts for multi-chart displays, flexible positioning with span support, pre-built layout presets
+- **Data Aggregation & Downsampling** - LTTB algorithm for visually lossless downsampling, statistical aggregations (mean, min/max, median), memory-efficient processing
+- **Test Coverage Improvements** - Increased coverage from 44% to 65%+ across critical components
+
+### Changed
+- Improved memory efficiency for data series operations
+- Enhanced rendering pipeline for better performance with gradients
+- Updated window system for proper frame synchronization
+
+### Fixed
+- Fixed RGB565 color calculations in theme showcase
+- Corrected viewport coordinate calculations for proper rendering
+- Fixed window update timing to ensure content displays correctly
+- Resolved issues with no_std builds and gradient rendering
+
 ## [0.2.0] - 2025-06-15
 
 ### Added

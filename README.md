@@ -13,8 +13,10 @@ A production-ready, high-performance chart library for embedded systems and reso
 - 🎯 **Production Ready**: Memory-efficient, optimized for resource-constrained systems
 - 📊 **Complete Chart Suite**: Line, bar, pie, donut, gauge, scatter, and smooth curve charts
 - 🌊 **Advanced Interpolation**: Cubic spline, Catmull-Rom, and Bezier curve smoothing
-- 🚀 **Real-time Streaming**: Live data updates with smooth animations
-- 🎨 **Professional Styling**: Built-in themes, color palettes, and customizable appearance
+- 🚀 **Real-time Streaming**: Live data updates with smooth animations and transitions
+- 🎨 **Professional Styling**: Themes, gradient fills, pattern fills, and customizable appearance
+- 📈 **Smart Data Handling**: Logarithmic scales, data aggregation, LTTB downsampling
+- 🏗️ **Dashboard Layouts**: Grid-based composition for multi-chart displays
 - 💾 **Memory Efficient**: Static allocation, configurable capacity, zero heap usage
 - 🔧 **Fully Configurable**: Modular features, extensive customization options
 - 🌐 **Universal Compatibility**: Works with any display supporting embedded-graphics
@@ -62,6 +64,23 @@ A production-ready, high-performance chart library for embedded systems and reso
     </tr>
   </table>
 </div>
+
+### Advanced Styling & Layouts
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="docs/assets/v0.3.0/gradient_showcase.png" width="380" alt="Gradient Fills"/>
+        <br><b>Gradient Fills & Patterns</b><br><sub>Linear/radial gradients, pattern fills, optimized rendering</sub>
+      </td>
+      <td align="center">
+        <img src="docs/assets/v0.3.0/dashboard_layouts.gif" width="380" alt="Dashboard Layouts"/>
+        <br><b>Dashboard Composition</b><br><sub>Grid layouts, flexible positioning, responsive design</sub>
+      </td>
+    </tr>
+  </table>
+</div>
+
 
 ### Real-time Animation Demonstrations
 <div align="center">
@@ -157,7 +176,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-embedded-charts = "0.1.0"
+embedded-charts = "0.3.0"
 embedded-graphics = "0.8"
 ```
 
@@ -261,6 +280,141 @@ fn create_dashboard() -> ChartResult<()> {
 }
 ```
 
+### Gradient Fills Example
+
+```rust
+use embedded_charts::prelude::*;
+use embedded_charts::style::{LinearGradient, GradientDirection, PatternFill, PatternType};
+
+fn gradient_chart() -> ChartResult<()> {
+    // Create a beautiful gradient background
+    let gradient = LinearGradient::simple(
+        Rgb565::new(0, 32, 64),   // Dark blue
+        Rgb565::new(0, 128, 255), // Bright blue
+        GradientDirection::Vertical,
+    )?;
+    
+    // Create pattern fill for bars
+    let pattern = PatternFill::new(
+        Rgb565::YELLOW,
+        Rgb565::new(255, 200, 0), // Orange
+        PatternType::Checkerboard { size: 4 },
+    );
+    
+    // Apply gradient to chart background
+    let chart = BarChart::builder()
+        .bar_width(BarWidth::Fixed(40))
+        .background_gradient(gradient)
+        .bar_pattern(pattern)
+        .build()?;
+    
+    Ok(())
+}
+```
+
+### Chart Animations Example
+
+```rust
+use embedded_charts::prelude::*;
+use embedded_charts::animation::{ChartAnimator, EasingFunction};
+
+fn animated_transitions() -> ChartResult<()> {
+    // Create animator for smooth transitions
+    let mut animator = ChartAnimator::<Point2D, 100>::new();
+    
+    // Set up animation with easing
+    animator.configure(AnimationConfig {
+        duration_ms: 1000,
+        easing: EasingFunction::EaseInOutCubic,
+        loop_animation: false,
+    });
+    
+    // Animate between data states
+    let initial_data = data_points![(0.0, 10.0), (1.0, 20.0), (2.0, 15.0)];
+    let target_data = data_points![(0.0, 25.0), (1.0, 15.0), (2.0, 30.0)];
+    
+    animator.transition(&initial_data, &target_data)?;
+    
+    // Render animation frames
+    loop {
+        let progress = animator.update(16); // 60 FPS
+        let interpolated = animator.get_interpolated_data(progress)?;
+        
+        chart.draw(&interpolated, config, viewport, &mut display)?;
+        
+        if animator.is_complete() { break; }
+    }
+    
+    Ok(())
+}
+```
+
+### Dashboard Layout Example
+
+```rust
+use embedded_charts::prelude::*;
+use embedded_charts::dashboard::{DashboardLayout, GridPosition};
+
+fn create_dashboard_layout() -> ChartResult<()> {
+    // Create 2x2 grid dashboard
+    let mut dashboard = DashboardLayout::new(2, 2);
+    
+    // Add charts to grid positions
+    dashboard.add_chart(
+        GridPosition::new(0, 0),
+        create_temperature_chart()?,
+    );
+    
+    dashboard.add_chart(
+        GridPosition::new(1, 0),
+        create_humidity_chart()?,
+    );
+    
+    // Add wide chart spanning 2 columns
+    dashboard.add_chart_with_span(
+        GridPosition::new(0, 1),
+        2, 1, // span 2 columns, 1 row
+        create_trend_chart()?,
+    );
+    
+    // Render complete dashboard
+    dashboard.render(&mut display)?;
+    
+    Ok(())
+}
+```
+
+### Data Aggregation Example
+
+```rust
+use embedded_charts::prelude::*;
+use embedded_charts::data::{DataAggregator, AggregationStrategy};
+
+fn aggregate_large_dataset() -> ChartResult<()> {
+    // Large dataset with 10,000 points
+    let large_data = generate_sensor_data(10_000);
+    
+    // Downsample to 200 points using LTTB algorithm
+    let aggregator = DataAggregator::new()
+        .strategy(AggregationStrategy::LTTB)
+        .target_points(200);
+    
+    let downsampled = aggregator.process(&large_data)?;
+    
+    // Alternative: Statistical aggregation
+    let stats_aggregator = DataAggregator::new()
+        .strategy(AggregationStrategy::Mean)
+        .group_size(50); // Average every 50 points
+    
+    let averaged = stats_aggregator.process(&large_data)?;
+    
+    // Render efficiently with downsampled data
+    chart.draw(&downsampled, config, viewport, &mut display)?;
+    
+    Ok(())
+}
+```
+
 ### Embedded System Usage (no_std)
 
 ```rust
@@ -304,9 +458,9 @@ fn main() -> ! {
 
 | Chart Type | Status | Key Features |
 |------------|--------|--------------|
-| **Line Charts** | ✅ | Multi-series, markers, area filling, basic smoothing |
+| **Line Charts** | ✅ | Multi-series, markers, area filling, smooth animations |
 | **Smooth Curve Charts** | ✅ | Cubic spline, Catmull-Rom, Bezier interpolation, configurable tension |
-| **Bar Charts** | ✅ | Vertical/horizontal, stacked, custom spacing |
+| **Bar Charts** | ✅ | Vertical/horizontal, stacked, gradient fills, pattern support |
 | **Pie Charts** | ✅ | Full circles, custom colors, professional styling |
 | **Donut Charts** | ✅ | Percentage-based sizing, helper methods, center content |
 | **Gauge Charts** | ✅ | Semicircle/full, threshold zones, needle animations |
@@ -316,7 +470,11 @@ fn main() -> ! {
 |----------------|--------|-------------|
 | **Real-time Animation** | ✅ | Smooth transitions, easing functions, streaming data |
 | **Ring Buffer Streaming** | ✅ | High-performance circular buffers with chronological ordering |
-| **Professional Styling** | ✅ | Themes, color palettes, typography |
+| **Gradient Fills** | ✅ | Linear/radial gradients, pattern fills, multi-stop support |
+| **Dashboard Layouts** | ✅ | Grid-based composition, flexible positioning, presets |
+| **Advanced Scales** | ✅ | Logarithmic, custom transformations, auto-tick generation |
+| **Data Aggregation** | ✅ | LTTB downsampling, statistical aggregation, memory-efficient |
+| **Professional Styling** | ✅ | Themes, gradients, patterns, advanced typography |
 | **Memory Management** | ✅ | Static allocation, configurable capacity, zero heap |
 | **no_std Support** | ✅ | Full embedded compatibility, minimal dependencies |
 | **Math Backends** | ✅ | Float, fixed-point, integer-only, CORDIC |
@@ -331,7 +489,7 @@ Configure the library precisely for your needs:
 ```toml
 [dependencies]
 embedded-charts = { 
-    version = "0.1.0",
+    version = "0.3.0-dev",
     default-features = false,
     features = [
         # Target environment
@@ -400,22 +558,6 @@ Vehicle dashboard and infotainment:
 - Navigation route display
 - Vehicle diagnostics
 
-## 📱 Display Compatibility
-
-### Tested Display Types
-- **OLED**: SSD1306, SH1106, SSD1351
-- **TFT**: ST7735, ILI9341, ST7789
-- **E-Paper**: Waveshare 2.9", 4.2", 7.5"
-- **Memory LCD**: Sharp Memory Displays
-- **Custom**: Any display implementing embedded-graphics `DrawTarget`
-
-### Resolution Recommendations
-| Display Size | Chart Types | Recommended Features |
-|-------------|-------------|---------------------|
-| **128x64** | Line, Bar | Minimal styling, 1px lines |
-| **240x135** | Line, Bar, Pie | Basic styling, legends |
-| **320x240** | All types | Full features, animations |
-| **480x320+** | All types | Professional styling, complex layouts |
 
 ## 🔬 Advanced Examples
 

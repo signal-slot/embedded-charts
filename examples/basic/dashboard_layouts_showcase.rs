@@ -8,10 +8,12 @@ use embedded_graphics::{
     primitives::{PrimitiveStyle, Rectangle, RoundedRectangle},
     text::{Alignment, Text},
 };
-use embedded_graphics_simulator::{
-    OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
-};
+use embedded_graphics_simulator::SimulatorDisplay;
 use std::time::{Duration, Instant};
+
+#[path = "../common/mod.rs"]
+mod common;
+use common::window::{self, WindowConfig};
 
 struct LayoutDemo {
     name: &'static str,
@@ -20,17 +22,38 @@ struct LayoutDemo {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create display
-    let mut display = SimulatorDisplay::<Rgb565>::new(Size::new(800, 600));
-    let output_settings = OutputSettingsBuilder::new().build();
-    let mut window = Window::new("Dashboard Layouts Showcase", &output_settings);
+    let window_config = WindowConfig::new("Dashboard Layouts Showcase")
+        .size(Size::new(800, 600))
+        .background(Rgb565::BLACK);
 
-    // Define text styles
-    let text_style = MonoTextStyle::new(&FONT_6X10, Rgb565::WHITE);
-    let title_style = MonoTextStyle::new(&FONT_6X10, Rgb565::new(255, 255, 0));
+    // Set up layout demos
+    let layouts = create_layout_demos();
+    let mut current_layout = 0;
+    let mut last_switch = Instant::now();
+    let switch_interval = Duration::from_secs(3);
 
-    // Define different layout demonstrations
-    let layouts = vec![
+    println!("Dashboard Layouts Showcase");
+    println!("==========================");
+    println!("Showing {} different layouts", layouts.len());
+    println!("Switches every 3 seconds. Press SPACE to switch manually.");
+    println!("Close the window to exit.");
+
+    Ok(window::run(
+        window_config,
+        move |display, _viewport, _elapsed| {
+            render_dashboard(
+                display,
+                &layouts,
+                &mut current_layout,
+                &mut last_switch,
+                switch_interval,
+            )
+        },
+    )?)
+}
+
+fn create_layout_demos() -> Vec<LayoutDemo> {
+    vec![
         // 1. Single chart
         LayoutDemo {
             name: "Single (1x1)",
@@ -128,107 +151,89 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ),
             ],
         },
-    ];
+    ]
+}
 
+fn render_dashboard(
+    display: &mut SimulatorDisplay<Rgb565>,
+    layouts: &[LayoutDemo],
+    current_layout: &mut usize,
+    last_switch: &mut Instant,
+    switch_interval: Duration,
+) -> Result<(), embedded_charts::error::ChartError> {
     let total_viewport = Rectangle::new(Point::new(20, 60), Size::new(760, 520));
-    let mut current_layout = 0;
-    let mut last_switch = Instant::now();
-    let switch_interval = Duration::from_secs(3);
+    let text_style = MonoTextStyle::new(&FONT_6X10, Rgb565::WHITE);
+    let title_style = MonoTextStyle::new(&FONT_6X10, Rgb565::new(255, 255, 0));
 
-    println!("Dashboard Layouts Showcase");
-    println!("==========================");
-    println!("Showing {} different layouts", layouts.len());
-    println!("Switches every 3 seconds. Press SPACE to switch manually.");
-    println!("Close the window to exit.");
+    // Draw main viewport border
+    Rectangle::new(total_viewport.top_left, total_viewport.size)
+        .into_styled(PrimitiveStyle::with_stroke(Rgb565::new(64, 64, 64), 1))
+        .draw(display)
+        .map_err(|_| embedded_charts::error::ChartError::RenderingError)?;
 
-    // Main event loop
-    loop {
-        // Clear display
-        display.clear(Rgb565::new(0, 0, 0))?;
+    // Get current layout
+    let layout = &layouts[*current_layout];
 
-        // Draw main viewport border
-        Rectangle::new(total_viewport.top_left, total_viewport.size)
-            .into_styled(PrimitiveStyle::with_stroke(Rgb565::new(64, 64, 64), 1))
-            .draw(&mut display)?;
+    // Draw title
+    Text::with_alignment(
+        &format!(
+            "Layout {}/{}: {}",
+            *current_layout + 1,
+            layouts.len(),
+            layout.name
+        ),
+        Point::new(400, 30),
+        title_style,
+        Alignment::Center,
+    )
+    .draw(display)
+    .map_err(|_| embedded_charts::error::ChartError::RenderingError)?;
 
-        // Get current layout
-        let layout = &layouts[current_layout];
+    // Draw each chart in the layout
+    for (position, label, color) in &layout.charts {
+        let viewport = layout.dashboard.get_viewport(*position, total_viewport);
 
-        // Draw title
-        Text::with_alignment(
-            &format!(
-                "Layout {}/{}: {}",
-                current_layout + 1,
-                layouts.len(),
-                layout.name
-            ),
-            Point::new(400, 30),
-            title_style,
-            Alignment::Center,
-        )
-        .draw(&mut display)?;
+        // Draw chart border
+        RoundedRectangle::with_equal_corners(viewport, Size::new(5, 5))
+            .into_styled(PrimitiveStyle::with_stroke(*color, 2))
+            .draw(display)
+            .map_err(|_| embedded_charts::error::ChartError::RenderingError)?;
 
-        // Draw each chart in the layout
-        for (position, label, color) in &layout.charts {
-            let viewport = layout.dashboard.get_viewport(*position, total_viewport);
+        // Draw chart label
+        Text::with_alignment(label, viewport.center(), text_style, Alignment::Center)
+            .draw(display)
+            .map_err(|_| embedded_charts::error::ChartError::RenderingError)?;
 
-            // Draw chart border
-            RoundedRectangle::with_equal_corners(viewport, Size::new(5, 5))
-                .into_styled(PrimitiveStyle::with_stroke(*color, 2))
-                .draw(&mut display)?;
-
-            // Draw chart label
-            Text::with_alignment(label, viewport.center(), text_style, Alignment::Center)
-                .draw(&mut display)?;
-
-            // Show dimensions for smaller viewports
-            if viewport.size.width < 200 || viewport.size.height < 200 {
-                let size_text = format!("{}x{}", viewport.size.width, viewport.size.height);
-                Text::with_alignment(
-                    &size_text,
-                    viewport.center() + Point::new(0, 15),
-                    text_style,
-                    Alignment::Center,
-                )
-                .draw(&mut display)?;
-            }
+        // Show dimensions for smaller viewports
+        if viewport.size.width < 200 || viewport.size.height < 200 {
+            let size_text = format!("{}x{}", viewport.size.width, viewport.size.height);
+            Text::with_alignment(
+                &size_text,
+                viewport.center() + Point::new(0, 15),
+                text_style,
+                Alignment::Center,
+            )
+            .draw(display)
+            .map_err(|_| embedded_charts::error::ChartError::RenderingError)?;
         }
-
-        // Draw navigation hint
-        Text::with_alignment(
-            "Press SPACE for next layout | Auto-switch in 3s",
-            Point::new(400, 580),
-            text_style,
-            Alignment::Center,
-        )
-        .draw(&mut display)?;
-
-        // Update window
-        window.update(&display);
-
-        // Handle events
-        let mut manual_switch = false;
-        for event in window.events() {
-            match event {
-                SimulatorEvent::Quit => return Ok(()),
-                SimulatorEvent::KeyDown { keycode, .. } => {
-                    // Check for space key (keycode 44 in SDL2)
-                    if format!("{keycode:?}").contains("Space") {
-                        manual_switch = true;
-                    }
-                }
-                _ => {}
-            }
-        }
-
-        // Auto-switch or manual switch
-        if manual_switch || last_switch.elapsed() >= switch_interval {
-            current_layout = (current_layout + 1) % layouts.len();
-            last_switch = Instant::now();
-            println!("Switched to layout: {}", layouts[current_layout].name);
-        }
-
-        // Small delay for smooth animation
-        std::thread::sleep(Duration::from_millis(16)); // ~60 FPS
     }
+
+    // Draw navigation hint
+    Text::with_alignment(
+        "Press SPACE for next layout | Auto-switch in 3s",
+        Point::new(400, 580),
+        text_style,
+        Alignment::Center,
+    )
+    .draw(display)
+    .map_err(|_| embedded_charts::error::ChartError::RenderingError)?;
+
+    // Auto-switch based on timer
+    if last_switch.elapsed() >= switch_interval {
+        *current_layout = (*current_layout + 1) % layouts.len();
+        *last_switch = Instant::now();
+        println!("Switched to layout: {}", layouts[*current_layout].name);
+    }
+
+    Ok(())
 }
