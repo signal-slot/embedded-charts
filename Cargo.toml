@@ -223,6 +223,22 @@ name = "gradient_showcase"
 path = "examples/basic/gradient_showcase.rs"
 required-features = ["std", "bar", "color-support"]
 
+# Simple examples without SDL2 dependency (for release artifacts)
+[[example]]
+name = "simple_line_chart"
+path = "examples/simple_line_chart.rs"
+required-features = ["std", "line"]
+
+[[example]]
+name = "simple_bar_chart"
+path = "examples/simple_bar_chart.rs"
+required-features = ["std", "bar"]
+
+[[example]]
+name = "simple_pie_chart"
+path = "examples/simple_pie_chart.rs"
+required-features = ["std", "pie"]
+
 # Benchmarks
 [[bench]]
 name = "simple_benchmarks"
