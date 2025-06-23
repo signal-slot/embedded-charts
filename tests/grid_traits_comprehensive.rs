@@ -260,9 +260,9 @@ fn test_grid_configuration_trait() {
     assert!(config.grid_config().major.enabled);
 
     // Test minor grid configuration - note that MinorGridStyle defaults to enabled=true
-    let minor_style = MinorGridStyle { 
-        enabled: false, 
-        ..MinorGridStyle::default() 
+    let minor_style = MinorGridStyle {
+        enabled: false,
+        ..MinorGridStyle::default()
     };
     config.configure_minor_grid(false, 10.0, minor_style);
     assert!(!config.style.minor.enabled);
