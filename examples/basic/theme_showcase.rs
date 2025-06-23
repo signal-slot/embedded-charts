@@ -26,7 +26,7 @@ fn main() -> ChartResult<()> {
     let cpu_data = data::system_metrics(50, data::SystemMetric::CpuUsage)?;
 
     let window_config = WindowConfig::new("Theme Showcase - All Themes")
-        .theme(WindowTheme::Dark)
+        .theme(WindowTheme::Default)
         .fps(30)
         .background(Rgb565::new(10, 20, 10)); // Dark gray background in RGB565 format
 
@@ -103,7 +103,7 @@ fn draw_theme_grid(
     let title_style = MonoTextStyle::new(&FONT_6X10, title_color);
     Text::with_alignment(
         "🎨 Theme Showcase - Beautiful Eye-Friendly Color Palettes",
-        Point::new(viewport.size.width as i32 / 2, 15),
+        Point::new(viewport.top_left.x + viewport.size.width as i32 / 2, viewport.top_left.y + 15),
         title_style,
         Alignment::Center,
     )
@@ -124,8 +124,8 @@ fn draw_theme_grid(
         let col = i % (params.cols as usize);
         let row = i / (params.cols as usize);
 
-        let x = params.margin as i32 + (col as u32 * (cell_width + params.spacing)) as i32;
-        let y = 30i32 + params.margin as i32 + (row as u32 * (cell_height + params.spacing)) as i32;
+        let x = viewport.top_left.x + params.margin as i32 + (col as u32 * (cell_width + params.spacing)) as i32;
+        let y = viewport.top_left.y + 30i32 + params.margin as i32 + (row as u32 * (cell_height + params.spacing)) as i32;
 
         let cell_area = Rectangle::new(Point::new(x, y), Size::new(cell_width, cell_height));
 
