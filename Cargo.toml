@@ -29,7 +29,7 @@ embedded-graphics-simulator = { version = "0.7", optional = true }
 [dev-dependencies]
 embedded-graphics-simulator = { version = "0.7", features = ["with-sdl"] }
 image = "0.25"
-criterion = { version = "0.5", features = ["html_reports"] }
+criterion = { version = "0.6", features = ["html_reports"] }
 
 [features]
 default = ["std", "basic-charts", "integer-math"]
