@@ -176,7 +176,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-embedded-charts = "0.1.0"
+embedded-charts = "0.3.0-dev"
 embedded-graphics = "0.8"
 ```
 
@@ -489,7 +489,7 @@ Configure the library precisely for your needs:
 ```toml
 [dependencies]
 embedded-charts = { 
-    version = "0.1.0",
+    version = "0.3.0-dev",
     default-features = false,
     features = [
         # Target environment
