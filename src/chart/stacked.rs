@@ -5,9 +5,9 @@
 
 #[cfg(feature = "animations")]
 use crate::animation::Interpolatable;
-use crate::chart::traits::{Chart, ChartConfig, Margins};
 #[cfg(feature = "animations")]
 use crate::chart::traits::AnimatedChart;
+use crate::chart::traits::{Chart, ChartConfig, Margins};
 use crate::data::{DataPoint, DataSeries};
 use crate::error::{ChartError, ChartResult};
 use crate::math::{Math, NumericConversion};
