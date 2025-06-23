@@ -2,11 +2,12 @@
 //!
 //! Measures performance of different interpolation algorithms
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use embedded_charts::{
     data::{point::Point2D, series::StaticDataSeries},
     math::interpolation::{CurveInterpolator, InterpolationConfig, InterpolationType},
 };
+use std::hint::black_box;
 
 /// Create test points for interpolation
 fn create_test_points(size: usize) -> Vec<Point2D> {

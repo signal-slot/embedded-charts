@@ -3,13 +3,14 @@
 //! This benchmark suite measures performance across different chart types,
 //! data sizes, and rendering scenarios to track optimization progress.
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 #[cfg(feature = "gauge")]
 use embedded_charts::chart::{GaugeChart, GaugeType};
 #[cfg(feature = "scatter")]
 use embedded_charts::chart::{PointShape, ScatterChart};
 use embedded_charts::prelude::*;
 use embedded_graphics::{mock_display::MockDisplay, pixelcolor::Rgb565};
+use std::hint::black_box;
 
 /// Create a fresh MockDisplay that allows overdrawing and out-of-bounds drawing
 /// This prevents "tried to draw pixel twice" and "outside display area" errors

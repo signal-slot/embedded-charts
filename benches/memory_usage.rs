@@ -2,7 +2,7 @@
 //!
 //! Measures memory allocation patterns and usage for different components
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use embedded_charts::{
     chart::{
         bar::BarChart,
@@ -15,6 +15,7 @@ use embedded_charts::{
     },
     memory::{ChartMemoryManager, FixedCapacityCollections, LabelStorage, MemoryStats},
 };
+use std::hint::black_box;
 
 #[cfg(feature = "animations")]
 use embedded_charts::data::series::SlidingWindowSeries;
