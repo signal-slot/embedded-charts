@@ -61,7 +61,7 @@ fn bench_line_chart_rendering(c: &mut Criterion) {
             b.iter(|| {
                 let mut display = create_test_display::<Rgb565>();
                 // Use larger margins to ensure no out-of-bounds drawing
-                let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
+                let viewport = Rectangle::new(Point::new(80, 80), Size::new(160, 80));
                 chart
                     .draw(&data, &ChartConfig::default(), viewport, &mut display)
                     .ok();
@@ -91,11 +91,9 @@ fn bench_curve_rendering(c: &mut Criterion) {
                     .unwrap();
 
                 b.iter(|| {
-                    let mut display = MockDisplay::<Rgb565>::new();
-                    display.set_allow_overdraw(true);
-                    display.set_allow_out_of_bounds_drawing(true);
+                    let mut display = create_test_display::<Rgb565>();
                     // Use larger margins to ensure no out-of-bounds drawing
-                    let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
+                    let viewport = Rectangle::new(Point::new(80, 80), Size::new(160, 80));
                     chart
                         .draw(&data, &ChartConfig::default(), viewport, &mut display)
                         .ok();
@@ -123,7 +121,7 @@ fn bench_bar_chart_rendering(c: &mut Criterion) {
             b.iter(|| {
                 let mut display = create_test_display::<Rgb565>();
                 // Use larger margins to ensure no out-of-bounds drawing
-                let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
+                let viewport = Rectangle::new(Point::new(80, 80), Size::new(160, 80));
                 chart
                     .draw(&data, &ChartConfig::default(), viewport, &mut display)
                     .ok();
@@ -147,7 +145,7 @@ fn bench_pie_chart_rendering(c: &mut Criterion) {
             b.iter(|| {
                 let mut display = create_test_display::<Rgb565>();
                 // Use larger margins to ensure no out-of-bounds drawing
-                let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
+                let viewport = Rectangle::new(Point::new(80, 80), Size::new(160, 80));
                 chart
                     .draw(&data, &ChartConfig::default(), viewport, &mut display)
                     .ok();
@@ -175,11 +173,9 @@ fn bench_scatter_chart_rendering(c: &mut Criterion) {
                     .unwrap();
 
                 b.iter(|| {
-                    let mut display = MockDisplay::<Rgb565>::new();
-                    display.set_allow_overdraw(true);
-                    display.set_allow_out_of_bounds_drawing(true);
+                    let mut display = create_test_display::<Rgb565>();
                     // Use larger margins to ensure no out-of-bounds drawing
-                    let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
+                    let viewport = Rectangle::new(Point::new(80, 80), Size::new(160, 80));
                     chart
                         .draw(&data, &ChartConfig::default(), viewport, &mut display)
                         .ok();
@@ -215,7 +211,7 @@ fn bench_gauge_chart_rendering(c: &mut Criterion) {
             b.iter(|| {
                 let mut display = create_test_display::<Rgb565>();
                 // Use larger margins to ensure no out-of-bounds drawing
-                let viewport = Rectangle::new(Point::new(40, 40), Size::new(120, 120));
+                let viewport = Rectangle::new(Point::new(80, 80), Size::new(120, 120));
                 chart
                     .draw(&gauge_data, &ChartConfig::default(), viewport, &mut display)
                     .ok();
@@ -284,7 +280,7 @@ fn bench_coordinate_transform(c: &mut Criterion) {
 
     let bounds = DataBounds::<f32, f32>::new(-100.0, 100.0, -100.0, 100.0).unwrap();
     // Use larger margins to ensure no out-of-bounds drawing
-    let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
+    let viewport = Rectangle::new(Point::new(80, 80), Size::new(160, 80));
 
     group.bench_function("transform_point", |b| {
         let point = Point2D::new(50.0, 50.0);

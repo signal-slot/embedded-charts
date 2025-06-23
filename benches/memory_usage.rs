@@ -205,7 +205,7 @@ fn bench_memory_management(c: &mut Criterion) {
 fn bench_rendering_memory(c: &mut Criterion) {
     let mut group = c.benchmark_group("rendering_memory");
     let config = ChartConfig::<Rgb565>::default();
-    let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
+    let viewport = Rectangle::new(Point::new(80, 80), Size::new(160, 80));
 
     // Memory allocation pattern during rendering
     group.bench_function("render_allocation_pattern", |b| {
