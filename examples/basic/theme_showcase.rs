@@ -28,11 +28,7 @@ fn main() -> ChartResult<()> {
     let window_config = WindowConfig::new("Theme Showcase - All Themes")
         .theme(WindowTheme::Dark)
         .fps(30)
-        .background(embedded_graphics::pixelcolor::Rgb565::new(
-            248 >> 3,
-            250 >> 2,
-            252 >> 3,
-        ));
+        .background(embedded_graphics::pixelcolor::Rgb565::new(20, 20, 20)); // Dark gray background
 
     // Pre-create themes outside the animation loop
     let themes = [

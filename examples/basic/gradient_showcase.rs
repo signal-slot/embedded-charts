@@ -3,6 +3,7 @@
 use embedded_charts::{
     chart::{BarChart, BarWidth, Chart, ChartBuilder, ChartConfig},
     data::{Point2D, StaticDataSeries},
+    prelude::*,
     render::ChartRenderer,
     style::{
         FillStyle, GradientDirection, LinearGradient, PatternFill, PatternType, RadialGradient,
@@ -11,25 +12,29 @@ use embedded_charts::{
 use embedded_graphics::{
     mono_font::{ascii::FONT_6X10, MonoTextStyle},
     pixelcolor::Rgb565,
-    prelude::*,
+    prelude::{Drawable, Point, Size},
     primitives::Rectangle,
     text::{Alignment, Text},
 };
-use embedded_graphics_simulator::{
-    OutputSettingsBuilder, SimulatorDisplay, SimulatorEvent, Window,
-};
+use embedded_graphics_simulator::SimulatorDisplay;
+
+#[path = "../common/mod.rs"]
+mod common;
+use common::window::{self, WindowConfig};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Create display
-    let mut display = SimulatorDisplay::<Rgb565>::new(Size::new(800, 600));
-    let output_settings = OutputSettingsBuilder::new().build();
-    let mut window = Window::new("Gradient Showcase", &output_settings);
+    let window_config = WindowConfig::new("Gradient Showcase")
+        .size(Size::new(800, 600))
+        .background(Rgb565::BLACK);
 
+    Ok(window::run_static(window_config, |display, _viewport| {
+        render_gradients(display)
+    })?)
+}
+
+fn render_gradients(display: &mut SimulatorDisplay<Rgb565>) -> ChartResult<()> {
     println!("Gradient Showcase - Rendering gradients...");
     let start_time = std::time::Instant::now();
-
-    // Clear display
-    display.clear(Rgb565::new(0, 0, 0))?;
 
     // Text style for labels
     let text_style = MonoTextStyle::new(&FONT_6X10, Rgb565::WHITE);
@@ -41,7 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             LinearGradient::simple(Rgb565::RED, Rgb565::BLUE, GradientDirection::Horizontal)?;
 
         // Use the optimized Rgb565 gradient rendering
-        ChartRenderer::draw_linear_gradient_rect_rgb565(rect, &gradient, &mut display)?;
+        ChartRenderer::draw_linear_gradient_rect_rgb565(rect, &gradient, display)?;
 
         Text::with_alignment(
             "Horizontal Gradient",
@@ -49,7 +54,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             text_style,
             Alignment::Center,
         )
-        .draw(&mut display)?;
+        .draw(display)
+        .map_err(|_| ChartError::RenderingError)?;
     }
 
     // 2. Vertical Linear Gradient
@@ -59,7 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             LinearGradient::simple(Rgb565::GREEN, Rgb565::YELLOW, GradientDirection::Vertical)?;
 
         // Use the optimized Rgb565 gradient rendering
-        ChartRenderer::draw_linear_gradient_rect_rgb565(rect, &gradient, &mut display)?;
+        ChartRenderer::draw_linear_gradient_rect_rgb565(rect, &gradient, display)?;
 
         Text::with_alignment(
             "Vertical Gradient",
@@ -67,7 +73,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             text_style,
             Alignment::Center,
         )
-        .draw(&mut display)?;
+        .draw(display)
+        .map_err(|_| ChartError::RenderingError)?;
     }
 
     // 3. Diagonal Linear Gradient
@@ -77,7 +84,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             LinearGradient::simple(Rgb565::CYAN, Rgb565::MAGENTA, GradientDirection::Diagonal)?;
 
         // Use the optimized Rgb565 gradient rendering
-        ChartRenderer::draw_linear_gradient_rect_rgb565(rect, &gradient, &mut display)?;
+        ChartRenderer::draw_linear_gradient_rect_rgb565(rect, &gradient, display)?;
 
         Text::with_alignment(
             "Diagonal Gradient",
@@ -85,7 +92,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             text_style,
             Alignment::Center,
         )
-        .draw(&mut display)?;
+        .draw(display)
+        .map_err(|_| ChartError::RenderingError)?;
     }
 
     // 4. Multi-stop Linear Gradient
@@ -99,7 +107,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         gradient.add_stop(1.0, Rgb565::BLUE)?;
 
         // Use the optimized Rgb565 gradient rendering
-        ChartRenderer::draw_linear_gradient_rect_rgb565(rect, &gradient, &mut display)?;
+        ChartRenderer::draw_linear_gradient_rect_rgb565(rect, &gradient, display)?;
 
         Text::with_alignment(
             "Multi-stop Gradient",
@@ -107,7 +115,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             text_style,
             Alignment::Center,
         )
-        .draw(&mut display)?;
+        .draw(display)
+        .map_err(|_| ChartError::RenderingError)?;
     }
 
     // 5. Radial Gradient
@@ -120,7 +129,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?;
 
         // Use the optimized Rgb565 gradient rendering
-        ChartRenderer::draw_radial_gradient_rect_rgb565(rect, &gradient, &mut display)?;
+        ChartRenderer::draw_radial_gradient_rect_rgb565(rect, &gradient, display)?;
 
         Text::with_alignment(
             "Radial Gradient",
@@ -128,7 +137,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             text_style,
             Alignment::Center,
         )
-        .draw(&mut display)?;
+        .draw(display)
+        .map_err(|_| ChartError::RenderingError)?;
     }
 
     // 6. Pattern Fill - Horizontal Lines
@@ -144,7 +154,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         let fill = FillStyle::pattern(pattern);
 
-        ChartRenderer::draw_filled_rectangle(rect, &fill, &mut display)?;
+        ChartRenderer::draw_filled_rectangle(rect, &fill, display)?;
 
         Text::with_alignment(
             "Horizontal Lines",
@@ -152,7 +162,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             text_style,
             Alignment::Center,
         )
-        .draw(&mut display)?;
+        .draw(display)
+        .map_err(|_| ChartError::RenderingError)?;
     }
 
     // 7. Pattern Fill - Dots
@@ -168,7 +179,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         let fill = FillStyle::pattern(pattern);
 
-        ChartRenderer::draw_filled_rectangle(rect, &fill, &mut display)?;
+        ChartRenderer::draw_filled_rectangle(rect, &fill, display)?;
 
         Text::with_alignment(
             "Dot Pattern",
@@ -176,7 +187,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             text_style,
             Alignment::Center,
         )
-        .draw(&mut display)?;
+        .draw(display)
+        .map_err(|_| ChartError::RenderingError)?;
     }
 
     // 8. Pattern Fill - Checkerboard
@@ -189,7 +201,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         let fill = FillStyle::pattern(pattern);
 
-        ChartRenderer::draw_filled_rectangle(rect, &fill, &mut display)?;
+        ChartRenderer::draw_filled_rectangle(rect, &fill, display)?;
 
         Text::with_alignment(
             "Checkerboard",
@@ -197,7 +209,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             text_style,
             Alignment::Center,
         )
-        .draw(&mut display)?;
+        .draw(display)
+        .map_err(|_| ChartError::RenderingError)?;
     }
 
     // 9. Pattern Fill - Cross Hatch
@@ -213,7 +226,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
         let fill = FillStyle::pattern(pattern);
 
-        ChartRenderer::draw_filled_rectangle(rect, &fill, &mut display)?;
+        ChartRenderer::draw_filled_rectangle(rect, &fill, display)?;
 
         Text::with_alignment(
             "Cross Hatch",
@@ -221,7 +234,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             text_style,
             Alignment::Center,
         )
-        .draw(&mut display)?;
+        .draw(display)
+        .map_err(|_| ChartError::RenderingError)?;
     }
 
     // Chart example with gradient fill
@@ -248,14 +262,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             GradientDirection::Vertical,
         )?;
         // Use the optimized RGB565 gradient rendering for smooth gradients
-        ChartRenderer::draw_linear_gradient_rect_rgb565(rect, &bg_gradient, &mut display)?;
+        ChartRenderer::draw_linear_gradient_rect_rgb565(rect, &bg_gradient, display)?;
 
         // Draw the chart over it with transparent background
         let config = ChartConfig {
             background_color: None, // Make background transparent so gradient shows through
             ..ChartConfig::default()
         };
-        bar_chart.draw(&data, &config, rect, &mut display)?;
+        bar_chart.draw(&data, &config, rect, display)?;
 
         Text::with_alignment(
             "Bar Chart with Gradient Background",
@@ -263,7 +277,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             text_style,
             Alignment::Center,
         )
-        .draw(&mut display)?;
+        .draw(display)
+        .map_err(|_| ChartError::RenderingError)?;
     }
 
     // Show title
@@ -273,7 +288,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         MonoTextStyle::new(&FONT_6X10, Rgb565::new(255, 255, 0)),
         Alignment::Center,
     )
-    .draw(&mut display)?;
+    .draw(display)
+    .map_err(|_| ChartError::RenderingError)?;
 
     // Show timing
     let elapsed = start_time.elapsed();
@@ -291,30 +307,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("All rendering is no_std compatible!");
     println!();
     println!("Close the window to exit...");
-
-    // Initial update to ensure window is shown
-    window.update(&display);
-
-    // Process any initial events
-    for event in window.events() {
-        if event == SimulatorEvent::Quit {
-            return Ok(());
-        }
-    }
-
-    // Main event loop
-    'running: loop {
-        window.update(&display);
-
-        // Check for quit event
-        for event in window.events() {
-            if event == SimulatorEvent::Quit {
-                break 'running;
-            }
-        }
-
-        std::thread::sleep(std::time::Duration::from_millis(16)); // ~60 FPS
-    }
 
     Ok(())
 }
