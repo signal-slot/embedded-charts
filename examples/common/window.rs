@@ -302,6 +302,9 @@ where
 
     // Run animation loop
     loop {
+        // Update display
+        window_manager.update(&display);
+
         // Check for exit conditions
         if window_manager.should_close() {
             #[cfg(feature = "capture")]
@@ -328,9 +331,6 @@ where
 
         // Call animation function
         animation_fn(&mut display, viewport, elapsed)?;
-
-        // Update display with new content
-        window_manager.update(&display);
 
         // Auto-capture functionality
         #[cfg(feature = "capture")]
