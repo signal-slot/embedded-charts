@@ -3,12 +3,13 @@
 //! This module measures memory usage patterns and allocation behavior
 //! to ensure the library stays within embedded system constraints.
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 #[cfg(feature = "gauge")]
 use embedded_charts::chart::GaugeChart;
 #[cfg(feature = "scatter")]
 use embedded_charts::chart::ScatterChart;
 use embedded_charts::prelude::*;
+use std::hint::black_box;
 use std::mem;
 
 /// Measure static memory usage of different chart types

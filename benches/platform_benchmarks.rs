@@ -3,12 +3,13 @@
 //! This module provides benchmarks that simulate different embedded platforms
 //! and their specific constraints (memory, CPU speed, display types).
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use embedded_charts::prelude::*;
 use embedded_graphics::{
     mock_display::MockDisplay,
     pixelcolor::{BinaryColor, Gray8, Rgb565},
 };
+use std::hint::black_box;
 use std::vec::Vec;
 
 /// Create a fresh MockDisplay that allows overdrawing and out-of-bounds drawing

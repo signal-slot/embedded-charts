@@ -2,7 +2,7 @@
 //!
 //! Measures rendering performance for different chart types under various conditions
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use embedded_charts::{
     chart::{
         bar::{BarChart, BarOrientation, BarWidth},
@@ -11,6 +11,7 @@ use embedded_charts::{
     },
     data::{point::Point2D, series::StaticDataSeries},
 };
+use std::hint::black_box;
 
 #[cfg(feature = "scatter")]
 use embedded_charts::chart::scatter::ScatterChart;

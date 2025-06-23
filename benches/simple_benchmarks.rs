@@ -2,7 +2,7 @@
 //!
 //! Basic benchmarks to establish performance baseline
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 use embedded_charts::{
     chart::{
         bar::{BarChart, BarOrientation, BarWidth},
@@ -14,6 +14,7 @@ use embedded_charts::{
 use embedded_graphics::{
     mock_display::MockDisplay, pixelcolor::Rgb565, prelude::*, primitives::Rectangle,
 };
+use std::hint::black_box;
 
 /// Create a fresh MockDisplay that allows overdrawing and out-of-bounds drawing
 /// This prevents "tried to draw pixel twice" and "outside display area" errors

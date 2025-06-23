@@ -2,13 +2,14 @@
 //!
 //! Measures performance of data series operations, bounds calculations, and data management
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use embedded_charts::data::{
     bounds::DataBounds,
     point::Point2D,
     series::{MultiSeries, StaticDataSeries},
     DataPoint, DataSeries,
 };
+use std::hint::black_box;
 
 #[cfg(feature = "animations")]
 use embedded_charts::data::series::SlidingWindowSeries;
