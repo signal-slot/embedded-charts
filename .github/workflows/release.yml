@@ -1,5 +1,26 @@
 name: Release
 
+# This workflow handles the complete release process for embedded-charts.
+# It ensures ALL quality checks pass before any release activities begin.
+#
+# Release Process:
+# 1. Quality Checks (ALL must pass):
+#    - Formatting check
+#    - Clippy linting
+#    - Test suite
+#    - no_std compatibility
+#    - Feature combinations
+#    - Security audit
+#
+# 2. Release Activities (only if ALL checks pass):
+#    - Create GitHub release with changelog
+#    - Publish to crates.io
+#    - Build and upload release artifacts
+#    - Publish documentation
+#    - Post-release verification
+#
+# IMPORTANT: The release will be completely blocked if ANY check fails.
+
 on:
   push:
     tags:
@@ -9,54 +30,114 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # First, run all CI checks to ensure quality
-  ci-check:
-    name: CI Check
+  # Comprehensive quality checks - ALL must pass before release
+  formatting-check:
+    name: Formatting Check
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
+    - uses: dtolnay/rust-toolchain@stable
       with:
-        components: rustfmt, clippy
-    
-    - name: Cache cargo registry
-      uses: actions/cache@v4
+        components: rustfmt
+    - name: Check formatting
+      run: cargo fmt --all -- --check
+
+  clippy-check:
+    name: Clippy Check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
       with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-ci-${{ hashFiles('**/Cargo.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cargo-ci-
-          ${{ runner.os }}-cargo-
-    
-    - name: Install system dependencies
+        components: clippy
+    - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y libsdl2-dev
-    
-    - name: Check formatting
-      run: cargo fmt --all -- --check
-    
     - name: Run clippy
       run: cargo clippy --all-targets --all-features -- -D warnings
-    
+
+  test-check:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev
     - name: Run tests
       run: cargo test --all-features
-    
-    - name: Check no_std build
+
+  no-std-check:
+    name: no_std Compatibility Check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - name: Check no_std builds
       run: |
         cargo build --no-default-features --features "no_std,basic-charts"
         cargo build --no-default-features --features "no_std,advanced-charts"
+        cargo build --no-default-features --features "no_std,line,bar,pie"
+
+  feature-combinations-check:
+    name: Feature Combinations Check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev
+    - name: Test critical feature combinations
+      run: |
+        # Test std combinations
+        cargo check --no-default-features --features "std"
+        cargo check --no-default-features --features "std,line"
+        cargo check --no-default-features --features "std,bar"
+        cargo check --no-default-features --features "std,pie"
+        cargo check --no-default-features --features "std,gauge"
+        cargo check --no-default-features --features "std,scatter"
+        cargo check --no-default-features --features "std,basic-charts"
+        cargo check --no-default-features --features "std,advanced-charts"
+        cargo check --no-default-features --features "std,animations"
+        cargo check --no-default-features --features "std,color-support"
+        
+        # Test no_std combinations
+        cargo check --no-default-features --features "no_std,line"
+        cargo check --no-default-features --features "no_std,bar"
+        cargo check --no-default-features --features "no_std,basic-charts"
+        cargo check --no-default-features --features "no_std,integer-math"
+        cargo check --no-default-features --features "no_std,fixed-point"
+
+  security-check:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: dtolnay/rust-toolchain@stable
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
+    - name: Run security audit
+      run: cargo audit
+
+  # Consolidated CI check that depends on all quality checks
+  all-checks-passed:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs: [formatting-check, clippy-check, test-check, no-std-check, feature-combinations-check, security-check]
+    steps:
+    - name: All checks passed
+      run: echo "✅ All quality checks passed!"
 
   # Create GitHub release
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: ci-check
+    needs: all-checks-passed
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
       release_version: ${{ steps.get_version.outputs.version }}
@@ -114,7 +195,7 @@ jobs:
   publish-crates:
     name: Publish to crates.io
     runs-on: ubuntu-latest
-    needs: [ci-check, create-release]
+    needs: [all-checks-passed, create-release]
     steps:
     - uses: actions/checkout@v4
     
@@ -158,7 +239,7 @@ jobs:
   publish-docs:
     name: Publish Documentation
     runs-on: ubuntu-latest
-    needs: [ci-check, create-release]
+    needs: [all-checks-passed, create-release]
     steps:
     - uses: actions/checkout@v4
     
@@ -199,7 +280,7 @@ jobs:
   verify-docs-rs:
     name: Verify docs.rs Build
     runs-on: ubuntu-latest
-    needs: ci-check
+    needs: all-checks-passed
     steps:
     - uses: actions/checkout@v4
     
@@ -222,7 +303,7 @@ jobs:
   # Create release artifacts
   build-artifacts:
     name: Build Release Artifacts (${{ matrix.os }})
-    needs: [ci-check, create-release]
+    needs: [all-checks-passed, create-release]
     strategy:
       fail-fast: false
       matrix:
@@ -355,3 +436,22 @@ jobs:
         cd test-install
         cargo add embedded-charts@${{ needs.create-release.outputs.release_version }}
         cargo check
+
+  # Final summary
+  release-complete:
+    name: Release Complete
+    runs-on: ubuntu-latest
+    needs: [create-release, publish-crates, publish-docs, build-artifacts, post-release-check]
+    steps:
+    - name: Release Summary
+      run: |
+        echo "🎉 Release v${{ needs.create-release.outputs.release_version }} completed successfully!"
+        echo ""
+        echo "✅ All quality checks passed"
+        echo "✅ Published to crates.io"
+        echo "✅ Documentation published"
+        echo "✅ Release artifacts created for all platforms"
+        echo "✅ Post-release verification completed"
+        echo ""
+        echo "View the release: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.create-release.outputs.release_version }}"
+        echo "View on crates.io: https://crates.io/crates/embedded-charts/${{ needs.create-release.outputs.release_version }}"
