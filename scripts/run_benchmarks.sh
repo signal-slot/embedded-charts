@@ -43,6 +43,7 @@ generate_memory_report() {
     
     cat > "$RESULTS_DIR/memory_report.rs" << 'EOF'
 use embedded_charts::prelude::*;
+use embedded_graphics::pixelcolor::Rgb565;
 use std::mem;
 
 fn main() {
@@ -50,23 +51,27 @@ fn main() {
     
     // Chart sizes
     println!("Chart Type Memory Footprint:");
-    println!("  LineChart: {} bytes", mem::size_of::<LineChart>());
-    println!("  BarChart: {} bytes", mem::size_of::<BarChart>());
-    println!("  PieChart: {} bytes", mem::size_of::<PieChart>());
-    println!("  GaugeChart: {} bytes", mem::size_of::<GaugeChart>());
-    println!("  ScatterChart: {} bytes", mem::size_of::<ScatterChart>());
+    println!("  LineChart<Rgb565>: {} bytes", mem::size_of::<LineChart<Rgb565>>());
+    println!("  BarChart<Rgb565>: {} bytes", mem::size_of::<BarChart<Rgb565>>());
+    println!("  PieChart<Rgb565>: {} bytes", mem::size_of::<PieChart<Rgb565>>());
+    #[cfg(feature = "gauge")]
+    println!("  GaugeChart<Rgb565>: {} bytes", mem::size_of::<GaugeChart<Rgb565>>());
+    #[cfg(feature = "scatter")]
+    println!("  ScatterChart<Rgb565>: {} bytes", mem::size_of::<ScatterChart<Rgb565>>());
     
     // Data structure sizes
     println!("\nData Structure Sizes:");
     println!("  Point2D: {} bytes", mem::size_of::<Point2D>());
-    println!("  DataBounds: {} bytes", mem::size_of::<DataBounds>());
+    println!("  DataBounds<f32, f32>: {} bytes", mem::size_of::<DataBounds<f32, f32>>());
     println!("  StaticDataSeries<Point2D, 32>: {} bytes", mem::size_of::<StaticDataSeries<Point2D, 32>>());
     println!("  StaticDataSeries<Point2D, 256>: {} bytes", mem::size_of::<StaticDataSeries<Point2D, 256>>());
     println!("  StaticDataSeries<Point2D, 1024>: {} bytes", mem::size_of::<StaticDataSeries<Point2D, 1024>>());
 }
 EOF
     
-    rustc "$RESULTS_DIR/memory_report.rs" --edition 2021 -L target/release/deps --extern embedded_charts=target/release/libembedded_charts.rlib -o "$RESULTS_DIR/memory_report" 2>/dev/null || true
+    # Build the memory report with all features
+    cargo build --release --all-features --quiet
+    rustc "$RESULTS_DIR/memory_report.rs" --edition 2021 -L target/release/deps --extern embedded_charts=target/release/libembedded_charts.rlib --extern embedded_graphics=target/release/deps/libembedded_graphics*.rlib --cfg 'feature="gauge"' --cfg 'feature="scatter"' -o "$RESULTS_DIR/memory_report" 2>/dev/null || true
     
     if [ -f "$RESULTS_DIR/memory_report" ]; then
         "$RESULTS_DIR/memory_report" > "$RESULTS_DIR/memory_usage.txt"
