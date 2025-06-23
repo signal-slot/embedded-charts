@@ -42,7 +42,7 @@ mod display_profiles {
             b.iter(|| {
                 let mut display = create_test_display::<BinaryColor>();
                 // Use larger margins to ensure no out-of-bounds drawing
-                let viewport = Rectangle::new(Point::new(40, 40), Size::new(48, 24));
+                let viewport = Rectangle::new(Point::new(80, 80), Size::new(48, 24));
                 chart
                     .draw(&data, &ChartConfig::default(), viewport, &mut display)
                     .ok();
@@ -68,7 +68,7 @@ mod display_profiles {
             b.iter(|| {
                 let mut display = create_test_display::<Gray8>();
                 // Use larger margins to ensure no out-of-bounds drawing
-                let viewport = Rectangle::new(Point::new(40, 40), Size::new(120, 120));
+                let viewport = Rectangle::new(Point::new(80, 80), Size::new(120, 120));
                 chart
                     .draw(&data, &ChartConfig::default(), viewport, &mut display)
                     .ok();
@@ -94,7 +94,7 @@ mod display_profiles {
             b.iter(|| {
                 let mut display = create_test_display::<Rgb565>();
                 // Use larger margins to ensure no out-of-bounds drawing
-                let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
+                let viewport = Rectangle::new(Point::new(80, 80), Size::new(160, 80));
                 chart
                     .draw(&data, &ChartConfig::default(), viewport, &mut display)
                     .ok();
@@ -183,7 +183,7 @@ fn bench_memory_constrained(c: &mut Criterion) {
         b.iter(|| {
             let mut display = create_test_display::<BinaryColor>();
             // Use larger margins to ensure no out-of-bounds drawing
-            let viewport = Rectangle::new(Point::new(40, 40), Size::new(48, 24));
+            let viewport = Rectangle::new(Point::new(80, 80), Size::new(48, 24));
             chart
                 .draw(&data, &ChartConfig::default(), viewport, &mut display)
                 .ok();
@@ -213,7 +213,7 @@ fn bench_memory_constrained(c: &mut Criterion) {
 
             let mut display = create_test_display::<Rgb565>();
             // Use larger margins to ensure no out-of-bounds drawing
-            let viewport = Rectangle::new(Point::new(40, 40), Size::new(100, 60));
+            let viewport = Rectangle::new(Point::new(80, 80), Size::new(100, 60));
 
             chart
                 .draw(&series1, &ChartConfig::default(), viewport, &mut display)
@@ -261,9 +261,9 @@ fn bench_streaming_scenarios(c: &mut Criterion) {
             }
             sample_index += 1;
 
-            let mut display = MockDisplay::<Rgb565>::new();
-            // Use larger margins to ensure no out-of-bounds drawing
-            let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
+            let mut display = create_test_display::<Rgb565>();
+            // Use even larger margins to ensure no out-of-bounds drawing for ECG data
+            let viewport = Rectangle::new(Point::new(60, 60), Size::new(200, 120));
             chart
                 .draw(&buffer, &ChartConfig::default(), viewport, &mut display)
                 .ok();
@@ -299,11 +299,11 @@ fn bench_dashboard_rendering(c: &mut Criterion) {
         b.iter(|| {
             let mut display = create_test_display::<Rgb565>();
 
-            // Render 3 charts in sections with larger margins
+            // Render 3 charts in sections with even larger margins
             let viewports = [
-                Rectangle::new(Point::new(40, 20), Size::new(240, 40)),
-                Rectangle::new(Point::new(40, 100), Size::new(240, 40)),
-                Rectangle::new(Point::new(40, 180), Size::new(240, 40)),
+                Rectangle::new(Point::new(80, 40), Size::new(160, 20)),
+                Rectangle::new(Point::new(80, 110), Size::new(160, 20)),
+                Rectangle::new(Point::new(80, 190), Size::new(160, 20)),
             ];
 
             line_chart
