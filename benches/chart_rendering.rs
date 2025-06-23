@@ -44,7 +44,7 @@ fn create_display() -> MockDisplay<Rgb565> {
 fn bench_line_chart_data_scaling(c: &mut Criterion) {
     let mut group = c.benchmark_group("line_chart_data_scaling");
     let config = ChartConfig::<Rgb565>::default();
-    let viewport = Rectangle::new(Point::new(0, 0), Size::new(320, 240));
+    let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
 
     for size in [10, 50, 100, 200, 256] {
         group.throughput(Throughput::Elements(size as u64));
@@ -77,7 +77,7 @@ fn bench_line_chart_features(c: &mut Criterion) {
     let mut group = c.benchmark_group("line_chart_features");
     let data = create_test_data(100);
     let config = ChartConfig::<Rgb565>::default();
-    let viewport = Rectangle::new(Point::new(0, 0), Size::new(320, 240));
+    let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
 
     // Basic line
     group.bench_function("basic", |b| {
@@ -179,7 +179,7 @@ fn bench_bar_chart(c: &mut Criterion) {
     let mut group = c.benchmark_group("bar_chart");
     let data = create_test_data(20);
     let config = ChartConfig::<Rgb565>::default();
-    let viewport = Rectangle::new(Point::new(0, 0), Size::new(320, 240));
+    let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
 
     // Vertical bars
     group.bench_function("vertical", |b| {
@@ -254,7 +254,7 @@ fn bench_bar_chart(c: &mut Criterion) {
 fn bench_pie_chart(c: &mut Criterion) {
     let mut group = c.benchmark_group("pie_chart");
     let config = ChartConfig::<Rgb565>::default();
-    let viewport = Rectangle::new(Point::new(0, 0), Size::new(240, 240));
+    let viewport = Rectangle::new(Point::new(40, 40), Size::new(160, 160));
 
     for slice_count in [4, 8, 12, 16] {
         group.bench_with_input(
@@ -298,7 +298,7 @@ fn bench_scatter_chart(c: &mut Criterion) {
     let mut group = c.benchmark_group("scatter_chart");
     let data = create_test_data(50);
     let config = ChartConfig::<Rgb565>::default();
-    let viewport = Rectangle::new(Point::new(0, 0), Size::new(320, 240));
+    let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
 
     // Basic scatter
     group.bench_function("basic", |b| {
@@ -341,7 +341,13 @@ fn bench_viewport_scaling(c: &mut Criterion) {
     for size in [64, 128, 256, 512] {
         group.throughput(Throughput::Elements((size * size) as u64));
         group.bench_with_input(BenchmarkId::from_parameter(size), &size, |b, &size| {
-            let viewport = Rectangle::new(Point::new(0, 0), Size::new(size, size));
+            let viewport = Rectangle::new(
+                Point::new(40, 40),
+                Size::new(
+                    (size as u32).saturating_sub(80),
+                    (size as u32).saturating_sub(80),
+                ),
+            );
 
             b.iter(|| {
                 let mut display = create_display();
@@ -364,7 +370,7 @@ fn bench_viewport_scaling(c: &mut Criterion) {
 fn bench_chart_configuration(c: &mut Criterion) {
     let mut group = c.benchmark_group("chart_configuration");
     let data = create_test_data(100);
-    let viewport = Rectangle::new(Point::new(0, 0), Size::new(320, 240));
+    let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
     let chart = LineChart::builder()
         .line_color(Rgb565::BLUE)
         .line_width(2)

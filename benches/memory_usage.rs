@@ -26,6 +26,18 @@ use embedded_charts::chart::scatter::ScatterChart;
 use embedded_charts::chart::pie::PieChart;
 use embedded_graphics::{pixelcolor::Rgb565, prelude::*, primitives::Rectangle};
 
+/// Create a fresh MockDisplay that allows overdrawing and out-of-bounds drawing
+/// This prevents "tried to draw pixel twice" and "outside display area" errors
+fn create_test_display<C>() -> embedded_graphics::mock_display::MockDisplay<C>
+where
+    C: embedded_graphics::pixelcolor::PixelColor,
+{
+    let mut display = embedded_graphics::mock_display::MockDisplay::new();
+    display.set_allow_overdraw(true);
+    display.set_allow_out_of_bounds_drawing(true);
+    display
+}
+
 /// Helper to estimate memory usage of a type
 fn type_size<T>(_: &T) -> usize {
     std::mem::size_of::<T>()
@@ -193,7 +205,7 @@ fn bench_memory_management(c: &mut Criterion) {
 fn bench_rendering_memory(c: &mut Criterion) {
     let mut group = c.benchmark_group("rendering_memory");
     let config = ChartConfig::<Rgb565>::default();
-    let viewport = Rectangle::new(Point::new(0, 0), Size::new(320, 240));
+    let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
 
     // Memory allocation pattern during rendering
     group.bench_function("render_allocation_pattern", |b| {
@@ -209,8 +221,7 @@ fn bench_rendering_memory(c: &mut Criterion) {
             .unwrap();
 
         b.iter(|| {
-            let mut display = embedded_graphics::mock_display::MockDisplay::<Rgb565>::new();
-            display.set_allow_overdraw(true);
+            let mut display = create_test_display::<Rgb565>();
 
             // Measure before rendering
             let before_size = type_size(&display);

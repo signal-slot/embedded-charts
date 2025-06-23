@@ -15,6 +15,18 @@ use embedded_graphics::{
     mock_display::MockDisplay, pixelcolor::Rgb565, prelude::*, primitives::Rectangle,
 };
 
+/// Create a fresh MockDisplay that allows overdrawing and out-of-bounds drawing
+/// This prevents "tried to draw pixel twice" and "outside display area" errors
+fn create_test_display<C>() -> MockDisplay<C>
+where
+    C: embedded_graphics::pixelcolor::PixelColor,
+{
+    let mut display = MockDisplay::new();
+    display.set_allow_overdraw(true);
+    display.set_allow_out_of_bounds_drawing(true);
+    display
+}
+
 /// Create test data
 fn create_test_data(size: usize) -> StaticDataSeries<Point2D, 256> {
     let mut data = StaticDataSeries::new();
@@ -31,7 +43,7 @@ fn bench_line_chart(c: &mut Criterion) {
     c.bench_function("line_chart_render", |b| {
         let data = create_test_data(100);
         let config = ChartConfig::<Rgb565>::default();
-        let viewport = Rectangle::new(Point::new(0, 0), Size::new(60, 60));
+        let viewport = Rectangle::new(Point::new(20, 20), Size::new(20, 20));
 
         let chart = LineChart::builder()
             .line_color(Rgb565::BLUE)
@@ -40,7 +52,7 @@ fn bench_line_chart(c: &mut Criterion) {
             .unwrap();
 
         b.iter(|| {
-            let mut display = MockDisplay::<Rgb565>::new();
+            let mut display = create_test_display::<Rgb565>();
             display.set_allow_overdraw(true);
             display.set_allow_out_of_bounds_drawing(true);
 
@@ -61,7 +73,7 @@ fn bench_bar_chart(c: &mut Criterion) {
     c.bench_function("bar_chart_render", |b| {
         let data = create_test_data(20);
         let config = ChartConfig::<Rgb565>::default();
-        let viewport = Rectangle::new(Point::new(0, 0), Size::new(60, 60));
+        let viewport = Rectangle::new(Point::new(20, 20), Size::new(20, 20));
 
         let chart = BarChart::builder()
             .orientation(BarOrientation::Vertical)
@@ -71,7 +83,7 @@ fn bench_bar_chart(c: &mut Criterion) {
             .unwrap();
 
         b.iter(|| {
-            let mut display = MockDisplay::<Rgb565>::new();
+            let mut display = create_test_display::<Rgb565>();
             display.set_allow_overdraw(true);
             display.set_allow_out_of_bounds_drawing(true);
 
