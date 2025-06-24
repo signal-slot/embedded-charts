@@ -12,10 +12,10 @@ pub mod optimized;
 pub use base::text;
 
 // Re-export base rendering functionality
-pub use base::{
-    AnimationFrameRenderer, ChartRenderer, ClippingRenderer, EnhancedChartRenderer,
-    PrimitiveRenderer,
-};
+pub use base::{ChartRenderer, ClippingRenderer, EnhancedChartRenderer, PrimitiveRenderer};
+
+#[cfg(feature = "animations")]
+pub use base::AnimationFrameRenderer;
 
 // Re-export optimized rendering
 pub use optimized::{DisplayType, EPaperRenderer, OLEDRenderer, OptimizedRenderer, TFTRenderer};
