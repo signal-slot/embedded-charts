@@ -40,12 +40,7 @@ fn bench_tft_horizontal_lines(c: &mut Criterion) {
             // Draw 50 horizontal lines (optimized for TFT)
             for y in 0..50 {
                 renderer
-                    .draw_line_optimized(
-                        Point::new(0, y),
-                        Point::new(63, y),
-                        Rgb565::BLUE,
-                        1,
-                    )
+                    .draw_line_optimized(Point::new(0, y), Point::new(63, y), Rgb565::BLUE, 1)
                     .ok();
             }
             renderer.end_batch();
