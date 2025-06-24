@@ -13,6 +13,7 @@ use embedded_graphics::{
 
 extern crate alloc;
 
+
 /// Display type for optimization selection
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DisplayType {
