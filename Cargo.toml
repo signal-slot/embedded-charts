@@ -260,3 +260,19 @@ harness = false
 [[bench]]
 name = "memory_benchmarks"
 harness = false
+
+[[bench]]
+name = "v0_4_0_performance"
+harness = false
+
+[[bench]]
+name = "baseline_performance"
+harness = false
+
+[[bench]]
+name = "display_optimizations"
+harness = false
+
+[[bench]]
+name = "simple_display_bench"
+harness = false
