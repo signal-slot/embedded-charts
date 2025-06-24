@@ -276,3 +276,7 @@ harness = false
 [[bench]]
 name = "simple_display_bench"
 harness = false
+
+[[bench]]
+name = "platform_optimizations"
+harness = false

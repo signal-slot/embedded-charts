@@ -375,6 +375,9 @@ pub mod legend;
 // Memory management utilities
 pub mod memory;
 
+// Platform-specific optimizations
+pub mod platform;
+
 // Heapless utilities for enhanced no_std support
 pub mod heapless_utils;
 
