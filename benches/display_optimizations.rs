@@ -24,11 +24,11 @@ fn create_test_data(size: usize, vertical_bias: bool) -> StaticDataSeries<Point2
     let mut data = StaticDataSeries::new();
     for i in 0..size.min(256) {
         let x = if vertical_bias {
-            50.0 + (i % 5) as f32 // Mostly vertical lines
+            30.0 + (i % 5) as f32 // Mostly vertical lines, within bounds
         } else {
-            i as f32
+            (i as f32 * 0.5).min(60.0) // Keep within MockDisplay bounds
         };
-        let y = (i as f32 * 0.1).sin() * 50.0 + 50.0;
+        let y = ((i as f32 * 0.1).sin() * 20.0 + 30.0).clamp(0.0, 60.0);
         data.push(Point2D::new(x, y)).unwrap();
     }
     data
@@ -39,21 +39,19 @@ fn bench_oled_optimizations(c: &mut Criterion) {
     let mut group = c.benchmark_group("oled_optimizations");
 
     // Test vertical line optimization
-    let vertical_data = create_test_data(100, true);
+    let _vertical_data = create_test_data(100, true);
     let _horizontal_data = create_test_data(100, false);
 
     group.bench_function("generic_vertical", |b| {
         b.iter(|| {
             let mut display = MockDisplay::<BinaryColor>::new();
             display.set_allow_out_of_bounds_drawing(true);
+            display.set_allow_overdraw(true);
 
             // Simulate drawing without optimization
-            for i in 0..vertical_data.len() - 1 {
-                let p1 = vertical_data.as_slice()[i];
-                let p2 = vertical_data.as_slice()[i + 1];
-                // Direct pixel drawing
-                for y in (p1.y as i32)..(p2.y as i32) {
-                    display.draw_pixel(Point::new(p1.x as i32, y), BinaryColor::On);
+            for x in 10..20 {
+                for y in 10..50 {
+                    display.draw_pixel(Point::new(x * 3, y), BinaryColor::On);
                 }
             }
             black_box(display);
@@ -62,17 +60,17 @@ fn bench_oled_optimizations(c: &mut Criterion) {
 
     group.bench_function("optimized_vertical", |b| {
         b.iter(|| {
-            let display = MockDisplay::<BinaryColor>::new();
+            let mut display = MockDisplay::<BinaryColor>::new();
+            display.set_allow_overdraw(true);
             let mut renderer = OLEDRenderer::new(display);
 
             renderer.begin_batch();
-            for i in 0..vertical_data.len() - 1 {
-                let p1 = vertical_data.as_slice()[i];
-                let p2 = vertical_data.as_slice()[i + 1];
+            // Draw simple vertical lines to test optimization
+            for x in 10..20 {
                 renderer
                     .draw_line_optimized(
-                        Point::new(p1.x as i32, p1.y as i32),
-                        Point::new(p2.x as i32, p2.y as i32),
+                        Point::new(x * 3, 10),
+                        Point::new(x * 3, 50),
                         BinaryColor::On,
                         1,
                     )
@@ -96,6 +94,7 @@ fn bench_tft_optimizations(c: &mut Criterion) {
         b.iter(|| {
             let mut display = MockDisplay::<Rgb565>::new();
             display.set_allow_out_of_bounds_drawing(true);
+            display.set_allow_overdraw(true);
 
             // Simulate standard line drawing
             for i in 0..data.len() - 1 {
@@ -120,7 +119,8 @@ fn bench_tft_optimizations(c: &mut Criterion) {
 
     group.bench_function("optimized_rendering", |b| {
         b.iter(|| {
-            let display = MockDisplay::<Rgb565>::new();
+            let mut display = MockDisplay::<Rgb565>::new();
+            display.set_allow_overdraw(true);
             let mut renderer = TFTRenderer::new(display);
 
             renderer.begin_batch();
@@ -144,13 +144,14 @@ fn bench_tft_optimizations(c: &mut Criterion) {
     // Benchmark horizontal line optimization (common in bar charts)
     group.bench_function("horizontal_lines", |b| {
         b.iter(|| {
-            let display = MockDisplay::<Rgb565>::new();
+            let mut display = MockDisplay::<Rgb565>::new();
+            display.set_allow_overdraw(true);
             let mut renderer = TFTRenderer::new(display);
 
             renderer.begin_batch();
-            for y in (0..100).step_by(5) {
+            for y in (0..60).step_by(5) {
                 renderer
-                    .draw_line_optimized(Point::new(10, y), Point::new(300, y), Rgb565::RED, 1)
+                    .draw_line_optimized(Point::new(5, y), Point::new(60, y), Rgb565::RED, 1)
                     .ok();
             }
             renderer.end_batch();
@@ -170,10 +171,11 @@ fn bench_epaper_optimizations(c: &mut Criterion) {
         b.iter(|| {
             let mut display = MockDisplay::<BinaryColor>::new();
             display.set_allow_out_of_bounds_drawing(true);
+            display.set_allow_overdraw(true);
 
             // Simulate full screen update
-            for y in 0..128 {
-                for x in 0..296 {
+            for y in 0..64 {
+                for x in 0..64 {
                     let color = if (x + y) % 2 == 0 {
                         BinaryColor::On
                     } else {
@@ -188,20 +190,21 @@ fn bench_epaper_optimizations(c: &mut Criterion) {
 
     group.bench_function("partial_refresh", |b| {
         b.iter(|| {
-            let display = MockDisplay::<BinaryColor>::new();
+            let mut display = MockDisplay::<BinaryColor>::new();
+            display.set_allow_overdraw(true);
             let mut renderer = EPaperRenderer::new(display);
 
             renderer.begin_batch();
             // Only update specific regions
             renderer
                 .draw_filled_rect_optimized(
-                    Rectangle::new(Point::new(50, 50), Size::new(100, 50)),
+                    Rectangle::new(Point::new(10, 10), Size::new(20, 20)),
                     BinaryColor::On,
                 )
                 .ok();
             renderer
                 .draw_filled_rect_optimized(
-                    Rectangle::new(Point::new(200, 70), Size::new(50, 30)),
+                    Rectangle::new(Point::new(35, 35), Size::new(20, 20)),
                     BinaryColor::Off,
                 )
                 .ok();
@@ -220,7 +223,7 @@ fn bench_chart_with_optimizations(c: &mut Criterion) {
 
     let data = create_test_data(200, false);
     let config = ChartConfig::<Rgb565>::default();
-    let viewport = Rectangle::new(Point::new(40, 40), Size::new(240, 160));
+    let viewport = Rectangle::new(Point::new(5, 5), Size::new(54, 54));
     let chart = LineChart::builder()
         .line_color(Rgb565::BLUE)
         .line_width(2)
@@ -231,6 +234,7 @@ fn bench_chart_with_optimizations(c: &mut Criterion) {
         b.iter(|| {
             let mut display = MockDisplay::<Rgb565>::new();
             display.set_allow_out_of_bounds_drawing(true);
+            display.set_allow_overdraw(true);
             chart
                 .draw(
                     black_box(&data),
@@ -246,7 +250,8 @@ fn bench_chart_with_optimizations(c: &mut Criterion) {
     // This demonstrates the potential integration
     group.bench_function("optimized_chart_simulation", |b| {
         b.iter(|| {
-            let display = MockDisplay::<Rgb565>::new();
+            let mut display = MockDisplay::<Rgb565>::new();
+            display.set_allow_overdraw(true);
             let mut renderer = TFTRenderer::new(display);
 
             renderer.begin_batch();
@@ -256,12 +261,12 @@ fn bench_chart_with_optimizations(c: &mut Criterion) {
                 let p2 = data.as_slice()[i + 1];
 
                 // Transform to viewport coordinates
-                let x1 = viewport.top_left.x + ((p1.x / 200.0) * viewport.size.width as f32) as i32;
+                let x1 = viewport.top_left.x + ((p1.x / 60.0) * viewport.size.width as f32) as i32;
                 let y1 = viewport.top_left.y + viewport.size.height as i32
-                    - ((p1.y / 100.0) * viewport.size.height as f32) as i32;
-                let x2 = viewport.top_left.x + ((p2.x / 200.0) * viewport.size.width as f32) as i32;
+                    - ((p1.y / 60.0) * viewport.size.height as f32) as i32;
+                let x2 = viewport.top_left.x + ((p2.x / 60.0) * viewport.size.width as f32) as i32;
                 let y2 = viewport.top_left.y + viewport.size.height as i32
-                    - ((p2.y / 100.0) * viewport.size.height as f32) as i32;
+                    - ((p2.y / 60.0) * viewport.size.height as f32) as i32;
 
                 renderer
                     .draw_line_optimized(Point::new(x1, y1), Point::new(x2, y2), Rgb565::BLUE, 2)
