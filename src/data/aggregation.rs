@@ -86,7 +86,7 @@
 use crate::data::{DataPoint, DataSeries, StaticDataSeries};
 use crate::error::{DataError, DataResult};
 
-#[cfg(not(feature = "std"))]
+#[cfg(all(not(feature = "std"), feature = "floating-point"))]
 use micromath::F32Ext;
 
 /// Strategy for aggregating multiple data points into a single representative point

@@ -8,7 +8,10 @@ use embedded_graphics::{
     primitives::{Circle, Line, PrimitiveStyle, PrimitiveStyleBuilder, Rectangle},
 };
 
-#[cfg(not(feature = "std"))]
+#[cfg(all(
+    not(feature = "std"),
+    any(feature = "animations", feature = "smooth-curves")
+))]
 use micromath::F32Ext;
 
 /// Main renderer for chart components
