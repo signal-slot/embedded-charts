@@ -21,34 +21,7 @@ fn main() {
 
 #[cfg(all(feature = "std", feature = "line"))]
 fn main() -> ChartResult<()> {
-    use embedded_charts::{
-        chart::{line::LineChart, Chart, ChartBuilder},
-        data::{DataSeries, Point2D, StaticDataSeries},
-        platform::{self, PlatformOptimized},
-    };
-
-    // Generate test data using both standard and platform-optimized math
-    let mut standard_data = StaticDataSeries::<Point2D, 256>::new();
-    let mut optimized_data = StaticDataSeries::<Point2D, 256>::new();
-
-    println!("Generating test data...");
-    for i in 0..100 {
-        let x = i as f32;
-        let angle = x * 0.1;
-
-        // Standard trigonometry
-        let y_std = 50.0 + 30.0 * angle.sin();
-        standard_data.push(Point2D { x, y: y_std })?;
-
-        // Platform-optimized trigonometry
-        let y_opt = 50.0 + 30.0 * platform::GenericPlatform::fast_sin(angle);
-        optimized_data.push(Point2D { x, y: y_opt })?;
-    }
-    
-    // Debug: print data bounds
-    let bounds = standard_data.bounds()?;
-    println!("Data bounds: x=[{:.1}, {:.1}], y=[{:.1}, {:.1}]", 
-        bounds.min_x, bounds.max_x, bounds.min_y, bounds.max_y);
+    use embedded_charts::platform::{self, PlatformOptimized};
 
     // Show performance comparison
     println!("\nPerformance comparison:");
@@ -98,37 +71,149 @@ fn main() -> ChartResult<()> {
             .background(Rgb565::BLACK)
             .size(Size::new(800, 600)),
         move |display, viewport, _time| {
-            // Create chart configuration
-            let mut chart_config = ChartConfig::<Rgb565>::default();
-            chart_config.margins = Margins::new(20, 20, 20, 20);
-            chart_config.background_color = None; // Don't fill background
-            chart_config.show_grid = false;
+            // Import needed for drawing primitives
+            use embedded_graphics::{
+                primitives::{Circle, Line, PrimitiveStyle, Rectangle},
+                Drawable,
+            };
 
-            // Draw standard sine wave
-            let chart1 = LineChart::builder()
-                .line_color(Rgb565::CYAN)
-                .line_width(3)
-                .build()?;
+            // Clear the entire viewport first
+            use embedded_graphics::primitives::PrimitiveStyleBuilder;
+            Rectangle::new(viewport.top_left, viewport.size)
+                .into_styled(
+                    PrimitiveStyleBuilder::new()
+                        .fill_color(Rgb565::BLACK)
+                        .build(),
+                )
+                .draw(display)
+                .map_err(|_| ChartError::RenderingError)?;
 
             let viewport1 = Rectangle::new(
-                Point::new(10, 30),
-                Size::new(viewport.size.width - 20, (viewport.size.height - 60) / 2),
+                Point::new(40, 60),
+                Size::new(viewport.size.width - 80, (viewport.size.height - 140) / 2),
             );
-
-            chart1.draw(&standard_data, &chart_config, viewport1, display)?;
-
-            // Draw optimized sine wave
-            let chart2 = LineChart::builder()
-                .line_color(Rgb565::YELLOW)
-                .line_width(3)
-                .build()?;
 
             let viewport2 = Rectangle::new(
-                Point::new(10, viewport.size.height as i32 / 2 + 30),
-                Size::new(viewport.size.width - 20, (viewport.size.height - 60) / 2),
+                Point::new(40, viewport.size.height as i32 / 2 + 40),
+                Size::new(viewport.size.width - 80, (viewport.size.height - 140) / 2),
             );
 
-            chart2.draw(&optimized_data, &chart_config, viewport2, display)?;
+            // Draw borders only (no fill)
+            viewport1
+                .into_styled(PrimitiveStyle::with_stroke(Rgb565::WHITE, 1))
+                .draw(display)
+                .map_err(|_| ChartError::RenderingError)?;
+
+            viewport2
+                .into_styled(PrimitiveStyle::with_stroke(Rgb565::WHITE, 1))
+                .draw(display)
+                .map_err(|_| ChartError::RenderingError)?;
+
+            // Draw axes for reference
+            Line::new(
+                Point::new(
+                    viewport1.top_left.x,
+                    viewport1.top_left.y + viewport1.size.height as i32 / 2,
+                ),
+                Point::new(
+                    viewport1.top_left.x + viewport1.size.width as i32,
+                    viewport1.top_left.y + viewport1.size.height as i32 / 2,
+                ),
+            )
+            .into_styled(PrimitiveStyle::with_stroke(Rgb565::new(20, 20, 20), 1))
+            .draw(display)
+            .map_err(|_| ChartError::RenderingError)?;
+
+            // Draw standard sine wave
+            let points = 400;
+            let mut prev_point = None;
+
+            for i in 0..=points {
+                let t = i as f32 / points as f32;
+                let x = t * viewport1.size.width as f32;
+                let angle = t * 4.0 * std::f32::consts::PI;
+                let y = angle.sin();
+
+                // Map to screen coordinates
+                let screen_x = viewport1.top_left.x + x as i32;
+                let screen_y = viewport1.top_left.y + (viewport1.size.height as i32 / 2)
+                    - (y * (viewport1.size.height as f32 * 0.4)) as i32;
+
+                let current_point = Point::new(screen_x, screen_y);
+
+                // Draw line segment
+                if let Some(prev) = prev_point {
+                    Line::new(prev, current_point)
+                        .into_styled(PrimitiveStyle::with_stroke(Rgb565::new(0, 63, 63), 3))
+                        .draw(display)
+                        .map_err(|_| ChartError::RenderingError)?;
+                }
+
+                prev_point = Some(current_point);
+            }
+
+            // Draw axes for reference
+            Line::new(
+                Point::new(
+                    viewport2.top_left.x,
+                    viewport2.top_left.y + viewport2.size.height as i32 / 2,
+                ),
+                Point::new(
+                    viewport2.top_left.x + viewport2.size.width as i32,
+                    viewport2.top_left.y + viewport2.size.height as i32 / 2,
+                ),
+            )
+            .into_styled(PrimitiveStyle::with_stroke(Rgb565::new(20, 20, 20), 1))
+            .draw(display)
+            .map_err(|_| ChartError::RenderingError)?;
+
+            // Draw optimized sine wave
+            let mut prev_point = None;
+
+            for i in 0..=points {
+                let t = i as f32 / points as f32;
+                let x = t * viewport2.size.width as f32;
+                let angle = t * 4.0 * std::f32::consts::PI;
+                let y = platform::GenericPlatform::fast_sin(angle);
+
+                // Map to screen coordinates
+                let screen_x = viewport2.top_left.x + x as i32;
+                let screen_y = viewport2.top_left.y + (viewport2.size.height as i32 / 2)
+                    - (y * (viewport2.size.height as f32 * 0.4)) as i32;
+
+                let current_point = Point::new(screen_x, screen_y);
+
+                // Draw line segment
+                if let Some(prev) = prev_point {
+                    Line::new(prev, current_point)
+                        .into_styled(PrimitiveStyle::with_stroke(Rgb565::new(63, 63, 0), 3))
+                        .draw(display)
+                        .map_err(|_| ChartError::RenderingError)?;
+                }
+
+                prev_point = Some(current_point);
+            }
+
+            // Draw difference indicators where errors are significant
+            for i in (0..=points).step_by(20) {
+                let t = i as f32 / points as f32;
+                let x = t * viewport2.size.width as f32;
+                let angle = t * 4.0 * std::f32::consts::PI;
+                let y_std = angle.sin();
+                let y_opt = platform::GenericPlatform::fast_sin(angle);
+                let diff = (y_std - y_opt).abs();
+
+                if diff > 0.001 {
+                    let screen_x = viewport2.top_left.x + x as i32;
+                    let screen_y = viewport2.top_left.y + (viewport2.size.height as i32 / 2)
+                        - (y_opt * (viewport2.size.height as f32 * 0.4)) as i32;
+
+                    Circle::new(Point::new(screen_x - 3, screen_y - 3), 7)
+                        .into_styled(PrimitiveStyle::with_fill(Rgb565::new(63, 0, 0)))
+                        .draw(display)
+                        .map_err(|_| ChartError::RenderingError)?;
+                }
+            }
 
             // Add labels
             use embedded_graphics::{
@@ -136,11 +221,11 @@ fn main() -> ChartResult<()> {
                 text::{Baseline, Text},
             };
 
-            let text_style = MonoTextStyle::new(&FONT_6X10, Rgb565::WHITE);
+            let text_style = MonoTextStyle::new(&FONT_6X10, Rgb565::new(63, 63, 63));
 
             Text::with_baseline(
                 "Standard sin() function",
-                Point::new(20, 10),
+                Point::new(50, 40),
                 text_style,
                 Baseline::Top,
             )
@@ -149,18 +234,30 @@ fn main() -> ChartResult<()> {
 
             Text::with_baseline(
                 "Platform-optimized fast_sin()",
-                Point::new(20, viewport.size.height as i32 / 2 + 10),
+                Point::new(50, viewport.size.height as i32 / 2 + 20),
                 text_style,
                 Baseline::Top,
             )
             .draw(display)
             .map_err(|_| ChartError::RenderingError)?;
 
-            // Add performance info in the corner
-            let perf_text = format!("Error: <0.001%");
+            // Add performance info
             Text::with_baseline(
-                &perf_text,
-                Point::new(viewport.size.width as i32 - 100, 10),
+                "Error: <0.001%",
+                Point::new(viewport.size.width as i32 - 100, 40),
+                text_style,
+                Baseline::Top,
+            )
+            .draw(display)
+            .map_err(|_| ChartError::RenderingError)?;
+
+            // Add legend
+            Text::with_baseline(
+                "Red dots indicate differences > 0.001",
+                Point::new(
+                    viewport.size.width as i32 / 2 - 100,
+                    viewport.size.height as i32 - 20,
+                ),
                 text_style,
                 Baseline::Top,
             )
