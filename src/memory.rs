@@ -4,6 +4,10 @@ use crate::data::DataPoint;
 use crate::error::{DataError, DataResult};
 use heapless::Vec;
 
+// Memory pool management
+pub mod pool;
+pub use pool::{AllocationHandle, MemoryPoolManager, MemoryUsage, PoolSize, PoolStats};
+
 /// Fixed-capacity collections wrapper for chart data
 pub struct FixedCapacityCollections;
 
