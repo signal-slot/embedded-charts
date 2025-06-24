@@ -10,7 +10,7 @@ fn main() {
 #[cfg(feature = "line")]
 use embedded_charts::{
     chart::{line::LineChart, Chart, ChartBuilder},
-    data::{Point2D, StaticDataSeries},
+    data::{DataSeries, Point2D, StaticDataSeries},
     platform::{self, PlatformOptimized},
 };
 #[cfg(feature = "line")]
@@ -21,18 +21,18 @@ use embedded_graphics::{
 #[cfg(feature = "line")]
 fn main() {
     // Create a display
-    let mut display = MockDisplay::<BinaryColor>::new();
+    let mut display: MockDisplay<BinaryColor> = MockDisplay::new();
     display.set_allow_overdraw(true);
 
     // Generate test data using platform-optimized math
     let mut data = StaticDataSeries::<Point2D, 256>::new();
 
-    for i in 0..100 {
+    for i in 0..50 {
         let x = i as f32;
-        let angle = x * 0.1;
+        let angle = x * 0.2;
 
         // Use platform-optimized trigonometry
-        let y = 30.0 + 20.0 * platform::GenericPlatform::fast_sin(angle);
+        let y = 25.0 + 15.0 * platform::GenericPlatform::fast_sin(angle);
 
         data.push(Point2D { x, y }).ok();
     }
@@ -44,39 +44,29 @@ fn main() {
         .build()
         .expect("Failed to build chart");
 
-    // Draw the chart
-    let viewport = Rectangle::new(Point::new(10, 10), Size::new(100, 50));
-    let config = embedded_charts::chart::ChartConfig::default();
+    // Draw the chart (MockDisplay default size is 64x64)
+    let viewport = Rectangle::new(Point::new(5, 5), Size::new(54, 40));
+    let mut config = embedded_charts::chart::ChartConfig::<BinaryColor>::default();
+    config.margins.top = 2;
+    config.margins.bottom = 2;
+    config.margins.left = 2;
+    config.margins.right = 2;
     if let Err(e) = chart.draw(&data, &config, viewport, &mut display) {
         eprintln!("Failed to draw chart: {:?}", e);
     }
 
-    // Demonstrate platform-optimized line drawing
-    println!("Drawing optimized line...");
-    let start = Point2D { x: 0.0, y: 0.0 };
-    let end = Point2D { x: 50.0, y: 30.0 };
-
-    let mut pixel_count = 0;
-    platform::GenericPlatform::draw_line_optimized(start, end, |x, y| {
-        pixel_count += 1;
-        // In a real implementation, this would plot the pixel
-        let _ = (x, y);
-    });
-
-    println!("Line drawn with {pixel_count} pixels");
-
-    // Demonstrate platform-optimized rectangle filling
-    println!("Filling optimized rectangle...");
-    let top_left = Point2D { x: 10.0, y: 10.0 };
-
-    let mut fill_count = 0;
-    platform::GenericPlatform::fill_rect_optimized(top_left, 20, 15, |x, y| {
-        fill_count += 1;
-        // In a real implementation, this would plot the pixel
-        let _ = (x, y);
-    });
-
-    println!("Rectangle filled with {fill_count} pixels");
+    // Print chart stats
+    println!("\nChart rendered successfully!");
+    println!("Data points: {}", data.len());
+    println!("Viewport: {}x{} at ({}, {})", 
+        viewport.size.width, viewport.size.height,
+        viewport.top_left.x, viewport.top_left.y);
+    
+    // Show some pixel statistics
+    let pixel_count = display.affected_area().size.width * display.affected_area().size.height;
+    println!("\nChart visualization stats:");
+    println!("Affected area: {:?}", display.affected_area());
+    println!("Total pixels in affected area: {}", pixel_count);
 
     // Show performance comparison
     println!("\nPerformance comparison:");
