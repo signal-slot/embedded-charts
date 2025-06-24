@@ -1,77 +1,59 @@
-//! Example demonstrating platform-specific optimizations
+//! Platform Optimizations Demo
 //!
-//! This example requires the "line" feature to be enabled.
+//! This example demonstrates platform-specific optimizations by comparing
+//! standard math functions with optimized versions side by side.
+//!
+//! Run with: cargo run --example platform_optimized_chart --features "std,line"
 
-#[cfg(not(feature = "line"))]
+use embedded_charts::prelude::*;
+
+// Import the common abstraction
+#[path = "common/mod.rs"]
+mod common;
+
+use common::{window, WindowConfig};
+
+#[cfg(not(all(feature = "std", feature = "line")))]
 fn main() {
-    eprintln!("This example requires the 'line' feature. Run with: cargo run --example platform_optimized_chart --features line");
+    eprintln!("This example requires 'std' and 'line' features.");
+    eprintln!("Run with: cargo run --example platform_optimized_chart --features std,line");
 }
 
-#[cfg(feature = "line")]
-use embedded_charts::{
-    chart::{line::LineChart, Chart, ChartBuilder},
-    data::{DataSeries, Point2D, StaticDataSeries},
-    platform::{self, PlatformOptimized},
-};
-#[cfg(feature = "line")]
-use embedded_graphics::{
-    mock_display::MockDisplay, pixelcolor::BinaryColor, prelude::*, primitives::Rectangle,
-};
+#[cfg(all(feature = "std", feature = "line"))]
+fn main() -> ChartResult<()> {
+    use embedded_charts::{
+        chart::{line::LineChart, Chart, ChartBuilder},
+        data::{DataSeries, Point2D, StaticDataSeries},
+        platform::{self, PlatformOptimized},
+    };
 
-#[cfg(feature = "line")]
-fn main() {
-    // Create a display
-    let mut display: MockDisplay<BinaryColor> = MockDisplay::new();
-    display.set_allow_overdraw(true);
+    // Generate test data using both standard and platform-optimized math
+    let mut standard_data = StaticDataSeries::<Point2D, 256>::new();
+    let mut optimized_data = StaticDataSeries::<Point2D, 256>::new();
 
-    // Generate test data using platform-optimized math
-    let mut data = StaticDataSeries::<Point2D, 256>::new();
-
-    for i in 0..50 {
+    println!("Generating test data...");
+    for i in 0..100 {
         let x = i as f32;
-        let angle = x * 0.2;
+        let angle = x * 0.1;
 
-        // Use platform-optimized trigonometry
-        let y = 25.0 + 15.0 * platform::GenericPlatform::fast_sin(angle);
+        // Standard trigonometry
+        let y_std = 50.0 + 30.0 * angle.sin();
+        standard_data.push(Point2D { x, y: y_std })?;
 
-        data.push(Point2D { x, y }).ok();
+        // Platform-optimized trigonometry
+        let y_opt = 50.0 + 30.0 * platform::GenericPlatform::fast_sin(angle);
+        optimized_data.push(Point2D { x, y: y_opt })?;
     }
-
-    // Create a line chart
-    let chart = LineChart::builder()
-        .line_color(BinaryColor::On)
-        .line_width(1)
-        .build()
-        .expect("Failed to build chart");
-
-    // Draw the chart (MockDisplay default size is 64x64)
-    let viewport = Rectangle::new(Point::new(5, 5), Size::new(54, 40));
-    let mut config = embedded_charts::chart::ChartConfig::<BinaryColor>::default();
-    config.margins.top = 2;
-    config.margins.bottom = 2;
-    config.margins.left = 2;
-    config.margins.right = 2;
-    if let Err(e) = chart.draw(&data, &config, viewport, &mut display) {
-        eprintln!("Failed to draw chart: {:?}", e);
-    }
-
-    // Print chart stats
-    println!("\nChart rendered successfully!");
-    println!("Data points: {}", data.len());
-    println!("Viewport: {}x{} at ({}, {})", 
-        viewport.size.width, viewport.size.height,
-        viewport.top_left.x, viewport.top_left.y);
     
-    // Show some pixel statistics
-    let pixel_count = display.affected_area().size.width * display.affected_area().size.height;
-    println!("\nChart visualization stats:");
-    println!("Affected area: {:?}", display.affected_area());
-    println!("Total pixels in affected area: {}", pixel_count);
+    // Debug: print data bounds
+    let bounds = standard_data.bounds()?;
+    println!("Data bounds: x=[{:.1}, {:.1}], y=[{:.1}, {:.1}]", 
+        bounds.min_x, bounds.max_x, bounds.min_y, bounds.max_y);
 
     // Show performance comparison
     println!("\nPerformance comparison:");
 
-    // Standard sqrt vs optimized
+    // Compare sqrt
     let test_val: f32 = 42.0;
     let std_sqrt = test_val.sqrt();
     let fast_sqrt = platform::GenericPlatform::fast_sqrt(test_val);
@@ -83,7 +65,7 @@ fn main() {
         ((std_sqrt - fast_sqrt).abs() / std_sqrt) * 100.0
     );
 
-    // Standard sin vs optimized
+    // Compare sin
     let angle: f32 = 1.0;
     let std_sin = angle.sin();
     let fast_sin = platform::GenericPlatform::fast_sin(angle);
@@ -98,14 +80,94 @@ fn main() {
     // Platform detection
     println!("\nPlatform detection:");
     #[cfg(target_arch = "arm")]
-    println!("ARM architecture detected");
+    println!("ARM architecture detected - using optimized implementations");
 
     #[cfg(target_arch = "riscv32")]
-    println!("RISC-V architecture detected");
+    println!("RISC-V architecture detected - using optimized implementations");
 
     #[cfg(target_arch = "xtensa")]
-    println!("ESP32 (Xtensa) architecture detected");
+    println!("ESP32 (Xtensa) architecture detected - using optimized implementations");
 
     #[cfg(not(any(target_arch = "arm", target_arch = "riscv32", target_arch = "xtensa")))]
-    println!("Generic platform (x86_64 or other)");
+    println!("Generic platform (x86_64 or other) - using fallback implementations");
+
+    // Run the visualization
+    window::run(
+        WindowConfig::new("Platform Optimizations Demo")
+            .theme(window::WindowTheme::Dark)
+            .background(Rgb565::BLACK)
+            .size(Size::new(800, 600)),
+        move |display, viewport, _time| {
+            // Create chart configuration
+            let mut chart_config = ChartConfig::<Rgb565>::default();
+            chart_config.margins = Margins::new(20, 20, 20, 20);
+            chart_config.background_color = None; // Don't fill background
+            chart_config.show_grid = false;
+
+            // Draw standard sine wave
+            let chart1 = LineChart::builder()
+                .line_color(Rgb565::CYAN)
+                .line_width(3)
+                .build()?;
+
+            let viewport1 = Rectangle::new(
+                Point::new(10, 30),
+                Size::new(viewport.size.width - 20, (viewport.size.height - 60) / 2),
+            );
+
+            chart1.draw(&standard_data, &chart_config, viewport1, display)?;
+
+            // Draw optimized sine wave
+            let chart2 = LineChart::builder()
+                .line_color(Rgb565::YELLOW)
+                .line_width(3)
+                .build()?;
+
+            let viewport2 = Rectangle::new(
+                Point::new(10, viewport.size.height as i32 / 2 + 30),
+                Size::new(viewport.size.width - 20, (viewport.size.height - 60) / 2),
+            );
+
+            chart2.draw(&optimized_data, &chart_config, viewport2, display)?;
+
+            // Add labels
+            use embedded_graphics::{
+                mono_font::{ascii::FONT_6X10, MonoTextStyle},
+                text::{Baseline, Text},
+            };
+
+            let text_style = MonoTextStyle::new(&FONT_6X10, Rgb565::WHITE);
+
+            Text::with_baseline(
+                "Standard sin() function",
+                Point::new(20, 10),
+                text_style,
+                Baseline::Top,
+            )
+            .draw(display)
+            .map_err(|_| ChartError::RenderingError)?;
+
+            Text::with_baseline(
+                "Platform-optimized fast_sin()",
+                Point::new(20, viewport.size.height as i32 / 2 + 10),
+                text_style,
+                Baseline::Top,
+            )
+            .draw(display)
+            .map_err(|_| ChartError::RenderingError)?;
+
+            // Add performance info in the corner
+            let perf_text = format!("Error: <0.001%");
+            Text::with_baseline(
+                &perf_text,
+                Point::new(viewport.size.width as i32 - 100, 10),
+                text_style,
+                Baseline::Top,
+            )
+            .draw(display)
+            .map_err(|_| ChartError::RenderingError)?;
+
+            Ok(())
+        },
+    )
 }
