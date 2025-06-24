@@ -1,15 +1,25 @@
 //! Example demonstrating platform-specific optimizations
+//!
+//! This example requires the "line" feature to be enabled.
 
+#[cfg(not(feature = "line"))]
+fn main() {
+    eprintln!("This example requires the 'line' feature. Run with: cargo run --example platform_optimized_chart --features line");
+}
+
+#[cfg(feature = "line")]
 use embedded_charts::{
     chart::{line::LineChart, Chart, ChartBuilder},
     data::{Point2D, StaticDataSeries},
     platform::{self, PlatformOptimized},
 };
+#[cfg(feature = "line")]
 use embedded_graphics::{
     mock_display::MockDisplay, pixelcolor::BinaryColor, prelude::*, primitives::Rectangle,
 };
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+#[cfg(feature = "line")]
+fn main() {
     // Create a display
     let mut display = MockDisplay::<BinaryColor>::new();
     display.set_allow_overdraw(true);
@@ -24,19 +34,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Use platform-optimized trigonometry
         let y = 30.0 + 20.0 * platform::GenericPlatform::fast_sin(angle);
 
-        data.push(Point2D { x, y })?;
+        data.push(Point2D { x, y }).ok();
     }
 
     // Create a line chart
     let chart = LineChart::builder()
         .line_color(BinaryColor::On)
         .line_width(1)
-        .build()?;
+        .build()
+        .expect("Failed to build chart");
 
     // Draw the chart
     let viewport = Rectangle::new(Point::new(10, 10), Size::new(100, 50));
     let config = embedded_charts::chart::ChartConfig::default();
-    chart.draw(&data, &config, viewport, &mut display)?;
+    if let Err(e) = chart.draw(&data, &config, viewport, &mut display) {
+        eprintln!("Failed to draw chart: {:?}", e);
+    }
 
     // Demonstrate platform-optimized line drawing
     println!("Drawing optimized line...");
@@ -105,6 +118,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(not(any(target_arch = "arm", target_arch = "riscv32", target_arch = "xtensa")))]
     println!("Generic platform (x86_64 or other)");
-
-    Ok(())
 }
