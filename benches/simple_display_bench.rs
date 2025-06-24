@@ -12,7 +12,8 @@ use std::hint::black_box;
 fn bench_oled_vertical_lines(c: &mut Criterion) {
     c.bench_function("oled_vertical_line_batch", |b| {
         b.iter(|| {
-            let display = MockDisplay::<BinaryColor>::new();
+            let mut display = MockDisplay::<BinaryColor>::new();
+            display.set_allow_overdraw(true);
             let mut renderer = OLEDRenderer::new(display);
 
             renderer.begin_batch();
@@ -31,7 +32,8 @@ fn bench_oled_vertical_lines(c: &mut Criterion) {
 fn bench_tft_horizontal_lines(c: &mut Criterion) {
     c.bench_function("tft_horizontal_line_batch", |b| {
         b.iter(|| {
-            let display = MockDisplay::<Rgb565>::new();
+            let mut display = MockDisplay::<Rgb565>::new();
+            display.set_allow_overdraw(true);
             let mut renderer = TFTRenderer::new(display);
 
             renderer.begin_batch();
@@ -39,8 +41,8 @@ fn bench_tft_horizontal_lines(c: &mut Criterion) {
             for y in 0..50 {
                 renderer
                     .draw_line_optimized(
-                        Point::new(0, y * 3),
-                        Point::new(319, y * 3),
+                        Point::new(0, y),
+                        Point::new(63, y),
                         Rgb565::BLUE,
                         1,
                     )
