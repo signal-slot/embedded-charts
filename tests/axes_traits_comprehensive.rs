@@ -54,7 +54,7 @@ fn test_axis_value_i32_comprehensive() {
     assert_eq!(42i32.format(), "42");
     assert_eq!((-42i32).format(), "-42");
     assert_eq!(i32::MAX.format().len(), 10); // 2147483647
-    // Skip i32::MIN test as it may overflow with some feature combinations
+                                             // Skip i32::MIN test as it may overflow with some feature combinations
 }
 
 #[test]
