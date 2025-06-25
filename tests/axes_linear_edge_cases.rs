@@ -55,9 +55,7 @@ fn test_linear_axis_vertical_transformations() {
         // Allow larger tolerance for no_std math
         assert!(
             (back - value).abs() < 1.0,
-            "Round-trip for {} failed: got {}",
-            value,
-            back
+            "Round-trip for {value} failed: got {back}"
         );
     }
 
@@ -231,15 +229,11 @@ fn test_linear_axis_extreme_ranges() {
     // Just check that the coordinates are different and in reasonable order
     assert!(
         coord_neg <= coord_zero,
-        "coord_neg {} should be <= coord_zero {}",
-        coord_neg,
-        coord_zero
+        "coord_neg {coord_neg} should be <= coord_zero {coord_zero}"
     );
     assert!(
         coord_zero <= coord_pos,
-        "coord_zero {} should be <= coord_pos {}",
-        coord_zero,
-        coord_pos
+        "coord_zero {coord_zero} should be <= coord_pos {coord_pos}"
     );
 }
 
@@ -280,17 +274,14 @@ fn test_linear_axis_i32_type() {
     let expected = viewport.size.width as i32 / 2;
     assert!(
         (coord - expected).abs() <= 5,
-        "Expected coord ~{}, got {}",
-        expected,
-        coord
+        "Expected coord ~{expected}, got {coord}"
     );
 
     let value = axis.inverse_transform(expected, viewport);
     // With smaller viewport, precision is lower
     assert!(
         (value - 500).abs() <= 150,
-        "Expected value ~500, got {}",
-        value
+        "Expected value ~500, got {value}"
     );
 
     // Test drawing
