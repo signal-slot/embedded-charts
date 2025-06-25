@@ -42,12 +42,8 @@ fn test_linear_axis_inverse_transform_edge_cases() {
 
 #[test]
 fn test_linear_axis_vertical_transformations() {
-    let axis = LinearAxis::<f32, Rgb565>::new(
-        -50.0,
-        50.0,
-        AxisOrientation::Vertical,
-        AxisPosition::Left,
-    );
+    let axis =
+        LinearAxis::<f32, Rgb565>::new(-50.0, 50.0, AxisOrientation::Vertical, AxisPosition::Left);
 
     let viewport = Rectangle::new(Point::new(20, 20), Size::new(100, 200));
 
@@ -80,12 +76,8 @@ fn test_linear_axis_zero_sized_viewport() {
     assert_eq!(coord, 0); // Should handle gracefully
 
     // Zero height viewport for vertical axis
-    let axis = LinearAxis::<f32, Rgb565>::new(
-        0.0,
-        100.0,
-        AxisOrientation::Vertical,
-        AxisPosition::Left,
-    );
+    let axis =
+        LinearAxis::<f32, Rgb565>::new(0.0, 100.0, AxisOrientation::Vertical, AxisPosition::Left);
     let viewport = Rectangle::new(Point::new(0, 0), Size::new(100, 0));
     let coord = axis.transform_value(50.0, viewport);
     assert_eq!(coord, 0); // Should handle gracefully
@@ -104,31 +96,19 @@ fn test_linear_axis_required_space() {
     assert!(space > 0);
     assert!(space < 100); // Reasonable limit
 
-    let axis = LinearAxis::<f32, Rgb565>::new(
-        0.0,
-        100.0,
-        AxisOrientation::Vertical,
-        AxisPosition::Left,
-    );
+    let axis =
+        LinearAxis::<f32, Rgb565>::new(0.0, 100.0, AxisOrientation::Vertical, AxisPosition::Left);
     let space = axis.required_space();
     assert!(space > 0);
     assert!(space < 100);
 
-    let axis = LinearAxis::<f32, Rgb565>::new(
-        0.0,
-        100.0,
-        AxisOrientation::Vertical,
-        AxisPosition::Right,
-    );
+    let axis =
+        LinearAxis::<f32, Rgb565>::new(0.0, 100.0, AxisOrientation::Vertical, AxisPosition::Right);
     let space = axis.required_space();
     assert!(space > 0);
 
-    let axis = LinearAxis::<f32, Rgb565>::new(
-        0.0,
-        100.0,
-        AxisOrientation::Horizontal,
-        AxisPosition::Top,
-    );
+    let axis =
+        LinearAxis::<f32, Rgb565>::new(0.0, 100.0, AxisOrientation::Horizontal, AxisPosition::Top);
     let space = axis.required_space();
     assert!(space > 0);
 }
@@ -162,9 +142,7 @@ fn test_linear_axis_drawing_all_positions() {
             .collect();
         assert!(
             !pixels.is_empty(),
-            "No pixels drawn for {:?} {:?}",
-            orientation,
-            position
+            "No pixels drawn for {orientation:?} {position:?}"
         );
     }
 }
@@ -203,7 +181,10 @@ fn test_linear_axis_with_custom_tick_generator() {
     )
     .with_tick_generator(custom_ticks);
 
-    assert_eq!(<LinearTickGenerator as TickGenerator<f32>>::preferred_tick_count(axis.tick_generator()), 7);
+    assert_eq!(
+        <LinearTickGenerator as TickGenerator<f32>>::preferred_tick_count(axis.tick_generator()),
+        7
+    );
 
     let mut display = MockDisplay::<Rgb565>::new();
     let viewport = Rectangle::new(Point::new(0, 0), Size::new(300, 200));
@@ -234,7 +215,7 @@ fn test_linear_axis_extreme_ranges() {
         AxisPosition::Bottom,
     );
     let coord = axis.transform_value(5e-11, viewport);
-    assert!(coord >= 0 && coord <= 200);
+    assert!((0..=200).contains(&coord));
 
     // Range crossing zero with different magnitudes
     let axis = LinearAxis::<f32, Rgb565>::new(
@@ -253,34 +234,31 @@ fn test_linear_axis_extreme_ranges() {
 #[test]
 fn test_linear_axis_builder_comprehensive() {
     use embedded_charts::axes::LinearAxisBuilder;
-    
+
     // Test using the LinearAxisBuilder
-    let axis = LinearAxisBuilder::<f32, Rgb565>::new(
-        AxisOrientation::Vertical,
-        AxisPosition::Right,
-    )
-    .range(-10.0, 10.0)
-    .style(Default::default())
-    .tick_count(8)
-    .build()
-    .unwrap();
+    let axis =
+        LinearAxisBuilder::<f32, Rgb565>::new(AxisOrientation::Vertical, AxisPosition::Right)
+            .range(-10.0, 10.0)
+            .style(Default::default())
+            .tick_count(8)
+            .build()
+            .unwrap();
 
     assert_eq!(axis.min(), -10.0);
     assert_eq!(axis.max(), 10.0);
     assert_eq!(axis.orientation(), AxisOrientation::Vertical);
     assert_eq!(axis.position(), AxisPosition::Right);
-    assert_eq!(<LinearTickGenerator as TickGenerator<f32>>::preferred_tick_count(axis.tick_generator()), 8);
+    assert_eq!(
+        <LinearTickGenerator as TickGenerator<f32>>::preferred_tick_count(axis.tick_generator()),
+        8
+    );
 }
 
 #[test]
 fn test_linear_axis_i32_type() {
     // Test with integer axis values
-    let axis = LinearAxis::<i32, Rgb565>::new(
-        0,
-        1000,
-        AxisOrientation::Horizontal,
-        AxisPosition::Bottom,
-    );
+    let axis =
+        LinearAxis::<i32, Rgb565>::new(0, 1000, AxisOrientation::Horizontal, AxisPosition::Bottom);
 
     let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
 
@@ -330,7 +308,8 @@ fn test_linear_axis_orientation_specific_drawing() {
     for position in [AxisPosition::Top, AxisPosition::Bottom] {
         display.clear(Rgb565::BLACK).unwrap();
 
-        let axis = LinearAxis::<f32, Rgb565>::new(0.0, 100.0, AxisOrientation::Horizontal, position);
+        let axis =
+            LinearAxis::<f32, Rgb565>::new(0.0, 100.0, AxisOrientation::Horizontal, position);
 
         axis.draw(viewport, &mut display).unwrap();
 
