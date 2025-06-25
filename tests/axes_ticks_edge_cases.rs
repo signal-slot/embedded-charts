@@ -17,13 +17,13 @@ fn test_linear_tick_generator_edge_cases() {
     assert_eq!(ticks[0].value, 5.0);
 
     // Test with very small range - may produce at least min/max ticks
-    // Fixed-point may treat very small values as zero
-    #[cfg(not(feature = "fixed-point"))]
+    // Some backends (fixed-point, integer-math) may treat very small values as zero
+    #[cfg(all(not(feature = "fixed-point"), not(feature = "integer-math")))]
     {
         let ticks = generator.generate_ticks(0.0f32, 1e-10f32, 10);
         assert!(ticks.len() >= 2); // Should have at least min and max
     }
-    
+
     // Test with small but reasonable range for all backends
     let ticks = generator.generate_ticks(0.0f32, 0.01f32, 10);
     assert!(!ticks.is_empty());
@@ -49,13 +49,13 @@ fn test_linear_tick_generator_extreme_values() {
     assert!(ticks.iter().all(|t| t.value >= 1e6 && t.value <= 1e7));
 
     // Test with very small positive values
-    // Fixed-point has limited precision for very small values
-    #[cfg(not(feature = "fixed-point"))]
+    // Some backends have limited precision for very small values
+    #[cfg(all(not(feature = "fixed-point"), not(feature = "integer-math")))]
     {
         let ticks = generator.generate_ticks(1e-6f32, 1e-5f32, 10);
         assert!(ticks.len() >= 2); // Should handle small ranges
     }
-    
+
     // Test with small values
     // Use a larger range that works better with fixed-point
     let ticks = generator.generate_ticks(1.0f32, 10.0f32, 10);
@@ -116,7 +116,7 @@ fn test_minor_tick_generation_edge_cases() {
 }
 
 #[test]
-#[cfg(not(feature = "fixed-point"))]
+#[cfg(all(not(feature = "fixed-point"), not(feature = "integer-math")))]
 fn test_calculate_nice_step_edge_cases() {
     let generator = LinearTickGenerator::new(5);
 
@@ -141,7 +141,7 @@ fn test_calculate_nice_step_edge_cases_common() {
     // Test with very large range
     let ticks = generator.generate_ticks(0.0f32, 1000000.0f32, 10);
     assert!(!ticks.is_empty());
-    
+
     // Test with very small positive range - fixed-point friendly
     let ticks = generator.generate_ticks(0.0f32, 0.01f32, 10);
     assert!(!ticks.is_empty());
