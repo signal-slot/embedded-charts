@@ -3,7 +3,9 @@
 //! This test suite focuses on improving coverage for the ticks.rs module,
 //! specifically targeting edge cases and error conditions.
 
-use embedded_charts::axes::{CustomTickGenerator, LinearTickGenerator, LogTickGenerator, TickGenerator};
+use embedded_charts::axes::{
+    CustomTickGenerator, LinearTickGenerator, LogTickGenerator, TickGenerator,
+};
 
 #[test]
 fn test_linear_tick_generator_edge_cases() {
@@ -11,7 +13,7 @@ fn test_linear_tick_generator_edge_cases() {
 
     // Test with zero range
     let ticks = generator.generate_ticks(5.0f32, 5.0f32, 10);
-    assert!(ticks.len() >= 1); // Should at least have one tick
+    assert!(!ticks.is_empty()); // Should at least have one tick
     assert_eq!(ticks[0].value, 5.0);
 
     // Test with very small range - may produce at least min/max ticks
@@ -118,7 +120,7 @@ fn test_custom_tick_generator_capacity() {
 
     // Add more than 32 ticks (capacity limit)
     for i in 0..40 {
-        generator = generator.add_major_tick(i as f32, &format!("{}", i));
+        generator = generator.add_major_tick(i as f32, &format!("{i}"));
     }
 
     let ticks = generator.generate_ticks(0.0f32, 40.0f32, 50);
@@ -206,7 +208,7 @@ fn test_log_tick_generator_label_formatting() {
 
     // Check that we have some ticks
     assert!(!ticks.is_empty());
-    
+
     // Check tick labels exist
     let labeled_ticks: Vec<_> = ticks.iter().filter(|t| t.label.is_some()).collect();
     assert!(!labeled_ticks.is_empty());
@@ -222,12 +224,18 @@ fn test_log_tick_generator_label_formatting() {
 #[test]
 fn test_log_tick_generator_with_minor_ticks() {
     let generator = LogTickGenerator::new().with_minor_ticks();
-    assert_eq!(<LogTickGenerator as TickGenerator<f32>>::preferred_tick_count(&generator), 5);
+    assert_eq!(
+        <LogTickGenerator as TickGenerator<f32>>::preferred_tick_count(&generator),
+        5
+    );
 
     // Test that set_preferred_tick_count is ignored
     let mut generator = generator;
     <LogTickGenerator as TickGenerator<f32>>::set_preferred_tick_count(&mut generator, 10);
-    assert_eq!(<LogTickGenerator as TickGenerator<f32>>::preferred_tick_count(&generator), 5); // Should remain unchanged
+    assert_eq!(
+        <LogTickGenerator as TickGenerator<f32>>::preferred_tick_count(&generator),
+        5
+    ); // Should remain unchanged
 }
 
 #[test]
