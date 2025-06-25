@@ -203,7 +203,7 @@ fn test_linear_axis_with_custom_tick_generator() {
     )
     .with_tick_generator(custom_ticks);
 
-    assert_eq!(axis.tick_generator().preferred_tick_count(), 7);
+    assert_eq!(<LinearTickGenerator as TickGenerator<f32>>::preferred_tick_count(axis.tick_generator()), 7);
 
     let mut display = MockDisplay::<Rgb565>::new();
     let viewport = Rectangle::new(Point::new(0, 0), Size::new(300, 200));
@@ -269,7 +269,7 @@ fn test_linear_axis_builder_comprehensive() {
     assert_eq!(axis.max(), 10.0);
     assert_eq!(axis.orientation(), AxisOrientation::Vertical);
     assert_eq!(axis.position(), AxisPosition::Right);
-    assert_eq!(axis.tick_generator().preferred_tick_count(), 8);
+    assert_eq!(<LinearTickGenerator as TickGenerator<f32>>::preferred_tick_count(axis.tick_generator()), 8);
 }
 
 #[test]
