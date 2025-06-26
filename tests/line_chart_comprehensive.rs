@@ -3,8 +3,6 @@
 //!
 //! This test suite covers:
 //! - Grid system integration
-
-#![cfg(feature = "line")]
 //! - Axis integration and AxisChart trait
 //! - Transform point method with various scenarios
 //! - All marker shapes (Circle, Square, Diamond, Triangle)
