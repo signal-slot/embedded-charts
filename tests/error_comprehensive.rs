@@ -2,8 +2,11 @@
 //! Target: Increase coverage from 2.46% to 70%
 
 use embedded_charts::error::{
-    AnimationError, ChartError, DataError, DataErrorKind, ErrorContext, LayoutError, RenderError,
+    ChartError, DataError, DataErrorKind, ErrorContext, LayoutError, RenderError,
 };
+
+#[cfg(feature = "animations")]
+use embedded_charts::error::AnimationError;
 
 #[test]
 fn test_error_context_creation() {

@@ -1,5 +1,7 @@
 //! Comprehensive tests for chart/curve.rs module
 
+#![cfg(feature = "line")]
+
 use embedded_charts::axes::{AxisOrientation, AxisPosition, LinearAxis};
 use embedded_charts::chart::curve::{CurveChart, CurveChartBuilder};
 use embedded_charts::chart::line::{LineChartStyle, MarkerStyle};
