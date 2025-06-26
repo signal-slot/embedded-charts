@@ -2,13 +2,13 @@
 //!
 //! These tests verify that the API works correctly and charts can be created and rendered.
 
-use embedded_charts::{
-    chart::traits::{Chart, ChartBuilder},
-    data::{
-        point::Point2D,
-        series::{DataSeries, StaticDataSeries},
-    },
+use embedded_charts::data::{
+    point::Point2D,
+    series::{DataSeries, StaticDataSeries},
 };
+
+#[cfg(any(feature = "line", feature = "bar", feature = "pie", feature = "gauge", feature = "scatter", feature = "stacked-charts"))]
+use embedded_charts::chart::traits::{Chart, ChartBuilder};
 
 #[cfg(feature = "line")]
 use embedded_charts::chart::line::LineChart;
@@ -18,6 +18,8 @@ use embedded_charts::chart::bar::BarChart;
 
 #[cfg(feature = "pie")]
 use embedded_charts::chart::pie::PieChart;
+
+#[cfg(any(feature = "line", feature = "bar", feature = "pie", feature = "gauge", feature = "scatter", feature = "stacked-charts"))]
 use embedded_graphics::{
     mock_display::MockDisplay, pixelcolor::Rgb565, prelude::*, primitives::Rectangle,
 };
