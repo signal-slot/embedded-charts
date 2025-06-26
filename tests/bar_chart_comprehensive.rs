@@ -3,8 +3,6 @@
 //!
 //! This test suite covers:
 //! - Bar chart creation and configuration
-
-#![cfg(feature = "bar")]
 //! - Different bar width types (Fixed, Percentage, Auto)
 //! - Bar orientations (Vertical, Horizontal)
 //! - Border styling and rendering
