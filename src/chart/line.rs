@@ -973,12 +973,24 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::data::series::StaticDataSeries;
+    use crate::data::{DataBounds, Point2D};
+    use crate::grid::GridSystem;
+    use crate::axes::{LinearAxis, AxisOrientation, AxisPosition};
     use embedded_graphics::pixelcolor::Rgb565;
+    use embedded_graphics::primitives::Rectangle;
+    use embedded_graphics::mock_display::MockDisplay;
 
     #[test]
     fn test_line_chart_creation() {
         let chart: LineChart<Rgb565> = LineChart::new();
         assert_eq!(chart.style().line_width, 1);
+        assert_eq!(chart.style().line_color, Rgb565::BLUE);
+        assert!(!chart.style().fill_area);
+        assert!(chart.style().fill_color.is_none());
+        assert!(chart.style().markers.is_none());
+        assert!(!chart.style().smooth);
+        assert_eq!(chart.style().smooth_subdivisions, 8);
     }
 
     #[test]
@@ -1004,6 +1016,513 @@ mod tests {
 
         assert_eq!(marker.shape, MarkerShape::Diamond);
         assert_eq!(marker.size, 8);
+        assert_eq!(marker.color, Rgb565::GREEN);
+        assert!(marker.visible);
+    }
+
+    #[test]
+    fn test_line_chart_default() {
+        let chart: LineChart<Rgb565> = LineChart::default();
+        assert_eq!(chart.style().line_color, Rgb565::BLUE);
+        assert_eq!(chart.style().line_width, 1);
+    }
+
+    #[test]
+    fn test_line_chart_style_default() {
+        let style: LineChartStyle<Rgb565> = LineChartStyle::default();
+        assert_eq!(style.line_color, Rgb565::BLUE);
+        assert_eq!(style.line_width, 1);
+        assert!(!style.fill_area);
+        assert!(style.fill_color.is_none());
+        assert!(style.markers.is_none());
+        assert!(!style.smooth);
+        assert_eq!(style.smooth_subdivisions, 8);
+    }
+
+    #[test]
+    fn test_marker_style_default() {
+        let marker: MarkerStyle<Rgb565> = MarkerStyle::default();
+        assert_eq!(marker.shape, MarkerShape::Circle);
+        assert_eq!(marker.size, 4);
+        assert_eq!(marker.color, Rgb565::RED);
+        assert!(marker.visible);
+    }
+
+    #[test]
+    fn test_line_chart_builder_default() {
+        let builder: LineChartBuilder<Rgb565> = LineChartBuilder::default();
+        let chart = builder.build().unwrap();
+        assert_eq!(chart.style().line_color, Rgb565::BLUE);
+    }
+
+    #[test]
+    fn test_setters() {
+        let mut chart: LineChart<Rgb565> = LineChart::new();
+        
+        // Test style setter
+        let style = LineChartStyle {
+            line_color: Rgb565::MAGENTA,
+            line_width: 5,
+            fill_area: true,
+            fill_color: Some(Rgb565::CYAN),
+            markers: Some(MarkerStyle::default()),
+            smooth: true,
+            smooth_subdivisions: 12,
+        };
+        chart.set_style(style.clone());
+        assert_eq!(chart.style().line_color, Rgb565::MAGENTA);
+        assert_eq!(chart.style().line_width, 5);
+        assert!(chart.style().fill_area);
+        
+        // Test config setter
+        let config = ChartConfig {
+            title: None,
+            background_color: Some(Rgb565::BLACK),
+            margins: Margins::all(20),
+            show_grid: true,
+            grid_color: Some(Rgb565::CSS_GRAY),
+        };
+        chart.set_config(config);
+        assert_eq!(chart.config().margins.top, 20);
+        
+        // Test grid setter
+        let grid = GridSystem::new();
+        chart.set_grid(Some(grid));
+        assert!(chart.grid().is_some());
+        
+        chart.set_grid(None);
+        assert!(chart.grid().is_none());
+    }
+
+    #[test]
+    fn test_builder_all_options() {
+        let grid = GridSystem::new();
+        let x_axis = LinearAxis::new(0.0, 100.0, AxisOrientation::Horizontal, AxisPosition::Bottom);
+        let y_axis = LinearAxis::new(0.0, 50.0, AxisOrientation::Vertical, AxisPosition::Left);
+        
+        let chart = LineChart::builder()
+            .line_color(Rgb565::GREEN)
+            .line_width(4)
+            .fill_area(Rgb565::CSS_LIGHT_GREEN)
+            .with_markers(MarkerStyle {
+                shape: MarkerShape::Square,
+                size: 6,
+                color: Rgb565::RED,
+                visible: true,
+            })
+            .smooth(true)
+            .smooth_subdivisions(16)
+            .with_title("Test Chart")
+            .background_color(Rgb565::BLACK)
+            .margins(Margins::new(5, 10, 15, 20))
+            .with_grid(grid)
+            .with_x_axis(x_axis)
+            .with_y_axis(y_axis)
+            .build()
+            .unwrap();
+        
+        assert_eq!(chart.style().line_color, Rgb565::GREEN);
+        assert_eq!(chart.style().line_width, 4);
+        assert!(chart.style().fill_area);
+        assert_eq!(chart.style().fill_color, Some(Rgb565::CSS_LIGHT_GREEN));
+        assert!(chart.style().markers.is_some());
+        assert!(chart.style().smooth);
+        assert_eq!(chart.style().smooth_subdivisions, 16);
+        assert_eq!(chart.config().margins.top, 5);
+        assert_eq!(chart.config().margins.right, 10);
+        assert_eq!(chart.config().margins.bottom, 15);
+        assert_eq!(chart.config().margins.left, 20);
+        assert!(chart.grid().is_some());
+    }
+
+    #[test]
+    fn test_builder_edge_cases() {
+        // Test line width clamping
+        let chart: LineChart<Rgb565> = LineChart::builder()
+            .line_width(50) // Should be clamped to 10
+            .build()
+            .unwrap();
+        assert_eq!(chart.style().line_width, 10); // Clamped to 10, not 20
+        
+        // Test smooth subdivisions clamping
+        let chart: LineChart<Rgb565> = LineChart::builder()
+            .smooth(true)
+            .smooth_subdivisions(100) // Should be clamped to 16
+            .build()
+            .unwrap();
+        assert_eq!(chart.style().smooth_subdivisions, 16);
+        
+        // Test minimum subdivisions
+        let chart: LineChart<Rgb565> = LineChart::builder()
+            .smooth(true)
+            .smooth_subdivisions(0) // Should be clamped to 2
+            .build()
+            .unwrap();
+        assert_eq!(chart.style().smooth_subdivisions, 2);
+    }
+
+    #[test]
+    fn test_transform_point_no_axes() {
+        let chart: LineChart<Rgb565> = LineChart::new();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let bounds = DataBounds::<f32, f32> {
+            min_x: 0.0,
+            max_x: 10.0,
+            min_y: 0.0,
+            max_y: 20.0,
+        };
+        
+        // Test origin point
+        let point = Point2D::new(0.0, 0.0);
+        let screen_point = chart.transform_point(&point, &bounds, viewport);
+        assert_eq!(screen_point.x, 10); // Left margin
+        assert_eq!(screen_point.y, 89); // Bottom minus margin
+        
+        // Test max point
+        let point = Point2D::new(10.0, 20.0);
+        let screen_point = chart.transform_point(&point, &bounds, viewport);
+        assert_eq!(screen_point.x, 189); // Right minus margin
+        assert_eq!(screen_point.y, 10); // Top margin
+    }
+
+    #[test]
+    fn test_transform_point_equal_bounds() {
+        let chart: LineChart<Rgb565> = LineChart::new();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        
+        // Test with equal min/max bounds
+        let bounds = DataBounds::<f32, f32> {
+            min_x: 5.0,
+            max_x: 5.0,
+            min_y: 10.0,
+            max_y: 10.0,
+        };
+        
+        let point = Point2D::new(5.0, 10.0);
+        let screen_point = chart.transform_point(&point, &bounds, viewport);
+        
+        // Should center the point
+        assert_eq!(screen_point.x, 99); // Center X
+        assert_eq!(screen_point.y, 50); // Center Y
+    }
+
+    #[test]
+    fn test_draw_empty_data() {
+        let chart: LineChart<Rgb565> = LineChart::new();
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(matches!(result, Err(ChartError::InsufficientData)));
+    }
+
+    #[test]
+    fn test_draw_single_point() {
+        let chart: LineChart<Rgb565> = LineChart::new();
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(5.0, 10.0)).unwrap();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_draw_with_background() {
+        let chart = LineChart::builder()
+            .background_color(Rgb565::BLACK)
+            .build()
+            .unwrap();
+            
+        let mut config = ChartConfig::default();
+        config.background_color = Some(Rgb565::WHITE);
+        
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(0.0, 0.0)).unwrap();
+        data.push(Point2D::new(10.0, 10.0)).unwrap();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_draw_all_marker_shapes() {
+        let shapes = [
+            MarkerShape::Circle,
+            MarkerShape::Square,
+            MarkerShape::Diamond,
+            MarkerShape::Triangle,
+        ];
+        
+        for shape in shapes {
+            let chart = LineChart::builder()
+                .with_markers(MarkerStyle {
+                    shape,
+                    size: 6,
+                    color: Rgb565::RED,
+                    visible: true,
+                })
+                .build()
+                .unwrap();
+                
+            let config = ChartConfig::default();
+            let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+            let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+            display.set_allow_overdraw(true);
+            display.set_allow_out_of_bounds_drawing(true);
+            
+            let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+            data.push(Point2D::new(0.0, 0.0)).unwrap();
+            data.push(Point2D::new(5.0, 10.0)).unwrap();
+            data.push(Point2D::new(10.0, 5.0)).unwrap();
+            
+            let result = chart.draw(&data, &config, viewport, &mut display);
+            assert!(result.is_ok(), "Failed to draw marker shape: {:?}", shape);
+        }
+    }
+
+    #[test]
+    fn test_draw_invisible_markers() {
+        let chart = LineChart::builder()
+            .with_markers(MarkerStyle {
+                shape: MarkerShape::Circle,
+                size: 6,
+                color: Rgb565::RED,
+                visible: false, // Invisible
+            })
+            .build()
+            .unwrap();
+            
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(0.0, 0.0)).unwrap();
+        data.push(Point2D::new(10.0, 10.0)).unwrap();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_draw_with_area_fill() {
+        let chart = LineChart::builder()
+            .line_color(Rgb565::BLUE)
+            .fill_area(Rgb565::CSS_LIGHT_BLUE)
+            .build()
+            .unwrap();
+            
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(0.0, 5.0)).unwrap();
+        data.push(Point2D::new(5.0, 15.0)).unwrap();
+        data.push(Point2D::new(10.0, 10.0)).unwrap();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_draw_smooth_curve() {
+        let chart = LineChart::builder()
+            .line_color(Rgb565::GREEN)
+            .smooth(true)
+            .smooth_subdivisions(8)
+            .build()
+            .unwrap();
+            
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(0.0, 0.0)).unwrap();
+        data.push(Point2D::new(5.0, 20.0)).unwrap();
+        data.push(Point2D::new(10.0, 10.0)).unwrap();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_draw_smooth_curve_insufficient_points() {
+        let chart = LineChart::builder()
+            .smooth(true)
+            .build()
+            .unwrap();
+            
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(0.0, 0.0)).unwrap();
+        data.push(Point2D::new(10.0, 10.0)).unwrap();
+        
+        // Should fall back to regular line with only 2 points
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_draw_with_axes() {
+        let mut chart: LineChart<Rgb565> = LineChart::new();
+        let x_axis = LinearAxis::new(0.0, 100.0, AxisOrientation::Horizontal, AxisPosition::Bottom);
+        let y_axis = LinearAxis::new(0.0, 50.0, AxisOrientation::Vertical, AxisPosition::Left);
+        
+        chart.set_x_axis(x_axis);
+        chart.set_y_axis(y_axis);
+        
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(0.0, 0.0)).unwrap();
+        data.push(Point2D::new(50.0, 25.0)).unwrap();
+        data.push(Point2D::new(100.0, 50.0)).unwrap();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_axis_getters() {
+        let mut chart: LineChart<Rgb565> = LineChart::new();
+        
+        // Test missing axes
+        assert!(matches!(chart.x_axis(), Err(ChartError::InvalidConfiguration)));
+        assert!(matches!(chart.y_axis(), Err(ChartError::InvalidConfiguration)));
+        
+        // Test with axes
+        let x_axis = LinearAxis::new(0.0, 100.0, AxisOrientation::Horizontal, AxisPosition::Bottom);
+        let y_axis = LinearAxis::new(0.0, 50.0, AxisOrientation::Vertical, AxisPosition::Left);
+        
+        chart.set_x_axis(x_axis);
+        chart.set_y_axis(y_axis);
+        
+        assert!(chart.x_axis().is_ok());
+        assert!(chart.y_axis().is_ok());
+    }
+
+    #[test]
+    fn test_marker_shape_equality() {
+        assert_eq!(MarkerShape::Circle, MarkerShape::Circle);
+        assert_ne!(MarkerShape::Circle, MarkerShape::Square);
+        assert_ne!(MarkerShape::Square, MarkerShape::Diamond);
+        assert_ne!(MarkerShape::Diamond, MarkerShape::Triangle);
+    }
+
+    #[test]
+    fn test_large_data_set() {
+        let chart = LineChart::new();
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(320, 240));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        
+        // Fill with maximum points
+        for i in 0..100 {
+            data.push(Point2D::new(i as f32, (i * 2) as f32)).unwrap();
+        }
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_viewport_edge_cases() {
+        let chart = LineChart::new();
+        let config = ChartConfig::default();
+        
+        // Very small viewport
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(10, 10));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(0.0, 0.0)).unwrap();
+        data.push(Point2D::new(10.0, 10.0)).unwrap();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_negative_data_values() {
+        let chart = LineChart::new();
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(-10.0, -20.0)).unwrap();
+        data.push(Point2D::new(0.0, 0.0)).unwrap();
+        data.push(Point2D::new(10.0, -10.0)).unwrap();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_transform_point_with_axes() {
+        let mut chart: LineChart<Rgb565> = LineChart::new();
+        let x_axis = LinearAxis::new(-50.0, 50.0, AxisOrientation::Horizontal, AxisPosition::Bottom);
+        let y_axis = LinearAxis::new(-100.0, 100.0, AxisOrientation::Vertical, AxisPosition::Left);
+        
+        chart.set_x_axis(x_axis);
+        chart.set_y_axis(y_axis);
+        
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let bounds = DataBounds::<f32, f32> {
+            min_x: -10.0,
+            max_x: 10.0,
+            min_y: -20.0,
+            max_y: 20.0,
+        };
+        
+        // Test origin point (0,0) which should be in the center
+        let point = Point2D::new(0.0, 0.0);
+        let screen_point = chart.transform_point(&point, &bounds, viewport);
+        
+        // Since axes range from -50 to 50 and -100 to 100, origin should be centered
+        assert_eq!(screen_point.x, 99); // Center X with margins
+        assert_eq!(screen_point.y, 50); // Center Y with margins
     }
 }
 
