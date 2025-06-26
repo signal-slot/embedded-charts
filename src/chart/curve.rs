@@ -475,7 +475,12 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::data::series::StaticDataSeries;
+    use crate::data::DataBounds;
+    use crate::chart::traits::Margins;
     use embedded_graphics::pixelcolor::Rgb565;
+    use embedded_graphics::primitives::Rectangle;
+    use embedded_graphics::mock_display::MockDisplay;
 
     #[test]
     fn test_curve_chart_creation() {
@@ -517,5 +522,351 @@ mod tests {
 
         assert_eq!(chart.interpolation_config().subdivisions, 32);
         assert_eq!(chart.interpolation_config().tension, 1.0);
+    }
+
+    #[test]
+    fn test_interpolate_data() {
+        let chart: CurveChart<Rgb565> = CurveChart::new();
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        
+        // Add some test points
+        data.push(Point2D::new(0.0, 0.0)).unwrap();
+        data.push(Point2D::new(1.0, 1.0)).unwrap();
+        data.push(Point2D::new(2.0, 0.5)).unwrap();
+        
+        let result = chart.interpolate_data(&data);
+        assert!(result.is_ok());
+        
+        let interpolated = result.unwrap();
+        // With 3 points and 8 subdivisions, we should get more than 3 points
+        assert!(interpolated.len() > 3);
+    }
+
+    #[test]
+    fn test_interpolate_data_memory_limits() {
+        let chart: CurveChart<Rgb565> = CurveChart::builder()
+            .subdivisions(32)
+            .build()
+            .unwrap();
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        
+        // Add maximum points that should still fit in memory
+        for i in 0..15 {
+            data.push(Point2D::new(i as f32, i as f32)).unwrap();
+        }
+        
+        let result = chart.interpolate_data(&data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_transform_curve_point() {
+        let chart: CurveChart<Rgb565> = CurveChart::new();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let bounds = DataBounds::<f32, f32> {
+            min_x: 0.0,
+            max_x: 10.0,
+            min_y: 0.0,
+            max_y: 20.0,
+        };
+        
+        // Test point at origin
+        let point = Point2D::new(0.0, 0.0);
+        let screen_point = chart.transform_curve_point(&point, &bounds, viewport);
+        
+        // Origin should be at bottom-left (with margins)
+        assert_eq!(screen_point.x, 10); // Left margin
+        assert_eq!(screen_point.y, 89); // Bottom of viewport minus bottom margin
+        
+        // Test point at max
+        let point = Point2D::new(10.0, 20.0);
+        let screen_point = chart.transform_curve_point(&point, &bounds, viewport);
+        
+        // Max should be at top-right (with margins)
+        assert_eq!(screen_point.x, 189); // Right edge minus right margin
+        assert_eq!(screen_point.y, 10); // Top margin
+    }
+
+    #[test]
+    fn test_transform_curve_point_equal_bounds() {
+        let chart: CurveChart<Rgb565> = CurveChart::new();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        
+        // Test with equal min/max bounds (edge case)
+        let bounds = DataBounds::<f32, f32> {
+            min_x: 5.0,
+            max_x: 5.0, // Same as min
+            min_y: 10.0,
+            max_y: 10.0, // Same as min
+        };
+        
+        let point = Point2D::new(5.0, 10.0);
+        let screen_point = chart.transform_curve_point(&point, &bounds, viewport);
+        
+        // Should center the point when bounds are equal
+        assert_eq!(screen_point.x, 99); // Center X with margins
+        assert_eq!(screen_point.y, 50); // Center Y with margins
+    }
+
+    #[test]
+    fn test_draw_empty_data() {
+        let chart: CurveChart<Rgb565> = CurveChart::new();
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(matches!(result, Err(ChartError::InsufficientData)));
+    }
+
+    #[test]
+    fn test_draw_single_point() {
+        let chart: CurveChart<Rgb565> = CurveChart::new();
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(5.0, 10.0)).unwrap();
+        
+        // Single point should fall back to base chart
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_all_builder_methods() {
+        let grid = crate::grid::GridSystem::new();
+        let x_axis = crate::axes::LinearAxis::new(
+            0.0, 
+            100.0, 
+            crate::axes::AxisOrientation::Horizontal,
+            crate::axes::AxisPosition::Bottom
+        );
+        let y_axis = crate::axes::LinearAxis::new(
+            0.0, 
+            50.0, 
+            crate::axes::AxisOrientation::Vertical,
+            crate::axes::AxisPosition::Left
+        );
+        
+        let chart: CurveChart<Rgb565> = CurveChart::builder()
+            .line_color(Rgb565::GREEN)
+            .line_width(4)
+            .interpolation_type(InterpolationType::CatmullRom)
+            .subdivisions(16)
+            .tension(0.6)
+            .closed(true)
+            .fill_area(Rgb565::CYAN)
+            .with_markers(MarkerStyle {
+                shape: crate::chart::line::MarkerShape::Square,
+                size: 6,
+                color: Rgb565::YELLOW,
+                visible: true,
+            })
+            .with_title("Test Chart")
+            .background_color(Rgb565::BLACK)
+            .margins(Margins::new(5, 5, 5, 5))
+            .with_grid(grid)
+            .with_x_axis(x_axis)
+            .with_y_axis(y_axis)
+            .build()
+            .unwrap();
+        
+        assert_eq!(chart.style().line_color, Rgb565::GREEN);
+        assert_eq!(chart.style().line_width, 4);
+        assert_eq!(chart.interpolation_config().interpolation_type, InterpolationType::CatmullRom);
+        assert_eq!(chart.interpolation_config().subdivisions, 16);
+        assert_eq!(chart.interpolation_config().tension, 0.6);
+        assert!(chart.interpolation_config().closed);
+        assert!(chart.style().fill_area);
+        assert_eq!(chart.style().fill_color, Some(Rgb565::CYAN));
+        assert!(chart.style().markers.is_some());
+        assert_eq!(chart.config().margins.top, 5);
+        assert!(chart.grid().is_some());
+    }
+
+    #[test]
+    fn test_setters_and_getters() {
+        let mut chart: CurveChart<Rgb565> = CurveChart::new();
+        
+        // Test interpolation config setter
+        let config = InterpolationConfig {
+            interpolation_type: InterpolationType::Linear,
+            subdivisions: 20,
+            tension: 0.3,
+            closed: true,
+        };
+        chart.set_interpolation_config(config.clone());
+        assert_eq!(chart.interpolation_config().interpolation_type, InterpolationType::Linear);
+        assert_eq!(chart.interpolation_config().subdivisions, 20);
+        
+        // Test style setter
+        let style = LineChartStyle {
+            line_color: Rgb565::MAGENTA,
+            line_width: 5,
+            fill_area: true,
+            fill_color: Some(Rgb565::RED),
+            markers: None,
+            smooth: true,
+            smooth_subdivisions: 10,
+        };
+        chart.set_style(style);
+        assert_eq!(chart.style().line_color, Rgb565::MAGENTA);
+        assert_eq!(chart.style().line_width, 5);
+        
+        // Test config setter
+        let config = ChartConfig {
+            title: None,
+            background_color: Some(Rgb565::WHITE),
+            margins: Margins::all(15),
+            show_grid: true,
+            grid_color: Some(Rgb565::CSS_GRAY),
+        };
+        chart.set_config(config);
+        assert_eq!(chart.config().margins.top, 15);
+        assert!(chart.config().show_grid);
+        
+        // Test grid setter
+        let grid = crate::grid::GridSystem::new();
+        chart.set_grid(Some(grid));
+        assert!(chart.grid().is_some());
+        
+        // Test none grid
+        chart.set_grid(None);
+        assert!(chart.grid().is_none());
+    }
+
+    #[test]
+    fn test_draw_with_markers() {
+        let chart: CurveChart<Rgb565> = CurveChart::builder()
+            .line_color(Rgb565::BLUE)
+            .with_markers(MarkerStyle {
+                shape: crate::chart::line::MarkerShape::Circle,
+                size: 4,
+                color: Rgb565::RED,
+                visible: true,
+            })
+            .build()
+            .unwrap();
+            
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(0.0, 0.0)).unwrap();
+        data.push(Point2D::new(5.0, 10.0)).unwrap();
+        data.push(Point2D::new(10.0, 5.0)).unwrap();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_draw_with_invisible_markers() {
+        let chart: CurveChart<Rgb565> = CurveChart::builder()
+            .line_color(Rgb565::BLUE)
+            .with_markers(MarkerStyle {
+                shape: crate::chart::line::MarkerShape::Circle,
+                size: 4,
+                color: Rgb565::RED,
+                visible: false, // Invisible markers
+            })
+            .build()
+            .unwrap();
+            
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(0.0, 0.0)).unwrap();
+        data.push(Point2D::new(5.0, 10.0)).unwrap();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_edge_case_subdivisions() {
+        // Test minimum clamping
+        let chart: CurveChart<Rgb565> = CurveChart::builder()
+            .subdivisions(0) // Should clamp to 2
+            .build()
+            .unwrap();
+        assert_eq!(chart.interpolation_config().subdivisions, 2);
+        
+        // Test within range
+        let chart: CurveChart<Rgb565> = CurveChart::builder()
+            .subdivisions(15)
+            .build()
+            .unwrap();
+        assert_eq!(chart.interpolation_config().subdivisions, 15);
+    }
+
+    #[test]
+    fn test_edge_case_tension() {
+        // Test negative tension
+        let chart: CurveChart<Rgb565> = CurveChart::builder()
+            .tension(-0.5) // Should clamp to 0.0
+            .build()
+            .unwrap();
+        assert_eq!(chart.interpolation_config().tension, 0.0);
+        
+        // Test within range
+        let chart: CurveChart<Rgb565> = CurveChart::builder()
+            .tension(0.7)
+            .build()
+            .unwrap();
+        assert_eq!(chart.interpolation_config().tension, 0.7);
+    }
+
+    #[test]
+    fn test_builder_default() {
+        let builder: CurveChartBuilder<Rgb565> = CurveChartBuilder::default();
+        let chart = builder.build().unwrap();
+        
+        assert_eq!(
+            chart.interpolation_config().interpolation_type,
+            InterpolationType::CubicSpline
+        );
+    }
+
+    #[test]
+    fn test_draw_with_fill_area_without_color() {
+        let mut chart: CurveChart<Rgb565> = CurveChart::builder()
+            .line_color(Rgb565::BLUE)
+            .build()
+            .unwrap();
+            
+        // Manually set fill_area true but no fill_color
+        let mut style = chart.style().clone();
+        style.fill_area = true;
+        style.fill_color = None;
+        chart.set_style(style);
+            
+        let config = ChartConfig::default();
+        let viewport = Rectangle::new(Point::new(0, 0), Size::new(200, 100));
+        let mut display: MockDisplay<Rgb565> = MockDisplay::new();
+        display.set_allow_overdraw(true);
+        display.set_allow_out_of_bounds_drawing(true);
+        
+        let mut data: StaticDataSeries<Point2D, 256> = StaticDataSeries::new();
+        data.push(Point2D::new(0.0, 0.0)).unwrap();
+        data.push(Point2D::new(5.0, 10.0)).unwrap();
+        
+        let result = chart.draw(&data, &config, viewport, &mut display);
+        assert!(result.is_ok());
     }
 }
