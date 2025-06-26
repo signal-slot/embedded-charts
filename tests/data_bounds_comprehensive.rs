@@ -3,7 +3,7 @@
 
 use embedded_charts::data::{
     bounds::{calculate_bounds, calculate_multi_series_bounds, DataBounds, FloatBounds, IntBounds},
-    point::{Point2D, IntPoint},
+    point::{IntPoint, Point2D},
 };
 use embedded_charts::error::DataError;
 use heapless::Vec;
@@ -153,7 +153,7 @@ fn test_float_bounds_nice_bounds() {
     // Simple case
     let bounds: FloatBounds = DataBounds::new(1.2, 8.7, 2.3, 17.8).unwrap();
     let nice = bounds.nice_bounds();
-    
+
     // The nice bounds should have rounded ranges
     assert!(nice.width() >= bounds.width());
     assert!(nice.height() >= bounds.height());
@@ -254,9 +254,8 @@ fn test_calculate_multi_series_bounds() {
     all_series.push(series2).unwrap();
     all_series.push(series3).unwrap();
 
-    let bounds = calculate_multi_series_bounds(
-        all_series.into_iter().map(|s| s.into_iter())
-    ).unwrap();
+    let bounds =
+        calculate_multi_series_bounds(all_series.into_iter().map(|s| s.into_iter())).unwrap();
 
     assert_eq!(bounds.min_x, -2.0);
     assert_eq!(bounds.max_x, 7.0);
@@ -267,9 +266,7 @@ fn test_calculate_multi_series_bounds() {
 #[test]
 fn test_calculate_multi_series_bounds_empty() {
     let series: Vec<Vec<Point2D, 4>, 2> = Vec::new();
-    let result = calculate_multi_series_bounds(
-        series.into_iter().map(|s| s.into_iter())
-    );
+    let result = calculate_multi_series_bounds(series.into_iter().map(|s| s.into_iter()));
     assert!(result.is_err());
     assert_eq!(result.unwrap_err(), DataError::INSUFFICIENT_DATA);
 }
@@ -286,9 +283,7 @@ fn test_calculate_multi_series_bounds_empty_series() {
     all_series.push(series2).unwrap();
 
     // This should fail because series2 is empty
-    let result = calculate_multi_series_bounds(
-        all_series.into_iter().map(|s| s.into_iter())
-    );
+    let result = calculate_multi_series_bounds(all_series.into_iter().map(|s| s.into_iter()));
     assert!(result.is_err());
 }
 
@@ -309,10 +304,10 @@ fn test_int_bounds() {
 
 #[test]
 fn test_bounds_with_nan_values() {
-    // While the DataBounds itself doesn't check for NaN, 
+    // While the DataBounds itself doesn't check for NaN,
     // this tests the behavior when NaN values are present
     let bounds: FloatBounds = DataBounds::new(0.0, 10.0, 0.0, 10.0).unwrap();
-    
+
     // NaN comparison always returns false, so contains should return false
     assert!(!bounds.contains(&Point2D::new(f32::NAN, 5.0)));
     assert!(!bounds.contains(&Point2D::new(5.0, f32::NAN)));
@@ -324,7 +319,7 @@ fn test_bounds_partial_ord_edge_cases() {
     // Test with types that implement PartialOrd
     #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
     struct CustomValue(f32);
-    
+
     impl core::ops::Sub for CustomValue {
         type Output = Self;
         fn sub(self, rhs: Self) -> Self::Output {
@@ -332,14 +327,14 @@ fn test_bounds_partial_ord_edge_cases() {
         }
     }
 
-    let bounds: DataBounds<CustomValue, CustomValue> = 
-        DataBounds::new(
-            CustomValue(0.0), 
-            CustomValue(10.0), 
-            CustomValue(-5.0), 
-            CustomValue(15.0)
-        ).unwrap();
-    
+    let bounds: DataBounds<CustomValue, CustomValue> = DataBounds::new(
+        CustomValue(0.0),
+        CustomValue(10.0),
+        CustomValue(-5.0),
+        CustomValue(15.0),
+    )
+    .unwrap();
+
     assert_eq!(bounds.width().0, 10.0);
     assert_eq!(bounds.height().0, 20.0);
 }
@@ -371,7 +366,7 @@ fn test_nice_bounds_edge_cases() {
 #[test]
 fn test_bounds_debug_format() {
     let bounds: FloatBounds = DataBounds::new(0.0, 10.0, -5.0, 15.0).unwrap();
-    let debug_str = format!("{:?}", bounds);
+    let debug_str = format!("{bounds:?}");
     assert!(debug_str.contains("DataBounds"));
     assert!(debug_str.contains("min_x: 0.0"));
     assert!(debug_str.contains("max_x: 10.0"));
@@ -379,12 +374,12 @@ fn test_bounds_debug_format() {
     assert!(debug_str.contains("max_y: 15.0"));
 }
 
-#[test] 
+#[test]
 fn test_bounds_equality() {
     let bounds1: FloatBounds = DataBounds::new(0.0, 10.0, 0.0, 10.0).unwrap();
     let bounds2: FloatBounds = DataBounds::new(0.0, 10.0, 0.0, 10.0).unwrap();
     let bounds3: FloatBounds = DataBounds::new(0.0, 10.0, 0.0, 11.0).unwrap();
-    
+
     assert_eq!(bounds1, bounds2);
     assert_ne!(bounds1, bounds3);
 }
@@ -392,14 +387,14 @@ fn test_bounds_equality() {
 #[test]
 fn test_bounds_clone() {
     let bounds: FloatBounds = DataBounds::new(1.0, 2.0, 3.0, 4.0).unwrap();
-    let cloned = bounds.clone();
+    let cloned = bounds;
     assert_eq!(bounds, cloned);
 }
 
 #[test]
 fn test_multiple_expansions() {
     let mut bounds = DataBounds::new(5.0, 5.0, 5.0, 5.0).unwrap();
-    
+
     // Expand gradually in all directions
     let points = [
         Point2D::new(4.0, 5.0),
@@ -409,11 +404,11 @@ fn test_multiple_expansions() {
         Point2D::new(3.0, 3.0),
         Point2D::new(7.0, 7.0),
     ];
-    
+
     for point in &points {
         bounds.expand_to_include(point);
     }
-    
+
     assert_eq!(bounds.min_x, 3.0);
     assert_eq!(bounds.max_x, 7.0);
     assert_eq!(bounds.min_y, 3.0);
