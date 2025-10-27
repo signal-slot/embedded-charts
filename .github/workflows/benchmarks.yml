@@ -63,7 +63,7 @@ jobs:
     
     # Upload benchmark results as artifacts
     - name: Upload benchmark results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: benchmark-results
         path: target/criterion
@@ -126,7 +126,7 @@ jobs:
         cargo bench --no-default-features --features "${{ matrix.features }}" --bench memory_usage
     
     - name: Upload memory benchmark results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: memory-benchmark-${{ strategy.job-index }}
         path: target/criterion/memory_usage

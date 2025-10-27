@@ -45,7 +45,7 @@ jobs:
       continue-on-error: true
     
     - name: Upload audit results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: security-audit-results
@@ -95,7 +95,7 @@ jobs:
       continue-on-error: true
     
     - name: Upload supply chain report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: supply-chain-report
@@ -128,7 +128,7 @@ jobs:
         echo "License check passed"
     
     - name: Upload license report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: license-report
