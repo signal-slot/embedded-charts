@@ -57,7 +57,7 @@ jobs:
         time cargo test --no-default-features --features "no_std,integer-math" --release 2>&1 | grep "finished in" | tee -a benchmark-results.md
     
     - name: Upload benchmark results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: benchmark-results
@@ -120,7 +120,7 @@ jobs:
         cargo tree --no-default-features --features "no_std,integer-math,minimal-memory" >> memory-report.md
     
     - name: Upload memory analysis
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: memory-analysis
@@ -175,7 +175,7 @@ jobs:
         time cargo build --all-features --timings=html,json 2>&1 | tee -a compile-time-report.md
     
     - name: Upload compile time analysis
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: compile-time-analysis
