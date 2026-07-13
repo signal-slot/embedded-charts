@@ -514,7 +514,7 @@ where
     }
 
     /// Get an iterator over all series
-    pub fn iter_series(&self) -> core::slice::Iter<StaticDataSeries<T, POINTS>> {
+    pub fn iter_series(&self) -> core::slice::Iter<'_, StaticDataSeries<T, POINTS>> {
         self.series.iter()
     }
 

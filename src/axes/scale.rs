@@ -385,9 +385,10 @@ where
 }
 
 /// Enumeration of available scale types
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum AxisScaleType {
     /// Linear scale (default)
+    #[default]
     Linear,
     /// Logarithmic scale with base 10
     Log10,
@@ -397,12 +398,6 @@ pub enum AxisScaleType {
     LogBase(f32),
     /// Custom scale (requires transformation functions)
     Custom,
-}
-
-impl Default for AxisScaleType {
-    fn default() -> Self {
-        Self::Linear
-    }
 }
 
 /// Main axis scale container

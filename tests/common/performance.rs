@@ -125,11 +125,7 @@ impl PerformanceBenchmark {
 
         // Allow up to 10x slowdown for 256x more data (very generous)
         let max_acceptable_ratio = 10;
-        let actual_ratio = if first_time > 0 {
-            last_time / first_time
-        } else {
-            1
-        };
+        let actual_ratio = last_time.checked_div(first_time).unwrap_or(1);
 
         if actual_ratio > max_acceptable_ratio {
             return Err(embedded_charts::error::ChartError::InvalidRange);

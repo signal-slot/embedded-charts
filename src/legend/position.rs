@@ -4,7 +4,7 @@ use crate::error::ChartResult;
 use embedded_graphics::{prelude::*, primitives::Rectangle};
 
 /// Legend position options
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum LegendPosition {
     /// Top of the chart
     Top,
@@ -13,6 +13,7 @@ pub enum LegendPosition {
     /// Left side of the chart
     Left,
     /// Right side of the chart
+    #[default]
     Right,
     /// Top-left corner
     TopLeft,
@@ -29,9 +30,10 @@ pub enum LegendPosition {
 }
 
 /// Legend alignment within its position
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum LegendAlignment {
     /// Start alignment (left for horizontal, top for vertical)
+    #[default]
     Start,
     /// Center alignment
     Center,
@@ -338,18 +340,6 @@ impl LegendMargins {
     /// Get total vertical margins
     pub const fn vertical(&self) -> u32 {
         self.top + self.bottom
-    }
-}
-
-impl Default for LegendPosition {
-    fn default() -> Self {
-        Self::Right
-    }
-}
-
-impl Default for LegendAlignment {
-    fn default() -> Self {
-        Self::Start
     }
 }
 

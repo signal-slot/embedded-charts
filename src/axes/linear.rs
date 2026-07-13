@@ -300,14 +300,13 @@ where
         // Draw labels
         if self.config.show_labels && self.style.labels.visible {
             for tick in &ticks {
-                if tick.is_major && tick.label.is_some() {
-                    let tick_pos = self.calculate_tick_position(tick.value, viewport);
-                    let label_pos = self.calculate_label_position(tick_pos);
-                    self.renderer.draw_label(
-                        tick.label.as_ref().unwrap().as_str(),
-                        label_pos,
-                        target,
-                    )?;
+                if tick.is_major {
+                    if let Some(label) = &tick.label {
+                        let tick_pos = self.calculate_tick_position(tick.value, viewport);
+                        let label_pos = self.calculate_label_position(tick_pos);
+                        self.renderer
+                            .draw_label(label.as_str(), label_pos, target)?;
+                    }
                 }
             }
         }
@@ -437,14 +436,13 @@ where
         // Draw labels
         if self.config.show_labels && self.style.labels.visible {
             for tick in &ticks {
-                if tick.is_major && tick.label.is_some() {
-                    let tick_pos = self.calculate_tick_position(tick.value, viewport);
-                    let label_pos = self.calculate_label_position(tick_pos);
-                    self.renderer.draw_label(
-                        tick.label.as_ref().unwrap().as_str(),
-                        label_pos,
-                        target,
-                    )?;
+                if tick.is_major {
+                    if let Some(label) = &tick.label {
+                        let tick_pos = self.calculate_tick_position(tick.value, viewport);
+                        let label_pos = self.calculate_label_position(tick_pos);
+                        self.renderer
+                            .draw_label(label.as_str(), label_pos, target)?;
+                    }
                 }
             }
         }

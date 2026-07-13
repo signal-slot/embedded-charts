@@ -1,9 +1,9 @@
 //! Comprehensive tests for colors module
 
-use embedded_charts::{
-    error::DataError,
-    style::colors::{ColorPalette, ColorUtils},
-};
+use embedded_charts::{error::DataError, style::colors::ColorPalette};
+
+#[cfg(feature = "color-support")]
+use embedded_charts::style::colors::ColorUtils;
 use embedded_graphics::pixelcolor::BinaryColor;
 
 #[cfg(feature = "color-support")]

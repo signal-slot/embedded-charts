@@ -134,7 +134,7 @@ mod curve_tests {
                 .subdivisions(8)
                 .build()?;
 
-            ChartTestSuite::test_chart_rendering(&chart, &[test_data.clone()])?;
+            ChartTestSuite::test_chart_rendering(&chart, std::slice::from_ref(&test_data))?;
         }
 
         Ok(())
@@ -162,7 +162,7 @@ mod curve_tests {
                     .subdivisions(subdivisions)
                     .build()?;
 
-                ChartTestSuite::test_chart_rendering(&chart, &[test_data.clone()])?;
+                ChartTestSuite::test_chart_rendering(&chart, std::slice::from_ref(&test_data))?;
             }
         }
 
@@ -185,7 +185,7 @@ mod curve_tests {
                 .subdivisions(8)
                 .build()?;
 
-            ChartTestSuite::test_chart_rendering(&chart, &[test_data.clone()])?;
+            ChartTestSuite::test_chart_rendering(&chart, std::slice::from_ref(&test_data))?;
         }
 
         Ok(())
@@ -212,7 +212,7 @@ mod curve_tests {
                 .closed(true)
                 .build()?;
 
-            ChartTestSuite::test_chart_rendering(&chart, &[test_data.clone()])?;
+            ChartTestSuite::test_chart_rendering(&chart, std::slice::from_ref(&test_data))?;
         }
 
         Ok(())
@@ -248,7 +248,7 @@ mod curve_tests {
                     .with_markers(marker_style)
                     .build()?;
 
-                ChartTestSuite::test_chart_rendering(&chart, &[test_data.clone()])?;
+                ChartTestSuite::test_chart_rendering(&chart, std::slice::from_ref(&test_data))?;
             }
         }
 
@@ -276,7 +276,7 @@ mod curve_tests {
                 .subdivisions(8)
                 .build()?;
 
-            ChartTestSuite::test_chart_rendering(&chart, &[test_data.clone()])?;
+            ChartTestSuite::test_chart_rendering(&chart, std::slice::from_ref(&test_data))?;
         }
 
         Ok(())
@@ -375,7 +375,7 @@ mod curve_tests {
         let edge_cases = data_generators::generate_edge_case_data();
 
         for (i, data) in edge_cases.iter().enumerate() {
-            let result = ChartTestSuite::test_chart_rendering(&chart, &[data.clone()]);
+            let result = ChartTestSuite::test_chart_rendering(&chart, std::slice::from_ref(data));
 
             // First two cases (empty and single point) should fail
             if i <= 1 {

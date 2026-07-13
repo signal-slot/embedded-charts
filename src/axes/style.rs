@@ -47,11 +47,12 @@ pub struct LabelStyle<C: PixelColor> {
 }
 
 /// Text alignment options for labels
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum TextAlignment {
     /// Align text to the left/top
     Start,
     /// Center text
+    #[default]
     Center,
     /// Align text to the right/bottom
     End,
@@ -268,12 +269,6 @@ where
 {
     fn default() -> Self {
         Self::new(embedded_graphics::pixelcolor::Rgb565::BLACK.into())
-    }
-}
-
-impl Default for TextAlignment {
-    fn default() -> Self {
-        Self::Center
     }
 }
 

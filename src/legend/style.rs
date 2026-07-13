@@ -76,9 +76,10 @@ pub struct SpacingStyle {
 }
 
 /// Text alignment options
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum TextAlignment {
     /// Left-aligned text
+    #[default]
     Left,
     /// Center-aligned text
     Center,
@@ -87,11 +88,12 @@ pub enum TextAlignment {
 }
 
 /// Symbol rendering quality options
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SymbolQuality {
     /// Fast rendering with basic shapes
     Fast,
     /// Standard quality with anti-aliasing where possible
+    #[default]
     Standard,
     /// High quality with smooth curves (may be slower)
     High,
@@ -513,18 +515,6 @@ impl<C: PixelColor> Default for BackgroundStyle<C> {
 impl Default for SpacingStyle {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl Default for TextAlignment {
-    fn default() -> Self {
-        Self::Left
-    }
-}
-
-impl Default for SymbolQuality {
-    fn default() -> Self {
-        Self::Standard
     }
 }
 

@@ -120,13 +120,13 @@ fn test_static_data_series_extend() -> DataResult<()> {
         Point2D::new(3.0, 30.0),
     ];
 
-    series.extend(points.into_iter())?;
+    series.extend(points)?;
     assert_eq!(series.len(), 3);
 
     // Test extend with additional points
     let more_points = [Point2D::new(4.0, 40.0), Point2D::new(5.0, 50.0)];
 
-    series.extend(more_points.into_iter())?;
+    series.extend(more_points)?;
     assert_eq!(series.len(), 5);
 
     Ok(())

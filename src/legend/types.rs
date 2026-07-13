@@ -16,9 +16,10 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 /// Legend orientation options
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum LegendOrientation {
     /// Vertical layout (entries stacked vertically)
+    #[default]
     Vertical,
     /// Horizontal layout (entries arranged horizontally)
     Horizontal,
@@ -794,12 +795,6 @@ impl<C: PixelColor> LegendEntry<C> for CompactLegendEntry<C> {
 
 // Similar implementations for CompactLegend and CustomLegend would follow the same pattern
 // but with their respective constraints and features
-
-impl Default for LegendOrientation {
-    fn default() -> Self {
-        Self::Vertical
-    }
-}
 
 impl Default for CustomLayoutParams {
     fn default() -> Self {

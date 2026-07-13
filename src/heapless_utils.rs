@@ -388,7 +388,7 @@ impl<T: Copy, const N: usize> CircularBuffer<T, N> {
     }
 
     /// Iterate over items in chronological order
-    pub fn iter(&self) -> CircularBufferIter<T, N> {
+    pub fn iter(&self) -> CircularBufferIter<'_, T, N> {
         CircularBufferIter {
             buffer: &self.buffer,
             current: self.tail,

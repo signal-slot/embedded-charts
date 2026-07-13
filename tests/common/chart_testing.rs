@@ -231,7 +231,7 @@ pub mod line_chart_testing {
                     }))
                     .build()?;
 
-                ChartTestSuite::test_chart_rendering(&chart, &[data.clone()])?;
+                ChartTestSuite::test_chart_rendering(&chart, std::slice::from_ref(data))?;
             }
 
             Ok(())
@@ -245,7 +245,7 @@ pub mod line_chart_testing {
                 .fill_area(TestColors::SECONDARY)
                 .build()?;
 
-            ChartTestSuite::test_chart_rendering(&chart, &[data.clone()])?;
+            ChartTestSuite::test_chart_rendering(&chart, std::slice::from_ref(data))?;
             Ok(())
         }
 
@@ -261,7 +261,7 @@ pub mod line_chart_testing {
                     .smooth_subdivisions(subdivisions)
                     .build()?;
 
-                ChartTestSuite::test_chart_rendering(&chart, &[data.clone()])?;
+                ChartTestSuite::test_chart_rendering(&chart, std::slice::from_ref(data))?;
             }
 
             Ok(())
@@ -277,7 +277,7 @@ pub mod line_chart_testing {
                     .line_width(width)
                     .build()?;
 
-                ChartTestSuite::test_chart_rendering(&chart, &[data.clone()])?;
+                ChartTestSuite::test_chart_rendering(&chart, std::slice::from_ref(data))?;
             }
 
             Ok(())
